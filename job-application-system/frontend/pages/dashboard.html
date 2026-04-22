@@ -1,0 +1,1133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Dashboard — JobTrack</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    /* ══ TAB FIX ══ */
+    .tab-panel { display:none !important; opacity:1 !important; transform:none !important; animation:none !important; }
+    .tab-panel.active { display:block !important; }
+
+    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.5} }
+    .live-dot { width:6px; height:6px; border-radius:50%; background:var(--green); animation:pulse 2s infinite; flex-shrink:0; }
+
+    /* ── Topbar ── */
+    .dash-topbar { height:52px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; padding:0 24px; position:sticky; top:0; z-index:40; background:rgba(10,10,10,0.92); backdrop-filter:blur(8px); }
+    .dash-breadcrumb { font-size:12px; color:var(--ink-muted); font-family:var(--mono); }
+    .dash-breadcrumb strong { color:var(--ink); }
+
+    /* ── Stat cards ── */
+    .stat-cards { display:grid; grid-template-columns:repeat(4,1fr); gap:10px; margin-bottom:20px; }
+    .stat-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 18px; position:relative; overflow:hidden; transition:border-color 0.15s,transform 0.15s; }
+    .stat-card::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--border); }
+    .stat-card.c-pending::before { background:var(--gold); }
+    .stat-card.c-accept::before  { background:var(--green); }
+    .stat-card.c-reject::before  { background:var(--red); }
+    .stat-card:hover { border-color:rgba(255,255,255,0.14); transform:translateY(-1px); }
+    .stat-card-label { font-size:10px; font-weight:600; text-transform:uppercase; letter-spacing:0.08em; color:var(--ink-muted); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .sl-dot { width:6px; height:6px; border-radius:50%; background:var(--border); flex-shrink:0; }
+    .stat-card.c-pending .sl-dot { background:var(--gold); }
+    .stat-card.c-accept  .sl-dot { background:var(--green); }
+    .stat-card.c-reject  .sl-dot { background:var(--red); }
+    .stat-card-num { font-size:36px; font-weight:700; font-family:var(--mono); letter-spacing:-2px; color:var(--ink); line-height:1; }
+    .stat-card-num.green { color:var(--green); }
+    .stat-card-num.red   { color:var(--red); }
+    .stat-card-num.gold  { color:var(--gold); }
+
+    /* ── Profile strip (applicant) ── */
+    .profile-strip { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:16px; }
+    .ps-avatar { width:52px; height:52px; border-radius:50%; background:var(--surface3); border:2px solid var(--border); display:grid; place-items:center; font-size:20px; font-weight:700; color:var(--ink-muted); overflow:hidden; }
+    .ps-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .ps-info h2 { font-size:15px; font-weight:600; margin-bottom:2px; }
+    .ps-info p  { font-size:12px; color:var(--ink-muted); }
+    .ps-social { display:flex; gap:8px; flex-wrap:wrap; }
+    .ps-social a { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink-muted); padding:5px 10px; background:var(--surface2); border-radius:var(--radius); border:1px solid var(--border); transition:all 0.15s; }
+    .ps-social a:hover { color:var(--ink); }
+
+    /* ── Pill tabs ── */
+    .pill-tabs { display:flex; gap:0; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:4px; margin-bottom:18px; width:fit-content; }
+    .pill-tab { padding:7px 16px; background:none; border:none; border-radius:var(--radius); font-family:var(--font); font-size:12px; font-weight:500; color:var(--ink-muted); cursor:pointer; transition:all 0.15s; }
+    .pill-tab:hover { color:var(--ink); background:var(--surface2); }
+    .pill-tab.active { background:var(--surface3); color:var(--ink); font-weight:600; }
+
+    /* ── Profile edit ── */
+    .profile-edit-grid { display:grid; grid-template-columns:300px 1fr; gap:14px; }
+    .profile-preview-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:28px 22px; display:flex; flex-direction:column; align-items:center; gap:14px; text-align:center; }
+    .pic-upload-wrap { position:relative; cursor:pointer; }
+    .ppc-avatar { width:100px; height:100px; border-radius:50%; background:var(--surface2); border:3px solid var(--border); display:grid; place-items:center; font-size:36px; font-weight:700; color:var(--ink-muted); overflow:hidden; transition:border-color 0.2s; }
+    .ppc-avatar img { width:100%; height:100%; object-fit:cover; }
+    .pic-upload-wrap:hover .ppc-avatar { border-color:rgba(255,255,255,0.25); }
+    .pic-upload-overlay { position:absolute; inset:0; border-radius:50%; background:rgba(0,0,0,0.55); display:grid; place-items:center; opacity:0; transition:opacity 0.2s; font-size:20px; }
+    .pic-upload-wrap:hover .pic-upload-overlay { opacity:1; }
+    .pic-hint { font-size:11px; color:var(--ink-muted); font-family:var(--mono); }
+    .ppc-name { font-size:15px; font-weight:600; }
+    .ppc-role { font-size:10px; font-family:var(--mono); color:var(--ink-muted); text-transform:uppercase; letter-spacing:0.1em; }
+    .ppc-about { font-size:12px; color:var(--ink-muted); line-height:1.6; width:100%; text-align:left; }
+    .ppc-social { width:100%; display:flex; flex-direction:column; gap:6px; }
+    .ppc-social-row { display:flex; align-items:center; gap:8px; padding:7px 10px; background:var(--surface2); border-radius:var(--radius); font-size:12px; color:var(--ink-soft); border:1px solid var(--border); }
+    .profile-fields-card { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; }
+    .pfc-header { padding:12px 18px; border-bottom:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; background:var(--surface2); }
+    .pfc-header h3 { font-size:13px; font-weight:600; }
+    .pfc-body { padding:18px; }
+
+    /* ══ EMPLOYER PROFILE CARD — big, prominent ══ */
+    .emp-profile-hero {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:var(--radius-lg);
+      overflow:hidden;
+      margin-bottom:16px;
+      position:relative;
+    }
+    .emp-profile-banner {
+      height:140px;
+      background:linear-gradient(135deg, #1a1a2e 0%, #16213e 40%, #0f3460 100%);
+      position:relative;
+      overflow:hidden;
+    }
+    .emp-profile-banner-img {
+      width:100%; height:100%; object-fit:cover; display:none;
+    }
+    .emp-profile-banner-pattern {
+      position:absolute; inset:0;
+      background-image: linear-gradient(rgba(255,255,255,0.03) 1px,transparent 1px), linear-gradient(90deg,rgba(255,255,255,0.03) 1px,transparent 1px);
+      background-size:24px 24px;
+    }
+    .emp-banner-edit-btn {
+      position:absolute; bottom:10px; right:12px;
+      display:flex; align-items:center; gap:6px;
+      font-size:11px; font-weight:500; color:rgba(255,255,255,0.7);
+      background:rgba(0,0,0,0.4); border:1px solid rgba(255,255,255,0.15);
+      padding:5px 10px; border-radius:var(--radius); cursor:pointer;
+      transition:all 0.15s; font-family:var(--font);
+    }
+    .emp-banner-edit-btn:hover { background:rgba(0,0,0,0.65); color:white; }
+
+    .emp-profile-body {
+      padding:0 28px 24px;
+      display:grid;
+      grid-template-columns:auto 1fr auto;
+      gap:20px;
+      align-items:flex-end;
+    }
+    .emp-avatar-wrap {
+      margin-top:-40px;
+      position:relative; flex-shrink:0; cursor:pointer;
+    }
+    .emp-avatar {
+      width:80px; height:80px; border-radius:16px;
+      background:var(--surface2); border:3px solid var(--bg);
+      display:grid; place-items:center; font-size:28px; font-weight:700;
+      color:var(--ink-muted); overflow:hidden; transition:border-color 0.2s;
+    }
+    .emp-avatar img { width:100%; height:100%; object-fit:cover; border-radius:13px; }
+    .emp-avatar-wrap:hover .emp-avatar { border-color:rgba(127,255,0,0.4); }
+    .emp-avatar-overlay { position:absolute; inset:0; border-radius:16px; background:rgba(0,0,0,0.55); display:grid; place-items:center; opacity:0; transition:opacity 0.2s; font-size:18px; }
+    .emp-avatar-wrap:hover .emp-avatar-overlay { opacity:1; }
+
+    .emp-profile-info { padding-top:12px; }
+    .emp-profile-name { font-size:18px; font-weight:700; letter-spacing:-0.3px; margin-bottom:3px; }
+    .emp-profile-role { font-size:11px; font-family:var(--mono); color:var(--accent); text-transform:uppercase; letter-spacing:0.1em; margin-bottom:6px; }
+    .emp-profile-bio  { font-size:13px; color:var(--ink-muted); line-height:1.6; max-width:500px; }
+    .emp-profile-contact { display:flex; gap:8px; flex-wrap:wrap; margin-top:10px; }
+    .emp-contact-tag { display:flex; align-items:center; gap:5px; font-size:11px; color:var(--ink-soft); padding:4px 10px; background:var(--surface2); border-radius:100px; border:1px solid var(--border); }
+    .emp-profile-actions { padding-top:12px; display:flex; flex-direction:column; gap:6px; align-items:flex-end; }
+
+    /* ── Employer Edit Panel ── */
+    .emp-edit-grid { display:grid; grid-template-columns:1fr 1fr; gap:12px; }
+    .emp-edit-full { grid-column:1/-1; }
+
+    /* ── Interest Grid ── */
+    .interest-grid-wrap { display:grid; grid-template-columns:repeat(5,1fr); gap:10px; }
+    .int-chip { display:flex; flex-direction:column; align-items:center; justify-content:center; gap:10px; padding:18px 10px 14px; background:var(--surface); border:1px solid var(--border); border-radius:14px; cursor:pointer; transition:all 0.18s; text-align:center; position:relative; overflow:hidden; }
+    .int-chip::before { content:''; position:absolute; top:0; left:0; right:0; height:2px; background:var(--border); border-radius:2px 2px 0 0; }
+    .int-chip:hover { background:var(--surface2); border-color:rgba(255,255,255,0.14); transform:translateY(-2px); }
+    .int-chip.active { background:rgba(127,255,0,0.07); border-color:rgba(127,255,0,0.35); }
+    .int-chip.active::before { background:var(--accent); }
+    .int-chip-icon { font-size:26px; line-height:1; }
+    .int-chip-label { font-size:11px; font-weight:500; color:var(--ink-soft); line-height:1.3; }
+    .int-chip.active .int-chip-label { color:var(--accent); }
+    .int-chip-letter { position:absolute; top:6px; left:9px; font-size:9px; font-weight:700; font-family:var(--mono); color:var(--ink-muted); }
+    .int-chip.active .int-chip-letter { color:var(--accent); }
+    .int-results-panel { display:none; margin-top:16px; }
+    .int-results-panel.show { display:block; }
+
+    /* ── Panel ── */
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:14px; }
+    .panel-header { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; border-bottom:1px solid var(--border); background:var(--surface2); }
+    .panel-header h3 { font-size:13px; font-weight:600; }
+    .panel-body { padding:18px; }
+
+    /* ── Post form ── */
+    .post-form-grid { display:grid; grid-template-columns:1fr 1fr 1fr; gap:12px; }
+    .post-form-full { grid-column:1/-1; }
+
+    /* ── Job image upload area ── */
+    .job-img-upload {
+      border:2px dashed var(--border); border-radius:var(--radius-lg);
+      padding:24px; text-align:center; cursor:pointer;
+      transition:border-color 0.2s, background 0.2s;
+      position:relative; overflow:hidden;
+    }
+    .job-img-upload:hover { border-color:rgba(127,255,0,0.4); background:rgba(127,255,0,0.03); }
+    .job-img-upload input { position:absolute; inset:0; opacity:0; cursor:pointer; }
+    .job-img-preview { width:100%; max-height:160px; object-fit:cover; border-radius:var(--radius); margin-top:10px; display:none; }
+    .job-img-hint { font-size:12px; color:var(--ink-muted); margin-top:4px; }
+
+    /* ── Cover letter modal redesign ── */
+    .cover-modal-backdrop { position:fixed; inset:0; background:rgba(0,0,0,0.85); z-index:300; display:none; align-items:center; justify-content:center; backdrop-filter:blur(6px); }
+    .cover-modal-backdrop.open { display:flex; }
+    .cover-modal-box {
+      background:var(--surface);
+      border:1px solid var(--border);
+      border-radius:16px;
+      width:90%; max-width:580px;
+      max-height:90vh;
+      overflow:hidden;
+      display:flex; flex-direction:column;
+      box-shadow:0 32px 80px rgba(0,0,0,0.8);
+      animation:coverSlideUp 0.25s cubic-bezier(0.16,1,0.3,1);
+    }
+    @keyframes coverSlideUp { from{opacity:0;transform:translateY(24px)} to{opacity:1;transform:translateY(0)} }
+    .cover-modal-header {
+      padding:20px 24px 0;
+      display:flex; justify-content:space-between; align-items:flex-start;
+    }
+    .cover-modal-applicant { display:flex; align-items:center; gap:14px; }
+    .cma-avatar { width:48px; height:48px; border-radius:50%; background:var(--surface3); border:2px solid var(--border); display:grid; place-items:center; font-size:18px; font-weight:700; overflow:hidden; flex-shrink:0; }
+    .cma-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .cma-name { font-size:15px; font-weight:600; margin-bottom:2px; }
+    .cma-email { font-size:12px; color:var(--ink-muted); }
+    .cma-job { font-size:11px; font-family:var(--mono); color:var(--accent); margin-top:3px; }
+    .cover-modal-close { background:none; border:none; cursor:pointer; color:var(--ink-muted); font-size:16px; padding:4px; border-radius:50%; width:28px; height:28px; display:grid; place-items:center; transition:all 0.15s; flex-shrink:0; }
+    .cover-modal-close:hover { background:var(--surface3); color:var(--ink); }
+    .cover-modal-divider { height:1px; background:var(--border); margin:16px 24px; }
+    .cover-modal-body { padding:0 24px 20px; overflow-y:auto; flex:1; }
+    .cover-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-muted); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+    .cover-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .cover-text { font-size:13px; color:var(--ink); line-height:1.75; white-space:pre-wrap; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px; }
+    .cover-resume-link { display:inline-flex; align-items:center; gap:8px; font-size:12px; color:var(--accent3); padding:8px 14px; background:rgba(77,159,255,0.08); border:1px solid rgba(77,159,255,0.3); border-radius:var(--radius); margin-top:14px; transition:all 0.15s; }
+    .cover-resume-link:hover { background:rgba(77,159,255,0.15); }
+    .cover-modal-footer { padding:14px 24px; border-top:1px solid var(--border); display:flex; justify-content:space-between; align-items:center; gap:10px; background:var(--surface2); flex-shrink:0; }
+    .cover-status-badge { display:inline-flex; align-items:center; gap:5px; font-size:11px; font-weight:600; font-family:var(--mono); text-transform:uppercase; }
+
+    /* ── Applicant profile modal ── */
+    .ap-modal-header { display:flex; align-items:center; gap:14px; margin-bottom:16px; }
+    .ap-modal-avatar { width:60px; height:60px; border-radius:50%; background:var(--surface3); display:grid; place-items:center; font-size:22px; font-weight:700; overflow:hidden; flex-shrink:0; }
+    .ap-modal-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+    .ap-about-box { background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:12px; font-size:13px; color:var(--ink-soft); line-height:1.65; margin-bottom:12px; }
+    .ap-social-links { display:flex; gap:8px; flex-wrap:wrap; }
+    .ap-social-links a { display:flex; align-items:center; gap:6px; font-size:12px; color:var(--ink-muted); padding:6px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); transition:all 0.15s; }
+    .ap-social-links a:hover { color:var(--ink); }
+
+    @media (max-width:900px) {
+      .profile-edit-grid { grid-template-columns:1fr; }
+      .emp-profile-body { grid-template-columns:auto 1fr; }
+      .emp-profile-actions { display:none; }
+      .stat-cards { grid-template-columns:1fr 1fr; }
+      .post-form-grid { grid-template-columns:1fr 1fr; }
+      .interest-grid-wrap { grid-template-columns:repeat(3,1fr); }
+      .emp-edit-grid { grid-template-columns:1fr; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">JT</div>
+      <div class="sidebar-logo-text">JobTrack <span id="sidebarRoleLabel"></span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <a href="../index.html"   class="sidebar-link"><span class="icon">⌂</span> Home</a>
+        <a href="jobs.html"       class="sidebar-link"><span class="icon">◈</span> Browse Jobs</a>
+        <a href="dashboard.html"  class="sidebar-link active"><span class="icon">▦</span> Dashboard</a>
+      </nav>
+    </div>
+    <!-- Applicant nav -->
+    <div class="sidebar-section" id="appSideNav" style="display:none;margin-top:8px;">
+      <div class="sidebar-section-label">My Account</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-link active app-tab-btn" onclick="showAppTab('tabProfile',this)"><span class="icon">👤</span> My Profile</button>
+        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabApps',this)"><span class="icon">📋</span> Applications <span class="sidebar-badge" id="appCountBadge">0</span></button>
+        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabInterest',this)"><span class="icon">🔍</span> Find by Interest</button>
+      </nav>
+    </div>
+    <!-- Employer nav -->
+    <div class="sidebar-section" id="empSideNav" style="display:none;margin-top:8px;">
+      <div class="sidebar-section-label">Employer</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-link active emp-tab-btn" onclick="showEmpTab('tabEmpApps',this)"><span class="icon">📥</span> Applications <span class="sidebar-badge" id="empAppBadge">0</span></button>
+        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabMyJobs',this)"><span class="icon">📌</span> My Postings</button>
+        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabPost',this)"><span class="icon">＋</span> Post a Job</button>
+        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabEmpProfile',this)"><span class="icon">🏢</span> Company Profile</button>
+      </nav>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user" id="sidebarUser"></div>
+      <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;"><span class="icon">→</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="dash-topbar">
+      <div class="dash-breadcrumb">JobTrack / <strong id="topbarTitle">Dashboard</strong></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div style="display:flex;align-items:center;gap:6px;"><div class="live-dot"></div><span style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);">Live</span></div>
+        <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ══ APPLICANT VIEW ══ -->
+      <div id="applicantView" style="display:none;">
+        <div class="profile-strip" id="profileStrip">
+          <div class="ps-avatar" id="stripAvatar">—</div>
+          <div class="ps-info">
+            <h2 id="stripName">—</h2>
+            <p id="stripBio" style="color:var(--ink-muted);font-size:12px;">No bio yet.</p>
+          </div>
+          <div class="ps-social" id="stripSocial"></div>
+        </div>
+        <div class="stat-cards">
+          <div class="stat-card c-total"><div class="stat-card-label"><span class="sl-dot"></span>Total Applied</div><div class="stat-card-num" id="statTotal">—</div></div>
+          <div class="stat-card c-pending"><div class="stat-card-label"><span class="sl-dot"></span>Pending</div><div class="stat-card-num gold" id="statPending">—</div></div>
+          <div class="stat-card c-accept"><div class="stat-card-label"><span class="sl-dot"></span>Accepted</div><div class="stat-card-num green" id="statAccepted">—</div></div>
+          <div class="stat-card c-reject"><div class="stat-card-label"><span class="sl-dot"></span>Rejected</div><div class="stat-card-num red" id="statRejected">—</div></div>
+        </div>
+
+        <!-- Profile tab -->
+        <div id="tabProfile" class="tab-panel active">
+          <div class="profile-edit-grid">
+            <div class="profile-preview-card">
+              <div class="pic-upload-wrap" onclick="document.getElementById('picFileInput').click()">
+                <div class="ppc-avatar" id="profileAvatarDisplay">—</div>
+                <div class="pic-upload-overlay">📷</div>
+              </div>
+              <input type="file" id="picFileInput" accept="image/*" style="display:none;" onchange="handlePicFile(this)"/>
+              <p class="pic-hint">Click to change photo</p>
+              <div class="ppc-name" id="profileName">—</div>
+              <div class="ppc-role">applicant</div>
+              <p class="ppc-about" id="profileAboutDisplay" style="font-style:italic;">No bio yet.</p>
+              <div class="ppc-social" id="profileSocialDisplay">
+                <div style="font-size:12px;color:var(--ink-muted);text-align:center;">No social links yet.</div>
+              </div>
+            </div>
+            <div class="profile-fields-card">
+              <div class="pfc-header"><h3>Edit Profile</h3><button class="btn btn-primary btn-sm" onclick="saveProfile()">Save Changes</button></div>
+              <div class="pfc-body">
+                <div id="profileAlert" class="alert"></div>
+                <div class="form-group"><label>Profile Picture URL</label><input type="url" id="picUrlInput" placeholder="https://i.imgur.com/..." oninput="previewPic()"/></div>
+                <div class="form-group"><label>About Me</label><textarea id="aboutInput" placeholder="Tell employers about yourself..." style="min-height:90px;"></textarea></div>
+                <div class="form-grid-2">
+                  <div class="form-group"><label>📸 Instagram</label><input type="text" id="igInput" placeholder="@username"/></div>
+                  <div class="form-group"><label>👤 Facebook</label><input type="text" id="fbInput" placeholder="profile name"/></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Applications tab -->
+        <div id="tabApps" class="tab-panel">
+          <div class="panel">
+            <div class="panel-header"><h3>My Applications</h3><a href="jobs.html" class="btn btn-ghost btn-sm">Browse Jobs →</a></div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead><tr><th>Position</th><th>Company</th><th>Deadline</th><th>Slots</th><th>Date</th><th>Status</th><th>Action</th></tr></thead>
+                <tbody id="appTableBody"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Interest tab -->
+        <div id="tabInterest" class="tab-panel">
+          <div class="panel">
+            <div class="panel-header"><h3>Browse by Interest</h3><span class="td-muted" style="font-size:12px;">Select a category</span></div>
+            <div class="panel-body">
+              <div class="interest-grid-wrap" id="interestGrid"></div>
+            </div>
+          </div>
+          <div class="panel int-results-panel" id="interestResults">
+            <div class="panel-header"><h3 id="interestResultTitle">Jobs</h3><button class="btn btn-ghost btn-sm" onclick="clearInterest()">Clear ✕</button></div>
+            <div class="job-list" id="interestJobList"></div>
+          </div>
+        </div>
+      </div><!-- /applicantView -->
+
+      <!-- ══ EMPLOYER VIEW ══ -->
+      <div id="employerView" style="display:none;">
+
+        <!-- ── Employer Profile Hero (always visible) ── -->
+        <div class="emp-profile-hero" id="empProfileHero">
+          <div class="emp-profile-banner" id="empBanner">
+            <div class="emp-profile-banner-pattern"></div>
+            <img id="empBannerImg" class="emp-profile-banner-img" src="" alt=""/>
+            <button class="emp-banner-edit-btn" onclick="document.getElementById('bannerFileInput').click()">
+              🖼️ Change Banner
+            </button>
+            <input type="file" id="bannerFileInput" accept="image/*" style="display:none;" onchange="handleBannerFile(this)"/>
+          </div>
+          <div class="emp-profile-body">
+            <div class="emp-avatar-wrap" onclick="document.getElementById('empPicFileInput').click()">
+              <div class="emp-avatar" id="empAvatarDisplay">—</div>
+              <div class="emp-avatar-overlay">📷</div>
+            </div>
+            <input type="file" id="empPicFileInput" accept="image/*" style="display:none;" onchange="handleEmpPicFile(this)"/>
+            <div class="emp-profile-info">
+              <div class="emp-profile-name" id="empProfileName">—</div>
+              <div class="emp-profile-role">Employer / Recruiter</div>
+              <div class="emp-profile-bio" id="empProfileBio">No company description yet.</div>
+              <div class="emp-profile-contact" id="empProfileContact"></div>
+            </div>
+            <div class="emp-profile-actions">
+              <button class="btn btn-primary btn-sm" onclick="showEmpTab('tabEmpProfile', document.querySelector('[onclick*=tabEmpProfile]'))">Edit Profile ✏️</button>
+              <button class="btn btn-ghost btn-sm" onclick="showEmpTab('tabPost', document.querySelector('[onclick*=tabPost]'))">+ Post a Job</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stat-cards">
+          <div class="stat-card c-total"><div class="stat-card-label"><span class="sl-dot"></span>Total Applications</div><div class="stat-card-num" id="empStatTotal">—</div></div>
+          <div class="stat-card c-pending"><div class="stat-card-label"><span class="sl-dot"></span>Pending</div><div class="stat-card-num gold" id="empStatPending">—</div></div>
+          <div class="stat-card c-accept"><div class="stat-card-label"><span class="sl-dot"></span>Accepted</div><div class="stat-card-num green" id="empStatAccepted">—</div></div>
+          <div class="stat-card c-reject"><div class="stat-card-label"><span class="sl-dot"></span>Rejected</div><div class="stat-card-num red" id="empStatRejected">—</div></div>
+        </div>
+
+        <!-- Applications Received -->
+        <div id="tabEmpApps" class="tab-panel active">
+          <div class="panel">
+            <div class="panel-header"><h3>Applications Received</h3><span class="td-muted" style="font-size:12px;">Click name to view profile · Click Cover to read letter</span></div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead><tr><th>Applicant</th><th>Position</th><th>Date</th><th>Cover Letter</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="empAppTableBody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- My Postings -->
+        <div id="tabMyJobs" class="tab-panel">
+          <div class="panel">
+            <div class="panel-header"><h3>My Job Postings</h3><span class="td-muted" style="font-size:12px;">Open / Close / Delete</span></div>
+            <div style="overflow-x:auto;">
+              <table class="data-table">
+                <thead><tr><th>Title</th><th>Image</th><th>Category</th><th>Type</th><th>Slots</th><th>Deadline</th><th>Status</th><th>Actions</th></tr></thead>
+                <tbody id="myJobsTableBody"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</td></tr></tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Post a Job -->
+        <div id="tabPost" class="tab-panel">
+          <div class="panel">
+            <div class="panel-header"><h3>Post a New Position</h3></div>
+            <div class="panel-body">
+              <div id="postAlert" class="alert"></div>
+              <div class="post-form-grid">
+                <div class="form-group"><label>Job Title *</label><input type="text" id="jobTitle" placeholder="e.g. Frontend Developer"/></div>
+                <div class="form-group"><label>Company *</label><input type="text" id="jobCompany" placeholder="e.g. TechCorp PH"/></div>
+                <div class="form-group"><label>Location *</label><input type="text" id="jobLocation" placeholder="e.g. Davao City"/></div>
+                <div class="form-group"><label>Employment Type</label>
+                  <select id="jobType"><option>Full-Time</option><option>Part-Time</option><option>Internship</option><option>Remote</option></select>
+                </div>
+                <div class="form-group"><label>Category / Interest</label>
+                  <select id="jobCategory">
+                    <option value="">— Select —</option>
+                    <option value="arts">🎬 Arts & Media</option><option value="business">💼 Business</option>
+                    <option value="cleaning">🧹 Cleaning</option><option value="construction">🏗️ Construction</option>
+                    <option value="customer">🎧 Customer Service</option><option value="design">🎨 Design</option>
+                    <option value="education">📚 Education</option><option value="engineering">⚙️ Engineering</option>
+                    <option value="finance">💰 Finance</option><option value="government">🏛️ Government / NGO</option>
+                    <option value="healthcare">🏥 Healthcare</option><option value="hospitality">🏨 Hospitality</option>
+                    <option value="marketing">📣 Marketing</option><option value="software">💻 Software & IT</option>
+                    <option value="teaching">🏫 Teaching</option>
+                  </select>
+                </div>
+                <div class="form-group"><label>Salary Range</label><input type="text" id="jobSalary" placeholder="e.g. ₱35,000 – ₱45,000"/></div>
+                <div class="form-group"><label>Max Applicants <span style="color:var(--ink-muted);font-weight:400;">(blank=unlimited)</span></label><input type="number" id="jobMaxApplicants" placeholder="20" min="1"/></div>
+                <div class="form-group"><label>Application Deadline</label><input type="date" id="jobDeadline"/></div>
+                <div class="form-group post-form-full"><label>Job Description</label><textarea id="jobDesc" placeholder="Describe the role, responsibilities, and requirements..." style="min-height:110px;"></textarea></div>
+                <!-- Job Image Upload -->
+                <div class="form-group post-form-full">
+                  <label>Job Banner Image <span style="color:var(--ink-muted);font-weight:400;">(optional — shown on the job card)</span></label>
+                  <div class="job-img-upload" onclick="document.getElementById('jobImgFile').click()">
+                    <input type="file" id="jobImgFile" accept="image/*" style="display:none;" onchange="previewJobImage(this)"/>
+                    <div id="jobImgPlaceholder">
+                      <div style="font-size:28px;margin-bottom:6px;">🖼️</div>
+                      <div style="font-size:13px;color:var(--ink-muted);">Click to upload a job banner image</div>
+                      <div class="job-img-hint">JPG, PNG, WEBP — recommended 1200×400px</div>
+                    </div>
+                    <img id="jobImgPreview" class="job-img-preview" src="" alt=""/>
+                  </div>
+                  <div class="form-group" style="margin-top:8px;margin-bottom:0;">
+                    <label>Or paste image URL</label>
+                    <input type="url" id="jobImgUrl" placeholder="https://example.com/banner.jpg" oninput="previewJobImageUrl(this)"/>
+                  </div>
+                </div>
+              </div>
+              <button class="btn btn-primary" style="margin-top:8px;" onclick="postJob()">Post Position →</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Company Profile Edit -->
+        <div id="tabEmpProfile" class="tab-panel">
+          <div class="panel">
+            <div class="panel-header"><h3>Company / Employer Profile</h3><button class="btn btn-primary btn-sm" onclick="saveEmpProfile()">Save Changes</button></div>
+            <div class="panel-body">
+              <div id="empProfileAlert" class="alert"></div>
+              <div class="emp-edit-grid">
+                <div class="form-group">
+                  <label>Profile Picture URL</label>
+                  <input type="url" id="empPicUrl" placeholder="https://i.imgur.com/..." oninput="previewEmpPic()"/>
+                </div>
+                <div class="form-group">
+                  <label>Banner / Cover Photo URL</label>
+                  <input type="url" id="empBannerUrl" placeholder="https://example.com/banner.jpg" oninput="previewEmpBanner()"/>
+                </div>
+                <div class="form-group emp-edit-full">
+                  <label>Company / Employer Description</label>
+                  <textarea id="empAbout" placeholder="Tell applicants about your company, culture, and what makes you a great employer..." style="min-height:100px;"></textarea>
+                </div>
+                <div class="form-group">
+                  <label>📸 Instagram</label>
+                  <input type="text" id="empIg" placeholder="@companyhandle"/>
+                </div>
+                <div class="form-group">
+                  <label>👤 Facebook</label>
+                  <input type="text" id="empFb" placeholder="company page"/>
+                </div>
+                <div class="form-group">
+                  <label>📞 Contact Number</label>
+                  <input type="tel" id="empPhone" placeholder="+63 912 345 6789"/>
+                </div>
+                <div class="form-group">
+                  <label>🌐 Website</label>
+                  <input type="url" id="empWebsite" placeholder="https://yourcompany.com"/>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /employerView -->
+    </div>
+  </div>
+</div>
+
+<!-- Applicant Profile Modal -->
+<div class="modal-overlay" id="profileModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-header"><h3>Applicant Profile</h3><button class="modal-close" onclick="document.getElementById('profileModal').classList.remove('open')">✕</button></div>
+    <div class="modal-body" id="profileModalBody">Loading...</div>
+  </div>
+</div>
+
+<!-- Cover Letter Modal — redesigned -->
+<div class="cover-modal-backdrop" id="coverModal">
+  <div class="cover-modal-box">
+    <div class="cover-modal-header">
+      <div class="cover-modal-applicant">
+        <div class="cma-avatar" id="cmaAvatar">?</div>
+        <div>
+          <div class="cma-name" id="cmaName">—</div>
+          <div class="cma-email" id="cmaEmail">—</div>
+          <div class="cma-job" id="cmaJob">—</div>
+        </div>
+      </div>
+      <button class="cover-modal-close" onclick="closeCoverModal()">✕</button>
+    </div>
+    <div class="cover-modal-divider"></div>
+    <div class="cover-modal-body">
+      <div class="cover-label">Cover Letter</div>
+      <div class="cover-text" id="coverText">—</div>
+      <a id="coverResumeLink" href="#" target="_blank" class="cover-resume-link" style="display:none;">
+        📎 View Resume / CV ↗
+      </a>
+    </div>
+    <div class="cover-modal-footer">
+      <div class="cover-status-badge" id="coverStatusBadge"></div>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-success btn-sm" id="coverAcceptBtn">Accept ✓</button>
+        <button class="btn btn-danger btn-sm"  id="coverRejectBtn">Reject ✗</button>
+        <button class="btn btn-ghost btn-sm"   onclick="closeCoverModal()">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+const user = getUser();
+if (!user) window.location.href = "login.html";
+
+const CATEGORIES = [
+  {id:"arts",label:"Arts & Media",icon:"🎬"},{id:"business",label:"Business",icon:"💼"},
+  {id:"cleaning",label:"Cleaning",icon:"🧹"},{id:"construction",label:"Construction",icon:"🏗️"},
+  {id:"customer",label:"Customer Svc",icon:"🎧"},{id:"design",label:"Design",icon:"🎨"},
+  {id:"education",label:"Education",icon:"📚"},{id:"engineering",label:"Engineering",icon:"⚙️"},
+  {id:"finance",label:"Finance",icon:"💰"},{id:"government",label:"Government",icon:"🏛️"},
+  {id:"healthcare",label:"Healthcare",icon:"🏥"},{id:"hospitality",label:"Hospitality",icon:"🏨"},
+  {id:"marketing",label:"Marketing",icon:"📣"},{id:"software",label:"Software & IT",icon:"💻"},
+  {id:"teaching",label:"Teaching",icon:"🏫"},
+];
+const catMap  = Object.fromEntries(CATEGORIES.map(c=>[c.id,`${c.icon} ${c.label}`]));
+const typeMap = {"Full-Time":"full-time","Part-Time":"part-time","Internship":"internship","Remote":"remote"};
+
+document.getElementById("sidebarRoleLabel").textContent = `/ ${user.role}`;
+document.getElementById("topbarTitle").textContent = user.role==="employer"?"Employer Dashboard":"Dashboard";
+document.getElementById("sidebarUser").innerHTML = `
+  <div class="sidebar-avatar" id="sidebarAvatar">${user.name[0].toUpperCase()}</div>
+  <div class="sidebar-user-info">
+    <div class="sidebar-user-name">${user.name}</div>
+    <div class="sidebar-user-role">${user.email}</div>
+  </div>`;
+
+if (user.role==="employer") {
+  document.getElementById("employerView").style.display="block";
+  document.getElementById("empSideNav").style.display="block";
+  document.getElementById("tabEmpApps").classList.add("active");
+} else {
+  document.getElementById("applicantView").style.display="block";
+  document.getElementById("appSideNav").style.display="block";
+  document.getElementById("tabProfile").classList.add("active");
+  const grid=document.getElementById("interestGrid");
+  CATEGORIES.forEach((c,i)=>{
+    const chip=document.createElement("div");
+    chip.className="int-chip";
+    chip.innerHTML=`<span class="int-chip-letter">${String.fromCharCode(65+i)}</span><span class="int-chip-icon">${c.icon}</span><span class="int-chip-label">${c.label}</span>`;
+    chip.onclick=()=>searchByInterest(c.id,c.label,c.icon,chip);
+    grid.appendChild(chip);
+  });
+}
+
+/* ── TAB SWITCHES ── */
+function showAppTab(id, btn) {
+  document.querySelectorAll("#applicantView .tab-panel").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".app-tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  btn.classList.add("active");
+}
+function showEmpTab(id, btn) {
+  document.querySelectorAll("#employerView .tab-panel").forEach(t=>t.classList.remove("active"));
+  document.querySelectorAll(".emp-tab-btn").forEach(b=>b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if(btn) btn.classList.add("active");
+}
+
+/* ── LOAD ── */
+async function loadDashboard() {
+  if (user.role==="employer") await loadEmployerData();
+  else await Promise.all([loadProfile(), loadApplicantApps()]);
+}
+
+/* ── APPLICANT PROFILE ── */
+async function loadProfile() {
+  try {
+    const p=await api(`/users/${user.id}`);
+    renderProfileCard(p); renderProfileStrip(p);
+    document.getElementById("picUrlInput").value = p.profile_pic||"";
+    document.getElementById("aboutInput").value  = p.about_me||"";
+    document.getElementById("igInput").value     = p.instagram||"";
+    document.getElementById("fbInput").value     = p.facebook||"";
+    if (p.profile_pic) {
+      document.getElementById("sidebarAvatar").innerHTML=`<img src="${p.profile_pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.textContent='${user.name[0].toUpperCase()}'"/>`;
+      const u=getUser(); u.profile_pic=p.profile_pic; localStorage.setItem("user",JSON.stringify(u));
+    }
+  } catch(e){ renderProfileCard(user); renderProfileStrip(user); }
+}
+function renderProfileStrip(p) {
+  const av=document.getElementById("stripAvatar");
+  av.innerHTML=p.profile_pic?`<img src="${p.profile_pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.textContent='${(p.name||user.name)[0].toUpperCase()}'"/>`:((p.name||user.name)[0].toUpperCase());
+  document.getElementById("stripName").textContent=p.name||user.name;
+  document.getElementById("stripBio").textContent=p.about_me?p.about_me.substring(0,80)+(p.about_me.length>80?"…":""):"No bio yet.";
+  const social=document.getElementById("stripSocial"); social.innerHTML="";
+  if(p.instagram) social.innerHTML+=`<a href="https://instagram.com/${p.instagram}" target="_blank">📸 @${p.instagram}</a>`;
+  if(p.facebook)  social.innerHTML+=`<a href="https://facebook.com/${p.facebook}"  target="_blank">👤 ${p.facebook}</a>`;
+}
+function renderProfileCard(p) {
+  const av=document.getElementById("profileAvatarDisplay");
+  av.innerHTML=p.profile_pic?`<img src="${p.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${(p.name||user.name)[0].toUpperCase()}'"/>`:((p.name||user.name)[0].toUpperCase());
+  document.getElementById("profileName").textContent=p.name||user.name;
+  const ab=document.getElementById("profileAboutDisplay");
+  ab.textContent=p.about_me||"No bio yet."; ab.style.fontStyle=p.about_me?"normal":"italic";
+  const social=document.getElementById("profileSocialDisplay");
+  if(p.instagram||p.facebook){ social.innerHTML="";
+    if(p.instagram) social.innerHTML+=`<div class="ppc-social-row">📸 @${p.instagram}</div>`;
+    if(p.facebook)  social.innerHTML+=`<div class="ppc-social-row">👤 ${p.facebook}</div>`;
+  } else { social.innerHTML=`<div style="font-size:12px;color:var(--ink-muted);text-align:center;">No social links yet.</div>`; }
+}
+async function handlePicFile(input) {
+  const file = input.files[0];
+  if (!file) return;
+  if (file.size > 2 * 1024 * 1024) {
+    showAlert("profileAlert", "Image too large. Max 2MB.", "error"); return;
+  }
+  // Preview immediately
+  const reader = new FileReader();
+  reader.onload = e => {
+    const av = document.getElementById("profileAvatarDisplay");
+    av.innerHTML = `<img src="${e.target.result}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`;
+  };
+  reader.readAsDataURL(file);
+
+  // Upload to Supabase Storage via backend
+  try {
+    showAlert("profileAlert", "Uploading photo...", "success");
+    const formData = new FormData();
+    formData.append("file", file);
+    const token = localStorage.getItem("token");
+    const res   = await fetch("http://localhost:8000/upload/profile-pic", {
+      method: "POST",
+      headers: { "Authorization": `Bearer ${token}` },
+      body: formData,
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.detail || "Upload failed");
+    // Update local user cache with new CDN URL
+    const u = getUser(); u.profile_pic = data.url;
+    localStorage.setItem("user", JSON.stringify(u));
+    showAlert("profileAlert", "Photo uploaded! Click Save to apply changes.", "success");
+    await loadProfile();
+  } catch(e) { showAlert("profileAlert", e.message, "error"); }
+}
+
+async function saveProfile() {
+  try {
+    await api(`/users/${user.id}`, "PATCH", {
+      about_me:  document.getElementById("aboutInput").value  || null,
+      instagram: document.getElementById("igInput").value.replace("@","") || null,
+      facebook:  document.getElementById("fbInput").value     || null,
+    });
+    showAlert("profileAlert", "Profile saved!", "success");
+    await loadProfile();
+  } catch(e) { showAlert("profileAlert", e.message, "error"); }
+}
+
+/* ── APPLICANT APPS ── */
+async function loadApplicantApps(){
+  try{
+    const apps=await api(`/applications/me?user_id=${user.id}`);
+    document.getElementById("statTotal").textContent=apps.length;
+    document.getElementById("statPending").textContent=apps.filter(a=>a.status==="pending").length;
+    document.getElementById("statAccepted").textContent=apps.filter(a=>a.status==="accepted").length;
+    document.getElementById("statRejected").textContent=apps.filter(a=>a.status==="rejected").length;
+    document.getElementById("appCountBadge").textContent=apps.length;
+    const tbody=document.getElementById("appTableBody");
+    if(!apps.length){tbody.innerHTML=`<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No applications yet. <a href="jobs.html" style="color:var(--accent);">Browse jobs →</a></td></tr>`;return;}
+    tbody.innerHTML=apps.map(a=>{
+      const date=a.created_at?a.created_at.split("T")[0]:"—";
+      const dl=a.jobs?.deadline?new Date(a.jobs.deadline).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"—";
+      const max=a.jobs?.max_applicants;
+      return `<tr>
+        <td><div class="td-title">${a.jobs?.title||"—"}</div><span class="pill pill-${a.jobs?.status||"open"}" style="margin-top:3px;">${a.jobs?.status||"open"}</span></td>
+        <td class="td-muted">${a.jobs?.company||"—"}</td>
+        <td class="td-muted td-mono">${dl}</td>
+        <td class="td-muted td-mono">${max?`${max} max`:"Unlimited"}</td>
+        <td class="td-muted td-mono">${date}</td>
+        <td><span class="pill pill-${a.status}">${a.status}</span></td>
+        <td><button class="btn btn-danger btn-sm" onclick="withdrawApp(${a.id})">Withdraw</button></td>
+      </tr>`;
+    }).join("");
+  } catch(e){document.getElementById("appTableBody").innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--red);font-family:var(--mono);font-size:12px;">Error: ${e.message}</td></tr>`;}
+}
+
+/* ── INTEREST ── */
+async function searchByInterest(catId,label,icon,chip){
+  document.querySelectorAll(".int-chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  const panel=document.getElementById("interestResults");
+  panel.classList.add("show");
+  document.getElementById("interestResultTitle").textContent=`${icon} ${label} Jobs`;
+  document.getElementById("interestJobList").innerHTML=`<div style="padding:24px;text-align:center;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</div>`;
+  try{
+    const jobs=await api(`/jobs?category=${catId}`);
+    if(!jobs.length){document.getElementById("interestJobList").innerHTML=`<div style="padding:24px;text-align:center;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No jobs in this category yet.</div>`;return;}
+    document.getElementById("interestJobList").innerHTML=jobs.map(j=>{
+      const closed=j.status!=="open";
+      return `<div class="job-item${closed?" closed":""}" style="padding:14px 18px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+            ${j.image_url?`<img src="${j.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;flex-shrink:0;" onerror="this.style.display='none'"/>` :""}
+            <span class="job-item-title">${j.title}</span>
+            <span class="pill pill-${j.status}">${j.status}</span>
+          </div>
+          <div class="job-item-meta">
+            <span>${j.company}</span><span>📍 ${j.location}</span>
+            <span class="type-tag ${typeMap[j.type]||""}">${j.type}</span>
+            ${j.salary?`<span>${j.salary}</span>`:""}
+          </div>
+        </div>
+        <a href="jobs.html" class="btn btn-ghost btn-sm">${closed?"Closed":"Apply →"}</a>
+      </div>`;
+    }).join("");
+  } catch(e){document.getElementById("interestJobList").innerHTML=`<div style="padding:24px;text-align:center;color:var(--red);font-family:var(--mono);font-size:12px;">Error: ${e.message}</div>`;}
+}
+function clearInterest(){
+  document.querySelectorAll(".int-chip").forEach(c=>c.classList.remove("active"));
+  document.getElementById("interestResults").classList.remove("show");
+}
+
+/* ── EMPLOYER DATA ── */
+async function loadEmployerData(){
+  try{
+    const [apps,jobs]=await Promise.all([api(`/applications/employer?user_id=${user.id}`),api(`/jobs?employer_id=${user.id}`)]);
+    document.getElementById("empStatTotal").textContent=apps.length;
+    document.getElementById("empStatPending").textContent=apps.filter(a=>a.status==="pending").length;
+    document.getElementById("empStatAccepted").textContent=apps.filter(a=>a.status==="accepted").length;
+    document.getElementById("empStatRejected").textContent=apps.filter(a=>a.status==="rejected").length;
+    document.getElementById("empAppBadge").textContent=apps.length;
+    renderEmployerApps(apps); renderMyJobs(jobs); loadEmpProfile();
+  } catch(e){document.getElementById("empAppTableBody").innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--red);font-family:var(--mono);font-size:12px;">Error: ${e.message}</td></tr>`;}
+}
+
+/* ── EMPLOYER PROFILE ── */
+async function loadEmpProfile(){
+  try{
+    const p=await api(`/users/${user.id}`);
+    // Avatar
+    const av=document.getElementById("empAvatarDisplay");
+    if(p.profile_pic) av.innerHTML=`<img src="${p.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:13px;" onerror="this.parentElement.textContent='${user.name[0].toUpperCase()}'"/>`;
+    else av.textContent=user.name[0].toUpperCase();
+    // Banner
+    if(p.banner_url){
+      const bImg=document.getElementById("empBannerImg");
+      bImg.src=p.banner_url; bImg.style.display="block";
+    }
+    document.getElementById("empProfileName").textContent=p.name||user.name;
+    document.getElementById("empProfileBio").textContent=p.about_me||"No company description yet.";
+    // Contact tags
+    const contact=document.getElementById("empProfileContact"); contact.innerHTML="";
+    if(p.instagram) contact.innerHTML+=`<a href="https://instagram.com/${p.instagram}" target="_blank" class="emp-contact-tag">📸 @${p.instagram}</a>`;
+    if(p.facebook)  contact.innerHTML+=`<a href="https://facebook.com/${p.facebook}" target="_blank" class="emp-contact-tag">👤 ${p.facebook}</a>`;
+    if(p.phone)     contact.innerHTML+=`<span class="emp-contact-tag">📞 ${p.phone}</span>`;
+    if(p.website)   contact.innerHTML+=`<a href="${p.website}" target="_blank" class="emp-contact-tag">🌐 Website</a>`;
+    // Fill edit form
+    document.getElementById("empPicUrl").value    = p.profile_pic||"";
+    document.getElementById("empBannerUrl").value = p.banner_url||"";
+    document.getElementById("empAbout").value     = p.about_me||"";
+    document.getElementById("empIg").value        = p.instagram||"";
+    document.getElementById("empFb").value        = p.facebook||"";
+    document.getElementById("empPhone").value     = p.phone||"";
+    document.getElementById("empWebsite").value   = p.website||"";
+    // Sidebar avatar
+    if(p.profile_pic) document.getElementById("sidebarAvatar").innerHTML=`<img src="${p.profile_pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`;
+  } catch(e){ document.getElementById("empProfileName").textContent=user.name; }
+}
+function handleEmpPicFile(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{ document.getElementById("empPicUrl").value=e.target.result; previewEmpPic(); };
+  reader.readAsDataURL(file);
+}
+function handleBannerFile(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{ document.getElementById("empBannerUrl").value=e.target.result; previewEmpBanner(); };
+  reader.readAsDataURL(file);
+}
+function previewEmpPic(){
+  const url=document.getElementById("empPicUrl").value;
+  const av=document.getElementById("empAvatarDisplay");
+  av.innerHTML=url?`<img src="${url}" style="width:100%;height:100%;object-fit:cover;border-radius:13px;"/>`:user.name[0].toUpperCase();
+}
+function previewEmpBanner(){
+  const url=document.getElementById("empBannerUrl").value;
+  const bImg=document.getElementById("empBannerImg");
+  if(url){ bImg.src=url; bImg.style.display="block"; }
+  else { bImg.style.display="none"; }
+}
+async function saveEmpProfile(){
+  try{
+    await api(`/users/${user.id}`,"PATCH",{
+      profile_pic: document.getElementById("empPicUrl").value||null,
+      banner_url:  document.getElementById("empBannerUrl").value||null,
+      about_me:    document.getElementById("empAbout").value||null,
+      instagram:   document.getElementById("empIg").value.replace("@","")||null,
+      facebook:    document.getElementById("empFb").value||null,
+      phone:       document.getElementById("empPhone").value||null,
+      website:     document.getElementById("empWebsite").value||null,
+    });
+    showAlert("empProfileAlert","Profile saved!","success"); loadEmpProfile();
+  } catch(e){showAlert("empProfileAlert",e.message,"error");}
+}
+
+/* ── EMPLOYER APPS TABLE ── */
+function renderEmployerApps(apps){
+  const tbody=document.getElementById("empAppTableBody");
+  if(!apps.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No applications received yet.</td></tr>`;return;}
+  tbody.innerHTML=apps.map(a=>{
+    const date=a.created_at?a.created_at.split("T")[0]:"—";
+    const profile=a.users||{};
+    const hasProfile=profile.about_me||profile.instagram||profile.facebook||profile.profile_pic;
+    const encoded=encodeURIComponent(JSON.stringify({...profile,name:a.name,email:a.email}));
+    const hasCover=!!a.cover_letter;
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:9px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0;cursor:${hasProfile?"pointer":"default"};" onclick="${hasProfile?`viewApplicantProfile('${encoded}')`:""}">${profile.profile_pic?`<img src="${profile.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`:((a.name||"?")[0].toUpperCase())}</div>
+          <div>
+            <div class="td-title" style="${hasProfile?"cursor:pointer;color:var(--accent3);":""}" onclick="${hasProfile?`viewApplicantProfile('${encoded}')`:""}">${a.name}</div>
+            <div class="td-mono">${a.email}</div>
+          </div>
+        </div>
+      </td>
+      <td>${a.jobs?.title||"—"}</td>
+      <td class="td-muted td-mono">${date}</td>
+      <td>${hasCover
+        ?`<button class="btn btn-ghost btn-sm" style="color:var(--gold);border-color:rgba(255,204,68,0.3);" onclick="openCoverModal(${JSON.stringify(JSON.stringify(a)).slice(1,-1)})">Read ↗</button>`
+        :`<span class="td-muted" style="font-size:12px;">—</span>`
+      }</td>
+      <td><span class="pill pill-${a.status}">${a.status}</span></td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap;">
+        <button class="btn btn-success btn-sm" onclick="updateStatus(${a.id},'accepted',this)">Accept</button>
+        <button class="btn btn-danger btn-sm"  onclick="updateStatus(${a.id},'rejected',this)">Reject</button>
+        <button class="btn btn-ghost btn-sm"   onclick="updateStatus(${a.id},'reviewed',this)">Review</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+/* ── COVER LETTER MODAL ── */
+let currentCoverAppId = null;
+function openCoverModal(aJson){
+  let a; try{a=JSON.parse(aJson);}catch{return;}
+  currentCoverAppId=a.id;
+  const profile=a.users||{};
+  // Avatar
+  const av=document.getElementById("cmaAvatar");
+  av.innerHTML=profile.profile_pic?`<img src="${profile.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`:(a.name||"?")[0].toUpperCase();
+  document.getElementById("cmaName").textContent=a.name||"—";
+  document.getElementById("cmaEmail").textContent=a.email||"—";
+  document.getElementById("cmaJob").textContent=a.jobs?.title||"Position";
+  document.getElementById("coverText").textContent=a.cover_letter||"No cover letter provided.";
+  // Resume link
+  const rl=document.getElementById("coverResumeLink");
+  if(a.resume_url){ rl.href=a.resume_url; rl.style.display="inline-flex"; }
+  else { rl.style.display="none"; }
+  // Status
+  const sb=document.getElementById("coverStatusBadge");
+  const statusColors={pending:"var(--gold)",reviewed:"var(--accent3)",accepted:"var(--green)",rejected:"var(--red)"};
+  sb.innerHTML=`<span style="width:6px;height:6px;border-radius:50%;background:${statusColors[a.status]||"var(--ink-muted)"};display:inline-block;margin-right:4px;"></span>${a.status}`;
+  sb.style.color=statusColors[a.status]||"var(--ink-muted)";
+  // Action buttons
+  document.getElementById("coverAcceptBtn").onclick=()=>{updateStatus(a.id,"accepted",null);closeCoverModal();};
+  document.getElementById("coverRejectBtn").onclick=()=>{updateStatus(a.id,"rejected",null);closeCoverModal();};
+  document.getElementById("coverModal").classList.add("open");
+}
+function closeCoverModal(){ document.getElementById("coverModal").classList.remove("open"); }
+document.getElementById("coverModal").addEventListener("click",e=>{ if(e.target===document.getElementById("coverModal")) closeCoverModal(); });
+
+/* ── APPLICANT PROFILE MODAL ── */
+function viewApplicantProfile(encoded){
+  let p; try{p=JSON.parse(decodeURIComponent(encoded));}catch{return;}
+  document.getElementById("profileModalBody").innerHTML=`
+    <div class="ap-modal-header">
+      <div class="ap-modal-avatar">${p.profile_pic?`<img src="${p.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`:((p.name||"?")[0].toUpperCase())}</div>
+      <div><h3 style="font-size:16px;font-weight:600;margin-bottom:2px;">${p.name||"—"}</h3><p style="font-size:12px;color:var(--ink-muted);">${p.email||""}</p></div>
+    </div>
+    <div class="ap-about-box">${p.about_me||`<span style="color:var(--ink-muted);font-style:italic;">No bio provided.</span>`}</div>
+    <div class="ap-social-links">
+      ${p.instagram?`<a href="https://instagram.com/${p.instagram}" target="_blank">📸 @${p.instagram}</a>`:""}
+      ${p.facebook?`<a href="https://facebook.com/${p.facebook}" target="_blank">👤 ${p.facebook}</a>`:""}
+      ${!p.instagram&&!p.facebook?`<span style="color:var(--ink-muted);font-size:12px;">No social links.</span>`:""}
+    </div>`;
+  document.getElementById("profileModal").classList.add("open");
+}
+
+/* ── MY JOBS TABLE ── */
+function renderMyJobs(jobs){
+  const tbody=document.getElementById("myJobsTableBody");
+  if(!jobs.length){tbody.innerHTML=`<tr><td colspan="8" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No jobs posted yet.</td></tr>`;return;}
+  tbody.innerHTML=jobs.map(j=>{
+    const dl=j.deadline?new Date(j.deadline).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"—";
+    const imgCell=j.image_url
+      ?`<img src="${j.image_url}" style="width:48px;height:32px;object-fit:cover;border-radius:4px;border:1px solid var(--border);" onerror="this.style.display='none'"/>`
+      :`<span style="font-size:11px;color:var(--ink-muted);">—</span>`;
+    return `<tr>
+      <td><div class="td-title">${j.title}</div><div class="td-muted">${j.company} · 📍 ${j.location}</div></td>
+      <td>${imgCell}</td>
+      <td class="td-muted">${catMap[j.category]||"—"}</td>
+      <td><span class="type-tag ${typeMap[j.type]||""}">${j.type}</span></td>
+      <td class="td-mono td-muted">${j.max_applicants?`${j.max_applicants} slots`:"Unlimited"}</td>
+      <td class="td-muted td-mono">${dl}</td>
+      <td><span class="pill pill-${j.status||"open"}">${j.status||"open"}</span></td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap;">
+        <button class="btn btn-success btn-sm" onclick="toggleStatus(${j.id},'open')" ${j.status==="open"?"disabled style='opacity:0.35;cursor:not-allowed'":""}>Open</button>
+        <button class="btn btn-warning btn-sm" onclick="toggleStatus(${j.id},'closed')" ${j.status==="closed"?"disabled style='opacity:0.35;cursor:not-allowed'":""}>Close</button>
+        <button class="btn btn-danger btn-sm"  onclick="deleteJob(${j.id})">Delete</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+/* ── JOB IMAGE PREVIEW ── */
+function previewJobImage(input){
+  const file=input.files[0]; if(!file) return;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    const preview=document.getElementById("jobImgPreview");
+    preview.src=e.target.result; preview.style.display="block";
+    document.getElementById("jobImgPlaceholder").style.display="none";
+    document.getElementById("jobImgUrl").value=e.target.result;
+  };
+  reader.readAsDataURL(file);
+}
+function previewJobImageUrl(input){
+  const url=input.value;
+  const preview=document.getElementById("jobImgPreview");
+  if(url){ preview.src=url; preview.style.display="block"; document.getElementById("jobImgPlaceholder").style.display="none"; }
+  else { preview.style.display="none"; document.getElementById("jobImgPlaceholder").style.display="block"; }
+}
+
+/* ── POST JOB ── */
+// Store selected job image file globally
+let _jobImgFile = null;
+
+function previewJobImage(input) {
+  const file = input.files[0];
+  if (!file) return;
+  _jobImgFile = file;
+  const reader = new FileReader();
+  reader.onload = e => {
+    const preview = document.getElementById("jobImgPreview");
+    const placeholder = document.getElementById("jobImgPlaceholder");
+    preview.src = e.target.result;
+    preview.style.display = "block";
+    if (placeholder) placeholder.style.display = "none";
+  };
+  reader.readAsDataURL(file);
+}
+
+function previewJobImageUrl(input) {
+  const preview = document.getElementById("jobImgPreview");
+  const placeholder = document.getElementById("jobImgPlaceholder");
+  if (input.value) {
+    preview.src = input.value;
+    preview.style.display = "block";
+    if (placeholder) placeholder.style.display = "none";
+    _jobImgFile = null; // clear file if URL is typed
+  } else {
+    preview.style.display = "none";
+    if (placeholder) placeholder.style.display = "block";
+  }
+}
+
+function _fmtError(e) {
+  // FastAPI validation errors come as arrays — format them readably
+  if (e && e.message) {
+    try {
+      const parsed = JSON.parse(e.message);
+      if (Array.isArray(parsed)) return parsed.map(x => x.msg || JSON.stringify(x)).join(", ");
+      if (typeof parsed === "object") return parsed.detail || JSON.stringify(parsed);
+    } catch {}
+    return e.message;
+  }
+  return String(e);
+}
+
+async function postJob(){
+  const maxVal = document.getElementById("jobMaxApplicants").value;
+  showAlert("postAlert","Posting...","success");
+  try {
+    // Step 1: upload image file if selected
+    let imageUrl = document.getElementById("jobImgUrl").value || null;
+    if (_jobImgFile) {
+      const formData = new FormData();
+      formData.append("file", _jobImgFile);
+      const token = localStorage.getItem("token");
+      const res = await fetch("http://localhost:8000/upload/job-image", {
+        method: "POST",
+        headers: { "Authorization": `Bearer ${token}` },
+        body: formData,
+      });
+      const uploadData = await res.json();
+      if (!res.ok) throw new Error(uploadData.detail || "Image upload failed.");
+      imageUrl = uploadData.url;
+    }
+
+    // Step 2: post job with resolved image URL
+    await api("/jobs","POST",{
+      title:        document.getElementById("jobTitle").value,
+      company:      document.getElementById("jobCompany").value,
+      location:     document.getElementById("jobLocation").value,
+      type:         document.getElementById("jobType").value,
+      category:     document.getElementById("jobCategory").value || null,
+      salary:       document.getElementById("jobSalary").value   || null,
+      max_applicants: maxVal ? parseInt(maxVal) : null,
+      deadline:     document.getElementById("jobDeadline").value || null,
+      description:  document.getElementById("jobDesc").value     || null,
+      image_url:    imageUrl,
+      employer_id:  user.id,
+      status:       "open",
+    });
+    showAlert("postAlert","Position posted successfully!","success");
+    ["jobTitle","jobCompany","jobLocation","jobSalary","jobDesc","jobMaxApplicants","jobDeadline","jobImgUrl"]
+      .forEach(id => document.getElementById(id).value = "");
+    document.getElementById("jobCategory").value = "";
+    const preview = document.getElementById("jobImgPreview");
+    const placeholder = document.getElementById("jobImgPlaceholder");
+    if (preview) { preview.src = ""; preview.style.display = "none"; }
+    if (placeholder) placeholder.style.display = "block";
+    document.getElementById("jobImgFile").value = "";
+    _jobImgFile = null;
+    loadDashboard();
+  } catch(e) { showAlert("postAlert", _fmtError(e), "error"); }
+}
+
+async function toggleStatus(id,status){try{await api(`/jobs/${id}`,"PATCH",{status});loadDashboard();}catch(e){alert(e.message);}}
+async function updateStatus(id, status, btn) {
+  // Disable all action buttons in this row immediately
+  const row = btn ? btn.closest("tr") : null;
+  const rowBtns = row ? row.querySelectorAll("button") : [];
+  rowBtns.forEach(b => { b.disabled = true; b.style.opacity = "0.4"; });
+
+  // Optimistically update the status pill in the row right now
+  if (row) {
+    const pill = row.querySelector(".pill");
+    if (pill) {
+      pill.className = "pill pill-" + status;
+      pill.textContent = status;
+    }
+  }
+
+  try {
+    await api(`/applications/${id}`, "PATCH", { status });
+    // Silently refresh only the employer apps table — not full dashboard
+    const apps = await api(`/applications/employer?user_id=${user.id}`);
+    renderEmployerApps(apps);
+    // Update stat cards
+    document.getElementById("empStatTotal").textContent = apps.length;
+    document.getElementById("empStatPending").textContent = apps.filter(a=>a.status==="pending").length;
+    document.getElementById("empStatAccepted").textContent = apps.filter(a=>a.status==="accepted").length;
+    document.getElementById("empStatRejected").textContent = apps.filter(a=>a.status==="rejected").length;
+    document.getElementById("empAppBadge").textContent = apps.length;
+  } catch(e) {
+    // Revert pill on failure
+    if (row) {
+      const pill = row.querySelector(".pill");
+      if (pill) { pill.className = "pill pill-pending"; pill.textContent = "pending"; }
+    }
+    rowBtns.forEach(b => { b.disabled = false; b.style.opacity = ""; });
+    alert(e.message);
+  }
+}
+async function deleteJob(id){const ok=await showConfirm("Delete Posting","Permanently remove this listing?");if(!ok)return;try{await api(`/jobs/${id}`,"DELETE");loadDashboard();}catch(e){alert(e.message);}}
+async function withdrawApp(id){const ok=await showConfirm("Withdraw","Withdraw this application?");if(!ok)return;try{await api(`/applications/${id}`,"DELETE");loadApplicantApps();}catch(e){alert(e.message);}}
+
+loadDashboard();
+setInterval(loadDashboard,30000);
+</script>
+</body>
+</html>

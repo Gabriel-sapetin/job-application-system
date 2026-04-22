@@ -1,0 +1,474 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Browse Jobs — JobTrack</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    /* ── Category scroll with arrow buttons ── */
+    .cat-scroll-wrap { position:relative; }
+    .cat-scroll-btn {
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:28px; height:28px; border-radius:50%;
+      background:var(--surface2); border:1px solid var(--border);
+      display:grid; place-items:center; cursor:pointer; z-index:5;
+      font-size:13px; color:var(--ink-soft); transition:all 0.15s;
+      user-select:none;
+    }
+    .cat-scroll-btn:hover { background:var(--surface3); color:var(--ink); border-color:rgba(255,255,255,0.2); }
+    .cat-scroll-btn.left { left:-8px; }
+    .cat-scroll-btn.right { right:-8px; }
+    .cat-scroll {
+      display:flex; gap:8px; overflow-x:auto; padding:4px 4px 8px;
+      scrollbar-width:none; -ms-overflow-style:none;
+      scroll-behavior:smooth;
+    }
+    .cat-scroll::-webkit-scrollbar { display:none; }
+    .cat-pill {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 14px; background:var(--surface); border:1px solid var(--border);
+      border-radius:100px; font-size:12px; font-weight:500; color:var(--ink-soft);
+      cursor:pointer; white-space:nowrap; transition:all 0.15s; flex-shrink:0;
+    }
+    .cat-pill:hover { background:var(--surface2); color:var(--ink); border-color:rgba(255,255,255,0.15); }
+    .cat-pill.active { background:rgba(127,255,0,0.1); border-color:rgba(127,255,0,0.5); color:var(--accent); }
+    .cat-pill-icon { font-size:14px; }
+
+    /* ── Job cards ── */
+    .jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
+    .job-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); overflow:hidden;
+      display:flex; flex-direction:column;
+      transition:border-color 0.15s,transform 0.15s,box-shadow 0.15s;
+      position:relative;
+    }
+    .job-card:hover { border-color:rgba(255,255,255,0.16); transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,0,0,0.35); }
+    .job-card.closed-card { opacity:0.5; }
+
+    /* Job banner image */
+    .job-card-banner {
+      width:100%; height:140px; object-fit:cover;
+      display:block; border-bottom:1px solid var(--border);
+      background:linear-gradient(135deg,#1a1a2e,#16213e);
+    }
+    .job-card-banner-placeholder {
+      height:80px; background:linear-gradient(135deg,#0f0f1a 0%,#1a1a2e 100%);
+      display:flex; align-items:center; justify-content:center;
+      font-size:28px; border-bottom:1px solid var(--border);
+      position:relative; overflow:hidden;
+    }
+    .job-card-banner-placeholder::before {
+      content:''; position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+      background-size:20px 20px;
+    }
+    .job-card-body { padding:16px; flex:1; display:flex; flex-direction:column; gap:10px; }
+
+    .jc-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .jc-title { font-size:14px; font-weight:600; color:var(--ink); letter-spacing:-0.2px; margin-bottom:3px; }
+    .jc-company { font-size:12px; color:var(--ink-muted); }
+    .jc-badge { width:36px; height:36px; border-radius:8px; background:var(--surface2); border:1px solid var(--border); display:grid; place-items:center; font-size:16px; flex-shrink:0; }
+
+    .jc-meta { display:flex; flex-wrap:wrap; gap:6px; }
+    .jc-meta-item { display:flex; align-items:center; gap:4px; background:var(--surface2); padding:3px 8px; border-radius:100px; border:1px solid var(--border); font-family:var(--mono); font-size:10px; color:var(--ink-muted); }
+
+    .jc-slots { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--ink-muted); font-family:var(--mono); }
+    .jc-slots-bar { width:60px; height:3px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+    .jc-slots-fill { height:100%; background:var(--green); border-radius:2px; }
+    .jc-slots-fill.warn { background:var(--gold); }
+    .jc-slots-fill.full { background:var(--red); }
+
+    .jc-footer { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid var(--border-soft); }
+    .jc-salary { font-size:13px; font-weight:700; color:var(--ink); font-family:var(--mono); }
+
+    /* ── List view ── */
+    .jobs-list-view { display:flex; flex-direction:column; background:var(--border); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; gap:1px; }
+    .job-list-row { background:var(--surface); padding:14px 18px; display:flex; align-items:center; gap:14px; transition:background 0.12s; }
+    .job-list-row:hover { background:var(--surface2); }
+    .job-list-row.closed-row { opacity:0.5; }
+    .jlr-thumb { width:44px; height:44px; border-radius:8px; object-fit:cover; flex-shrink:0; background:var(--surface2); border:1px solid var(--border); display:grid; place-items:center; font-size:18px; overflow:hidden; }
+    .jlr-thumb img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+    .jlr-main { flex:1; min-width:0; }
+    .jlr-title { font-size:13px; font-weight:600; margin-bottom:3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .jlr-meta { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--ink-muted); flex-wrap:wrap; }
+    .jlr-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+
+    /* ── Topbar ── */
+    .jobs-topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+    .search-input-wrap { position:relative; flex:1; max-width:320px; }
+    .search-input-wrap input { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); color:var(--ink); padding:9px 12px 9px 36px; font-family:var(--font); font-size:13px; outline:none; transition:border-color 0.15s; width:100%; }
+    .search-input-wrap input:focus { border-color:rgba(255,255,255,0.2); }
+    .search-input-wrap input::placeholder { color:var(--ink-muted); }
+    .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--ink-muted); pointer-events:none; }
+    .view-toggle { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    .view-btn { padding:7px 11px; background:none; border:none; color:var(--ink-muted); font-size:13px; cursor:pointer; transition:all 0.15s; }
+    .view-btn.active { background:var(--surface2); color:var(--ink); }
+    .live-count-badge { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-muted); font-family:var(--mono); background:var(--surface); border:1px solid var(--border); padding:5px 10px; border-radius:100px; }
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0;}
+
+    /* ── Panel ── */
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:14px; }
+    .panel-header { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; border-bottom:1px solid var(--border); }
+    .panel-header h3 { font-size:13px; font-weight:600; }
+    .panel-body { padding:14px 18px; }
+
+    /* ── Empty ── */
+    .empty-state { text-align:center; padding:60px 24px; color:var(--ink-muted); font-family:var(--mono); font-size:12px; }
+    .empty-state-icon { font-size:32px; margin-bottom:12px; opacity:0.4; }
+
+    @media(max-width:680px){
+      .jobs-grid { grid-template-columns:1fr; }
+      .jobs-topbar { flex-direction:column; align-items:stretch; }
+      .search-input-wrap { max-width:100%; }
+    }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">JT</div>
+      <div class="sidebar-logo-text">JobTrack <span>/ Jobs</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><span class="icon">⌂</span> Home</a>
+        <a href="jobs.html"     class="sidebar-link active"><span class="icon">◈</span> Browse Jobs</a>
+        <a href="dashboard.html" class="sidebar-link" id="dashLink"><span class="icon">▦</span> Dashboard</a>
+      </nav>
+    </div>
+    <div class="sidebar-section" style="margin-top:8px;">
+      <div class="sidebar-section-label">Job Type</div>
+      <nav class="sidebar-nav" id="typeNav">
+        <button class="sidebar-link active" onclick="setFilter('type','',this,'typeNav')"><span class="icon">◉</span> All Types <span class="sidebar-badge" id="countAll">—</span></button>
+        <button class="sidebar-link" onclick="setFilter('type','Full-Time',this,'typeNav')"><span class="icon" style="color:var(--green)">●</span> Full-Time</button>
+        <button class="sidebar-link" onclick="setFilter('type','Part-Time',this,'typeNav')"><span class="icon" style="color:var(--accent3)">●</span> Part-Time</button>
+        <button class="sidebar-link" onclick="setFilter('type','Internship',this,'typeNav')"><span class="icon" style="color:var(--gold)">●</span> Internship</button>
+        <button class="sidebar-link" onclick="setFilter('type','Remote',this,'typeNav')"><span class="icon" style="color:var(--accent)">●</span> Remote</button>
+      </nav>
+    </div>
+    <div class="sidebar-section" style="margin-top:4px;">
+      <div class="sidebar-section-label">Status</div>
+      <nav class="sidebar-nav" id="statusNav">
+        <button class="sidebar-link active" onclick="setFilter('status','',this,'statusNav')"><span class="icon">◉</span> All</button>
+        <button class="sidebar-link" onclick="setFilter('status','open',this,'statusNav')"><span class="icon" style="color:var(--green)">●</span> Open</button>
+        <button class="sidebar-link" onclick="setFilter('status','full',this,'statusNav')"><span class="icon" style="color:var(--gold)">●</span> Full</button>
+        <button class="sidebar-link" onclick="setFilter('status','closed',this,'statusNav')"><span class="icon" style="color:var(--red)">●</span> Closed</button>
+      </nav>
+    </div>
+    <div class="sidebar-bottom" id="sidebarBottom">
+      <div class="sidebar-link" style="color:var(--ink-muted);font-size:12px;cursor:default;pointer-events:none;">Not signed in</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">JobTrack / <strong>Browse Jobs</strong></div>
+      <div class="topbar-actions">
+        <div class="live-count-badge"><div class="live-dot"></div><span id="liveCount">—</span> live</div>
+        <a href="login.html" class="btn btn-ghost btn-sm" id="authBtn">Login</a>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- Category scroll with arrow buttons -->
+      <div class="panel animate-in" style="margin-bottom:14px;">
+        <div class="panel-header">
+          <h3>Browse by Category</h3>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);">Use ‹ › to scroll</span>
+            <button class="btn btn-ghost btn-sm" id="clearCatBtn" onclick="clearCategory()" style="display:none;">Clear ✕</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top:10px;padding-bottom:14px;">
+          <div class="cat-scroll-wrap">
+            <button class="cat-scroll-btn left" id="catScrollLeft" onclick="scrollCats(-1)">‹</button>
+            <div class="cat-scroll" id="categoryRow"></div>
+            <button class="cat-scroll-btn right" id="catScrollRight" onclick="scrollCats(1)">›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search + view toggle -->
+      <div class="jobs-topbar animate-in delay-1">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:200px;">
+          <div class="search-input-wrap">
+            <span class="search-icon">🔍</span>
+            <input type="text" id="searchInput" placeholder="Search title or company..." oninput="filterJobs()"/>
+          </div>
+          <span id="jobCount" style="font-family:var(--mono);font-size:12px;color:var(--ink-muted);white-space:nowrap;">Loading...</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="view-toggle">
+            <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view">⊞</button>
+            <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="List view">☰</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Listings -->
+      <div id="jobsContainer" class="animate-in delay-2"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Apply Modal -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <!-- Job banner inside modal if available -->
+      <div style="flex:1;">
+        <img id="modalBannerImg" src="" style="width:100%;height:100px;object-fit:cover;border-radius:var(--radius);margin-bottom:10px;display:none;" onerror="this.style.display='none'"/>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Submit Application</div>
+        <h3 id="modalJobTitle">—</h3>
+        <div id="modalJobMeta" style="font-size:12px;color:var(--ink-muted);margin-top:3px;"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="applyAlert" class="alert"></div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="applyName"/></div>
+      <div class="form-group"><label>Email Address</label><input type="email" id="applyEmail"/></div>
+      <div class="form-group"><label>Cover Letter</label><textarea id="applyCover" placeholder="Why are you a great fit for this role?" style="min-height:100px;"></textarea></div>
+      <div class="form-group"><label>Resume Link (Google Drive / URL)</label><input type="url" id="applyResume" placeholder="https://drive.google.com/..."/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitApplication()">Submit Application →</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/main.js"></script>
+<script>
+const CATEGORIES = [
+  {id:"arts",label:"Arts & Media",icon:"🎬"},{id:"business",label:"Business",icon:"💼"},
+  {id:"cleaning",label:"Cleaning",icon:"🧹"},{id:"construction",label:"Construction",icon:"🏗️"},
+  {id:"customer",label:"Customer Service",icon:"🎧"},{id:"design",label:"Design",icon:"🎨"},
+  {id:"education",label:"Education",icon:"📚"},{id:"engineering",label:"Engineering",icon:"⚙️"},
+  {id:"finance",label:"Finance",icon:"💰"},{id:"government",label:"Gov / NGO",icon:"🏛️"},
+  {id:"healthcare",label:"Healthcare",icon:"🏥"},{id:"hospitality",label:"Hospitality",icon:"🏨"},
+  {id:"marketing",label:"Marketing",icon:"📣"},{id:"software",label:"Software & IT",icon:"💻"},
+  {id:"teaching",label:"Teaching",icon:"🏫"},
+];
+const CAT_MAP  = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
+const TYPE_MAP = {"Full-Time":"full-time","Part-Time":"part-time","Internship":"internship","Remote":"remote"};
+const TYPE_ICON = {"Full-Time":"🏢","Part-Time":"⏰","Internship":"🎓","Remote":"🌐"};
+
+let allJobs=[], activeFilters={type:"",status:"",category:""}, selectedJob=null, currentView="grid";
+
+/* ── Category pills ── */
+const catRow=document.getElementById("categoryRow");
+CATEGORIES.forEach(c=>{
+  const pill=document.createElement("div");
+  pill.className="cat-pill"; pill.dataset.cat=c.id;
+  pill.innerHTML=`<span class="cat-pill-icon">${c.icon}</span>${c.label}`;
+  pill.onclick=()=>toggleCategory(c.id,pill);
+  catRow.appendChild(pill);
+});
+
+/* ── Scroll arrows ── */
+function scrollCats(dir){
+  catRow.scrollBy({left:dir*200,behavior:"smooth"});
+}
+// Show/hide arrows based on scroll position
+catRow.addEventListener("scroll",updateScrollBtns);
+function updateScrollBtns(){
+  const atStart=catRow.scrollLeft<=4;
+  const atEnd=catRow.scrollLeft+catRow.clientWidth>=catRow.scrollWidth-4;
+  document.getElementById("catScrollLeft").style.opacity=atStart?"0.3":"1";
+  document.getElementById("catScrollRight").style.opacity=atEnd?"0.3":"1";
+}
+setTimeout(updateScrollBtns,100);
+
+/* ── Auth ── */
+const user=getUser();
+if(user){
+  document.getElementById("authBtn").textContent="Dashboard";
+  document.getElementById("authBtn").href="dashboard.html";
+  document.getElementById("sidebarBottom").innerHTML=`
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">${user.profile_pic?`<img src="${user.profile_pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`:user.name[0].toUpperCase()}</div>
+      <div class="sidebar-user-info"><div class="sidebar-user-name">${user.name}</div><div class="sidebar-user-role">${user.role}</div></div>
+    </div>
+    <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;"><span class="icon">→</span> Sign Out</button>`;
+}
+
+function setFilter(key,val,btn,navId){
+  activeFilters[key]=val;
+  document.getElementById(navId).querySelectorAll(".sidebar-link").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active"); filterJobs();
+}
+function toggleCategory(id,pill){
+  if(activeFilters.category===id){ activeFilters.category=""; pill.classList.remove("active"); document.getElementById("clearCatBtn").style.display="none"; }
+  else{ document.querySelectorAll(".cat-pill").forEach(p=>p.classList.remove("active")); pill.classList.add("active"); activeFilters.category=id; document.getElementById("clearCatBtn").style.display="inline-flex"; }
+  filterJobs();
+}
+function clearCategory(){ activeFilters.category=""; document.querySelectorAll(".cat-pill").forEach(p=>p.classList.remove("active")); document.getElementById("clearCatBtn").style.display="none"; filterJobs(); }
+function setView(v){ currentView=v; document.getElementById("gridViewBtn").classList.toggle("active",v==="grid"); document.getElementById("listViewBtn").classList.toggle("active",v==="list"); filterJobs(); }
+
+async function loadJobs(){
+  try{ allJobs=await api("/jobs"); }
+  catch{
+    allJobs=[
+      {id:1,title:"Frontend Developer",company:"TechCorp Philippines",location:"Davao City",type:"Full-Time",salary:"₱35k–₱45k",status:"open",category:"software",max_applicants:10,deadline:"2026-05-01",image_url:""},
+      {id:2,title:"Data Analyst",company:"Insights Inc.",location:"Remote",type:"Remote",salary:"₱28k–₱38k",status:"open",category:"business",image_url:""},
+      {id:3,title:"IT Support Intern",company:"StartupHub Cebu",location:"Cebu City",type:"Internship",salary:"₱8k/mo",status:"full",category:"software",max_applicants:5,image_url:""},
+      {id:4,title:"Backend Engineer",company:"CloudSoft Solutions",location:"Manila",type:"Full-Time",salary:"₱50k–₱65k",status:"open",category:"software",image_url:""},
+      {id:5,title:"UI/UX Designer",company:"Creative Co.",location:"Davao City",type:"Part-Time",salary:"₱18k–₱25k",status:"closed",category:"design",max_applicants:3,image_url:""},
+    ];
+  }
+  document.getElementById("countAll").textContent=allJobs.length;
+  document.getElementById("liveCount").textContent=allJobs.filter(j=>j.status==="open").length;
+  filterJobs();
+}
+
+function filterJobs(){
+  const q=document.getElementById("searchInput").value.toLowerCase();
+  const {type,status,category}=activeFilters;
+  const jobs=allJobs.filter(j=>(j.title.toLowerCase().includes(q)||j.company.toLowerCase().includes(q))&&(!type||j.type===type)&&(!status||j.status===status)&&(!category||j.category===category));
+  document.getElementById("jobCount").textContent=`${jobs.length} position${jobs.length!==1?"s":""} found`;
+  renderJobs(jobs);
+}
+
+function renderJobs(jobs){
+  const c=document.getElementById("jobsContainer");
+  if(!jobs.length){ c.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🔎</div>No positions match your filters.<br/><span style="margin-top:6px;display:block;font-size:11px;">Try clearing your category or type filter.</span></div>`; return; }
+  if(currentView==="grid") renderGrid(jobs,c);
+  else renderList(jobs,c);
+}
+
+function catIcon(j){ return (CAT_MAP[j.category]?.icon)||TYPE_ICON[j.type]||"📋"; }
+
+function slotsHtml(j){
+  if(!j.max_applicants) return "";
+  const filled=j.applicant_count||0, pct=Math.min((filled/j.max_applicants)*100,100);
+  const cls=pct>=100?"full":pct>=70?"warn":"";
+  return `<div class="jc-slots"><span>${filled}/${j.max_applicants}</span><div class="jc-slots-bar"><div class="jc-slots-fill ${cls}" style="width:${pct}%"></div></div></div>`;
+}
+
+function dlHtml(j){
+  if(!j.deadline) return "";
+  const d=new Date(j.deadline), diff=Math.ceil((d-Date.now())/(86400000));
+  const label=diff<0?"Expired":diff===0?"Today":diff<=3?`${diff}d left`:d.toLocaleDateString("en-PH",{month:"short",day:"numeric"});
+  const color=diff<0?"var(--red)":diff<=3?"var(--gold)":"var(--ink-muted)";
+  return `<span style="font-size:10px;color:${color};font-family:var(--mono);">⏰ ${label}</span>`;
+}
+
+function renderGrid(jobs,c){
+  c.innerHTML=`<div class="jobs-grid">${jobs.map(j=>{
+    const closed=j.status==="closed"||j.status==="full";
+    const cat=CAT_MAP[j.category];
+    const hasBanner=j.image_url&&j.image_url.length>0;
+    return `<div class="job-card${closed?" closed-card":""}">
+      ${hasBanner
+        ?`<img class="job-card-banner" src="${j.image_url}" alt="${j.title}" onerror="this.parentElement.querySelector('.job-card-banner-placeholder').style.display='flex';this.style.display='none';"/><div class="job-card-banner-placeholder" style="display:none;">${catIcon(j)}</div>`
+        :`<div class="job-card-banner-placeholder">${catIcon(j)}</div>`
+      }
+      <div class="job-card-body">
+        <div class="jc-header">
+          <div>
+            <div class="jc-title">${j.title}</div>
+            <div class="jc-company">${j.company} &nbsp;·&nbsp; 📍 ${j.location}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+            <span class="pill pill-${j.status}">${j.status}</span>
+          </div>
+        </div>
+        <div class="jc-meta">
+          <span class="jc-meta-item">${TYPE_ICON[j.type]||""} ${j.type}</span>
+          ${cat?`<span class="jc-meta-item">${cat.icon} ${cat.label}</span>`:""}
+          ${j.deadline?`<span class="jc-meta-item">${dlHtml(j)}</span>`:""}
+        </div>
+        ${j.max_applicants?slotsHtml(j):""}
+        <div class="jc-footer">
+          <div class="jc-salary">${j.salary||"Negotiable"}</div>
+          <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
+            onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
+            ${closed?`disabled style="opacity:0.5;cursor:not-allowed;"`:""}>
+            ${closed?(j.status==="full"?"Full":"Closed"):"Apply →"}
+          </button>
+        </div>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function renderList(jobs,c){
+  c.innerHTML=`<div class="jobs-list-view">${jobs.map(j=>{
+    const closed=j.status==="closed"||j.status==="full";
+    const cat=CAT_MAP[j.category];
+    return `<div class="job-list-row${closed?" closed-row":""}">
+      <div class="jlr-thumb">
+        ${j.image_url?`<img src="${j.image_url}" onerror="this.parentElement.textContent='${catIcon(j)}'"/>`:catIcon(j)}
+      </div>
+      <div class="jlr-main">
+        <div class="jlr-title">
+          ${j.title}
+          <span class="pill pill-${j.status}">${j.status}</span>
+          <span class="type-tag ${TYPE_MAP[j.type]||""}">${j.type}</span>
+        </div>
+        <div class="jlr-meta">
+          <span>${j.company}</span><span>📍 ${j.location}</span>
+          ${cat?`<span>${cat.icon} ${cat.label}</span>`:""}
+          ${j.salary?`<span style="color:var(--ink);font-weight:600;font-family:var(--mono);">${j.salary}</span>`:""}
+          ${j.deadline?dlHtml(j):""}
+          ${j.max_applicants?slotsHtml(j):""}
+        </div>
+      </div>
+      <div class="jlr-right">
+        <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
+          onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
+          ${closed?`disabled style="opacity:0.5;cursor:not-allowed;"`:""}>
+          ${closed?(j.status==="full"?"Full":"Closed"):"Apply →"}
+        </button>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function openModal(jObj){
+  const j=typeof jObj==="string"?JSON.parse(jObj.replace(/&quot;/g,'"')):jObj;
+  if(!getUser()){ window.location.href="login.html"; return; }
+  selectedJob=j;
+  document.getElementById("modalJobTitle").textContent=j.title;
+  document.getElementById("modalJobMeta").textContent=j.company+(j.max_applicants?` · ${j.applicant_count||0}/${j.max_applicants} applicants`:"");
+  // Show banner in modal if available
+  const mb=document.getElementById("modalBannerImg");
+  if(j.image_url){ mb.src=j.image_url; mb.style.display="block"; }
+  else { mb.style.display="none"; }
+  const u=getUser();
+  document.getElementById("applyName").value=u?.name||"";
+  document.getElementById("applyEmail").value=u?.email||"";
+  document.getElementById("applyCover").value="";
+  document.getElementById("applyResume").value="";
+  document.getElementById("applyModal").classList.add("open");
+}
+function closeModal(){ document.getElementById("applyModal").classList.remove("open"); const a=document.getElementById("applyAlert"); a.innerHTML=""; a.className="alert"; }
+
+async function submitApplication(){
+  const u=getUser();
+  if(!u){ window.location.href="login.html"; return; }
+  try{
+    await api("/applications","POST",{
+      job_id:selectedJob.id, user_id:u.id,
+      name:document.getElementById("applyName").value,
+      email:document.getElementById("applyEmail").value,
+      cover_letter:document.getElementById("applyCover").value,
+      resume_url:document.getElementById("applyResume").value,
+    });
+    showAlert("applyAlert","Application submitted successfully!","success");
+    setTimeout(()=>{ closeModal(); loadJobs(); },1600);
+  } catch(e){ showAlert("applyAlert",e.message,"error"); }
+}
+
+loadJobs();
+</script>
+</body>
+</html>
