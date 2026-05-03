@@ -32,8 +32,8 @@
       cursor:pointer; white-space:nowrap; transition:all 0.15s; flex-shrink:0;
     }
     .cat-pill:hover { background:var(--surface2); color:var(--ink); border-color:rgba(255,255,255,0.15); }
-    .cat-pill.active { background:rgba(127,255,0,0.1); border-color:rgba(127,255,0,0.5); color:var(--accent); }
-    .cat-pill-icon { font-size:14px; }
+    .cat-pill.active { background:rgba(232,149,109,0.1); border-color:rgba(232,149,109,0.5); color:var(--accent); }
+    .cat-pill-icon { display:none; }
 
     /* ── Job cards ── */
     .jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
@@ -101,7 +101,7 @@
     .search-input-wrap input { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); color:var(--ink); padding:9px 12px 9px 36px; font-family:var(--font); font-size:13px; outline:none; transition:border-color 0.15s; width:100%; }
     .search-input-wrap input:focus { border-color:rgba(255,255,255,0.2); }
     .search-input-wrap input::placeholder { color:var(--ink-muted); }
-    .search-icon { position:absolute; left:11px; top:50%; transform:translateY(-50%); font-size:13px; color:var(--ink-muted); pointer-events:none; }
+    .search-icon { display:none; }
     .view-toggle { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
     .view-btn { padding:7px 11px; background:none; border:none; color:var(--ink-muted); font-size:13px; cursor:pointer; transition:all 0.15s; }
     .view-btn.active { background:var(--surface2); color:var(--ink); }
@@ -117,47 +117,185 @@
 
     /* ── Empty ── */
     .empty-state { text-align:center; padding:60px 24px; color:var(--ink-muted); font-family:var(--mono); font-size:12px; }
-    .empty-state-icon { font-size:32px; margin-bottom:12px; opacity:0.4; }
+    .empty-state-icon { display:none; }
 
-    @media(max-width:680px){
+    /* ── Pan-Pan corner peek ── */
+    @keyframes floatY { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
+    @keyframes panpanIn { from{opacity:0;transform:translateY(60px)} to{opacity:1;transform:translateY(0)} }
+
+    .panpan-corner {
+      position:fixed;
+      bottom:0; right:40px;
+      width:160px;
+      z-index:99;
+      animation:panpanIn 0.6s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+      pointer-events:none;
+    }
+    .panpan-corner svg {
+      width:100%;
+      display:block;
+      filter:drop-shadow(0 -8px 24px rgba(232,149,109,0.12)) drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+      animation:floatY 3.5s ease-in-out infinite;
+    }
+
+    /* ── Pan-Pan empty state ── */
+    .empty-state-panpan {
+      display:flex; flex-direction:column; align-items:center;
+      padding:48px 24px 60px;
+      color:var(--ink-muted); font-family:var(--mono); font-size:12px;
+      text-align:center;
+    }
+    .empty-state-panpan svg {
+      width:180px; margin-bottom:0;
+      filter:drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+      animation:floatY 3.5s ease-in-out infinite;
+    }
+    .empty-state-panpan .esp-text { margin-top:4px; font-size:13px; color:var(--ink-soft); }
+    .empty-state-panpan .esp-sub  { margin-top:6px; font-size:11px; color:var(--ink-muted); }
+
+        @media(max-width:680px){
       .jobs-grid { grid-template-columns:1fr; }
       .jobs-topbar { flex-direction:column; align-items:stretch; }
       .search-input-wrap { max-width:100%; }
     }
+
+    /* ══ MOBILE JOBS ══ */
+    @media (max-width:900px) {
+      .jobs-grid { grid-template-columns:1fr 1fr; }
+      .jobs-topbar { flex-direction:column; align-items:stretch; gap:8px; }
+      .search-input-wrap { max-width:100%; }
+    }
+    @media (max-width:680px) {
+      .jobs-grid { grid-template-columns:1fr; }
+      .jobs-topbar { flex-direction:column; align-items:stretch; gap:8px; }
+      .search-input-wrap { max-width:100%; }
+    }
+    @media (max-width:600px) {
+      .jobs-grid { grid-template-columns:1fr; }
+      .cat-scroll-btn { display:none; }
+      .live-count-badge { display:none; }
+      .cat-scroll { gap:6px; padding:2px 0 6px; }
+      .cat-pill { font-size:11px; padding:6px 10px; }
+      .panel-header { flex-wrap:wrap; gap:6px; }
+      .panel-header h3 { font-size:12px; }
+      #applyModal .modal-box { width:100%; max-height:100vh; border-radius:0; margin:0; max-width:100%; }
+      .panpan-corner { width:80px; right:6px; }
+    }
+    /* ── Job Detail Modal ── */
+    .jd-modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.85); z-index:300;
+      align-items:center; justify-content:center;
+      backdrop-filter:blur(6px);
+    }
+    .jd-modal-overlay.open { display:flex; }
+    .jd-modal-box {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); width:92%; max-width:640px;
+      max-height:92vh; overflow:hidden; display:flex; flex-direction:column;
+      box-shadow:0 40px 100px rgba(0,0,0,0.8);
+      animation:fadeUp 0.22s cubic-bezier(0.16,1,0.3,1);
+    }
+    .jd-banner { width:100%; height:160px; object-fit:cover; display:block; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .jd-banner-placeholder {
+      height:90px; background:linear-gradient(135deg,#0f0f1a,#1a1a2e);
+      display:flex; align-items:center; justify-content:center;
+      font-size:36px; flex-shrink:0; position:relative; overflow:hidden;
+    }
+    .jd-banner-placeholder::before {
+      content:''; position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
+      background-size:24px 24px;
+    }
+    .jd-header { padding:20px 24px 14px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-shrink:0; }
+    .jd-header-left { flex:1; min-width:0; }
+    .jd-title { font-size:18px; font-weight:700; letter-spacing:-0.4px; margin-bottom:4px; line-height:1.2; }
+    .jd-company { font-size:13px; color:var(--ink-muted); margin-bottom:10px; }
+    .jd-tags { display:flex; flex-wrap:wrap; gap:6px; }
+    .jd-tag { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; background:var(--surface2); border:1px solid var(--border); border-radius:100px; font-size:11px; color:var(--ink-muted); font-family:var(--mono); }
+    .jd-close { background:none; border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; color:var(--ink-muted); font-size:14px; padding:6px 10px; transition:all 0.15s; flex-shrink:0; }
+    .jd-close:hover { background:var(--surface2); color:var(--ink); }
+    .jd-body { padding:20px 24px; overflow-y:auto; flex:1; }
+    .jd-section-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-muted); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+    .jd-section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .jd-description { font-size:13px; color:var(--ink-soft); line-height:1.8; white-space:pre-wrap; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+    .jd-no-desc { font-size:13px; color:var(--ink-muted); font-style:italic; padding:20px; text-align:center; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); }
+    .jd-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+    .jd-meta-item { display:flex; align-items:center; gap:10px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; }
+    .jd-meta-icon { font-size:16px; flex-shrink:0; }
+    .jd-meta-key { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-muted); margin-bottom:2px; }
+    .jd-meta-val { font-size:12px; font-weight:600; color:var(--ink); font-family:var(--mono); }
+    .jd-footer { padding:14px 24px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface2); flex-shrink:0; }
+    .jd-salary-display { font-size:16px; font-weight:700; color:var(--ink); font-family:var(--mono); }
+    .jd-salary-label { font-size:10px; color:var(--ink-muted); font-weight:400; display:block; }
+    .jd-footer-actions { display:flex; gap:8px; align-items:center; }
+    @media(max-width:600px){
+      .jd-modal-box { width:100%; max-height:100vh; border-radius:12px 12px 0 0; align-self:flex-end; }
+      .jd-meta-grid { grid-template-columns:1fr; }
+    }
+    /* ── Safety & Trust & Report ── */
+    .safety-banner { display:flex; align-items:flex-start; gap:12px; background:rgba(255,204,68,0.07); border:1px solid rgba(255,204,68,0.25); border-radius:var(--radius-lg); padding:12px 16px; margin-bottom:14px; font-size:12px; color:var(--ink-soft); line-height:1.6; }
+    .safety-banner-icon { display:none; }
+    .safety-banner strong { color:var(--gold); }
+    .safety-warning-box { background:rgba(255,204,68,0.06); border:1px solid rgba(255,204,68,0.2); border-radius:var(--radius); padding:12px 14px; margin-top:10px; font-size:12px; color:var(--ink-soft); line-height:1.7; }
+    .safety-warning-box .sw-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .safety-warning-box ul { margin:0; padding-left:16px; }
+    .safety-warning-box ul li { margin-bottom:3px; }
+    .report-btn { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--red); background:none; border:1px solid rgba(255,68,68,0.25); border-radius:var(--radius); padding:4px 10px; cursor:pointer; transition:all 0.15s; font-family:var(--font); }
+    .report-btn:hover { background:rgba(255,68,68,0.08); border-color:rgba(255,68,68,0.4); }
+    .trust-row { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--ink-muted); margin-bottom:6px; }
+    .trust-row .tr-val { color:var(--ink); font-weight:600; font-family:var(--mono); }
+    .pill-individual { background:rgba(167,139,250,0.12); color:#a78bfa; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:100px; font-size:11px; font-weight:600; font-family:var(--mono); }
+    .pill-individual::before { content:''; width:4px; height:4px; border-radius:50%; background:#a78bfa; }
+    .cat-pill.individual { border-color:rgba(167,139,250,0.25); }
+    .cat-pill.individual.active { background:rgba(167,139,250,0.12); border-color:rgba(167,139,250,0.5); color:#a78bfa; }
   </style>
 </head>
 <body>
 <div class="app-layout">
+  <!-- MOBILE TOPBAR -->
+  <div class="mobile-topbar">
+    <div class="mobile-topbar-logo">
+      <div class="logo-box" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
+      <span>JobTrack</span>
+    </div>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
   <aside class="sidebar">
     <div class="sidebar-logo">
-      <div class="sidebar-logo-icon">JT</div>
+      <div class="sidebar-logo-icon" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
       <div class="sidebar-logo-text">JobTrack <span>/ Jobs</span></div>
     </div>
     <div class="sidebar-section">
       <div class="sidebar-section-label">Navigation</div>
       <nav class="sidebar-nav">
-        <a href="../index.html" class="sidebar-link"><span class="icon">⌂</span> Home</a>
-        <a href="jobs.html"     class="sidebar-link active"><span class="icon">◈</span> Browse Jobs</a>
-        <a href="dashboard.html" class="sidebar-link" id="dashLink"><span class="icon">▦</span> Dashboard</a>
+        <a href="../index.html" class="sidebar-link">Home</a>
+        <a href="jobs.html"     class="sidebar-link active">Browse Jobs</a>
+        <a href="dashboard.html" class="sidebar-link" id="dashLink">Dashboard</a>
       </nav>
     </div>
     <div class="sidebar-section" style="margin-top:8px;">
       <div class="sidebar-section-label">Job Type</div>
       <nav class="sidebar-nav" id="typeNav">
-        <button class="sidebar-link active" onclick="setFilter('type','',this,'typeNav')"><span class="icon">◉</span> All Types <span class="sidebar-badge" id="countAll">—</span></button>
-        <button class="sidebar-link" onclick="setFilter('type','Full-Time',this,'typeNav')"><span class="icon" style="color:var(--green)">●</span> Full-Time</button>
-        <button class="sidebar-link" onclick="setFilter('type','Part-Time',this,'typeNav')"><span class="icon" style="color:var(--accent3)">●</span> Part-Time</button>
-        <button class="sidebar-link" onclick="setFilter('type','Internship',this,'typeNav')"><span class="icon" style="color:var(--gold)">●</span> Internship</button>
-        <button class="sidebar-link" onclick="setFilter('type','Remote',this,'typeNav')"><span class="icon" style="color:var(--accent)">●</span> Remote</button>
+        <button class="sidebar-link active" onclick="setFilter('type','',this,'typeNav')">All Types <span class="sidebar-badge" id="countAll">—</span></button>
+        <button class="sidebar-link" onclick="setFilter('type','Full-Time',this,'typeNav')">Full-Time</button>
+        <button class="sidebar-link" onclick="setFilter('type','Part-Time',this,'typeNav')">Part-Time</button>
+        <button class="sidebar-link" onclick="setFilter('type','Internship',this,'typeNav')">Internship</button>
+        <button class="sidebar-link" onclick="setFilter('type','Remote',this,'typeNav')">Remote</button>
       </nav>
     </div>
     <div class="sidebar-section" style="margin-top:4px;">
       <div class="sidebar-section-label">Status</div>
       <nav class="sidebar-nav" id="statusNav">
-        <button class="sidebar-link active" onclick="setFilter('status','',this,'statusNav')"><span class="icon">◉</span> All</button>
-        <button class="sidebar-link" onclick="setFilter('status','open',this,'statusNav')"><span class="icon" style="color:var(--green)">●</span> Open</button>
-        <button class="sidebar-link" onclick="setFilter('status','full',this,'statusNav')"><span class="icon" style="color:var(--gold)">●</span> Full</button>
-        <button class="sidebar-link" onclick="setFilter('status','closed',this,'statusNav')"><span class="icon" style="color:var(--red)">●</span> Closed</button>
+        <button class="sidebar-link active" onclick="setFilter('status','',this,'statusNav')">All</button>
+        <button class="sidebar-link" onclick="setFilter('status','open',this,'statusNav')">Open</button>
+        <button class="sidebar-link" onclick="setFilter('status','full',this,'statusNav')">Full</button>
+        <button class="sidebar-link" onclick="setFilter('status','closed',this,'statusNav')">Closed</button>
       </nav>
     </div>
     <div class="sidebar-bottom" id="sidebarBottom">
@@ -170,11 +308,36 @@
       <div class="topbar-title">JobTrack / <strong>Browse Jobs</strong></div>
       <div class="topbar-actions">
         <div class="live-count-badge"><div class="live-dot"></div><span id="liveCount">—</span> live</div>
+        <!-- Notification Bell -->
+        <div id="notifBellWrap" style="position:relative;display:none;">
+          <button id="notifBell" onclick="toggleNotifPanel()" style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;cursor:pointer;color:var(--ink-muted);font-size:14px;transition:all 0.15s;" title="Notifications">
+            🔔<span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:var(--mono);min-width:16px;text-align:center;"></span>
+          </button>
+          <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,0.15);z-index:200;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
+              <span style="font-size:13px;font-weight:600;">Notifications</span>
+              <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--font);">Mark all read</button>
+            </div>
+            <div id="notifList" style="max-height:320px;overflow-y:auto;"></div>
+          </div>
+        </div>
+        <!-- Saved jobs chip -->
+        <a id="savedJobsChip" href="dashboard.html" style="display:none;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:100px;font-family:var(--mono);text-decoration:none;" title="Saved jobs">🔖 <span id="savedCountChip">0</span></a>
         <a href="login.html" class="btn btn-ghost btn-sm" id="authBtn">Login</a>
       </div>
     </div>
 
     <div class="content-area">
+
+      <!-- Safety Banner -->
+      <div class="safety-banner animate-in">
+        
+        <div>
+          <strong>Stay Safe on JobTrack.</strong>
+          Legitimate employers and hirers <strong>never ask for payment</strong> before hiring. Never share bank details, send GCash, or pay a "processing fee" to get a job.
+          <button onclick="document.getElementById('safetyModal').classList.add('open')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:12px;font-family:var(--font);text-decoration:underline;padding:0;margin-left:4px;">Learn more →</button>
+        </div>
+      </div>
 
       <!-- Category scroll with arrow buttons -->
       <div class="panel animate-in" style="margin-bottom:14px;">
@@ -198,7 +361,7 @@
       <div class="jobs-topbar animate-in delay-1">
         <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:200px;">
           <div class="search-input-wrap">
-            <span class="search-icon">🔍</span>
+            
             <input type="text" id="searchInput" placeholder="Search title or company..." oninput="filterJobs()"/>
           </div>
           <span id="jobCount" style="font-family:var(--mono);font-size:12px;color:var(--ink-muted);white-space:nowrap;">Loading...</span>
@@ -218,6 +381,130 @@
   </div>
 </div>
 
+<!-- Job Detail Modal -->
+<div class="jd-modal-overlay" id="jobDetailModal">
+  <div class="jd-modal-box">
+    <img id="jdBannerImg" class="jd-banner" src="" alt="" style="display:none;" onerror="this.style.display='none';document.getElementById('jdBannerPlaceholder').style.display='flex'"/>
+    <div id="jdBannerPlaceholder" class="jd-banner-placeholder">📋</div>
+    <div class="jd-header">
+      <div class="jd-header-left">
+        <div class="jd-title" id="jdTitle">—</div>
+        <div class="jd-company" id="jdCompany">—</div>
+        <div class="jd-tags" id="jdTags"></div>
+      </div>
+      <button class="jd-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="jd-body">
+      <div class="jd-meta-grid" id="jdMetaGrid"></div>
+      <div id="jdTrustBox" style="margin-bottom:10px;"></div>
+      <div id="jdSafetyBox" style="display:none;">
+        <div class="safety-warning-box">
+          <div class="sw-title">👤 Individual Hirer — Safety Reminders</div>
+          <ul>
+            <li><strong>Meet in a public place first</strong> — mall, café, or barangay hall</li>
+            <li><strong>Verify their identity</strong> — ask for a valid ID before any work begins</li>
+            <li><strong>Never pay in advance</strong> — pay upon completion or agreed milestone only</li>
+            <li>Do not share your home address until you have confirmed who they are</li>
+            <li>Tell someone where you're going and who you're meeting</li>
+          </ul>
+        </div>
+      </div>
+      <div class="jd-section-label" style="margin-top:14px;">Job Description</div>
+      <div id="jdDescription" class="jd-description"></div>
+    </div>
+    <div class="jd-footer">
+      <div>
+        <span class="jd-salary-label">Salary</span>
+        <span class="jd-salary-display" id="jdSalary">Negotiable</span>
+      </div>
+      <div class="jd-footer-actions">
+        <button class="report-btn" onclick="openReportModal()">🚩 Report</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyJobLink()" id="jdShareBtn">🔗 Share</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeDetailModal()">Close</button>
+        <button class="btn btn-primary btn-sm" id="jdApplyBtn" onclick="applyFromDetail()">Apply Now →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Safety Guide Modal -->
+<div class="modal-overlay" id="safetyModal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);font-family:var(--mono);margin-bottom:4px;">Safety Guide</div><h3>Protecting Yourself on JobTrack</h3></div>
+      <button class="modal-close" onclick="document.getElementById('safetyModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="safety-warning-box">
+        <div class="sw-title">⚠️ Common Scam Warning Signs</div>
+        <ul>
+          <li>Asked to pay a <strong>processing fee, training fee, or deposit</strong> before starting</li>
+          <li>Employer asks for your <strong>bank account, GCash, or government ID</strong> upfront</li>
+          <li>Job offers very high pay for little work with no interview</li>
+          <li>Assigned a <strong>"test task"</strong> then ghosted without payment</li>
+          <li>Communication moves to <strong>personal WhatsApp/Telegram</strong> immediately</li>
+          <li>Sent a check and asked to <strong>forward part of it</strong> — it will bounce</li>
+        </ul>
+      </div>
+      <div class="safety-warning-box" style="border-color:rgba(77,159,255,0.2);background:rgba(77,159,255,0.05);">
+        <div class="sw-title" style="color:var(--accent3);">👤 For Individual / Odd Job Hirers</div>
+        <ul>
+          <li><strong>Meet in a public place first</strong> — mall, café, or barangay hall</li>
+          <li><strong>Verify identity</strong> — ask for a valid ID before work begins</li>
+          <li><strong>Never send payment in advance</strong> — pay upon completion only</li>
+          <li>Do not share your home address until identity is confirmed</li>
+          <li>Tell someone where you're going and who you're meeting</li>
+          <li>For domestic/home work, request a <strong>barangay clearance</strong></li>
+        </ul>
+      </div>
+      <div class="safety-warning-box" style="border-color:rgba(68,221,136,0.2);background:rgba(68,221,136,0.04);">
+        <div class="sw-title" style="color:var(--green);">✓ JobTrack Platform Policy</div>
+        <ul>
+          <li>Employers are <strong>prohibited from charging applicants any fees</strong></li>
+          <li>Use the <strong>🚩 Report</strong> button on any suspicious listing</li>
+          <li>Reported jobs are reviewed and may be removed</li>
+          <li>Your personal data is never sold to third parties</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary btn-sm" onclick="document.getElementById('safetyModal').classList.remove('open')">Got it ✓</button></div>
+  </div>
+</div>
+
+<!-- Report Job Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-header">
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);font-family:var(--mono);margin-bottom:4px;">Report Listing</div><h3 id="reportJobTitle">Report this Job</h3></div>
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="reportAlert" class="alert"></div>
+      <div class="form-group">
+        <label>Reason for Report</label>
+        <select id="reportReason">
+          <option value="">— Select a reason —</option>
+          <option value="fee">Asked me to pay a fee before hiring</option>
+          <option value="fake">Fake or non-existent job posting</option>
+          <option value="data">Suspicious — collecting personal data / ID</option>
+          <option value="unpaid">Assigned work without payment / ghosted</option>
+          <option value="scam">Possible scam or fraud</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Additional Details <span style="color:var(--ink-muted);font-weight:400;">(optional)</span></label>
+        <textarea id="reportDetails" placeholder="Describe what happened..." style="min-height:80px;"></textarea>
+      </div>
+      <div style="font-size:11px;color:var(--ink-muted);margin-top:4px;">Reports are reviewed by the JobTrack admin team. Thank you for keeping the platform safe.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeReportModal()">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="submitReport()">Submit Report →</button>
+    </div>
+  </div>
+</div>
+
 <!-- Apply Modal -->
 <div class="modal-overlay" id="applyModal">
   <div class="modal-box" style="max-width:560px;">
@@ -233,6 +520,9 @@
     </div>
     <div class="modal-body">
       <div id="applyAlert" class="alert"></div>
+      <div id="applyPrefillHint" style="display:none;align-items:center;gap:8px;background:rgba(30,168,60,0.08);border:1px solid rgba(30,168,60,0.2);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--accent);margin-bottom:12px;">
+        ✓ Pre-filled from your profile. <a href="dashboard.html" style="color:var(--accent);text-decoration:underline;font-weight:600;">Edit defaults →</a>
+      </div>
       <div class="form-group"><label>Full Name</label><input type="text" id="applyName"/></div>
       <div class="form-group"><label>Email Address</label><input type="email" id="applyEmail"/></div>
       <div class="form-group"><label>Cover Letter</label><textarea id="applyCover" placeholder="Why are you a great fit for this role?" style="min-height:100px;"></textarea></div>
@@ -245,10 +535,14 @@
   </div>
 </div>
 
+<script src="../js/config.js"></script>
 <script src="../js/main.js"></script>
+<script src="../js/shell/notifications.js"></script>
+<script src="../js/shell/savedJobs.js"></script>
 <script>
 const CATEGORIES = [
   {id:"arts",label:"Arts & Media",icon:"🎬"},{id:"business",label:"Business",icon:"💼"},
+  {id:"agriculture",label:"Agriculture & Forestry",icon:"🌾"},
   {id:"cleaning",label:"Cleaning",icon:"🧹"},{id:"construction",label:"Construction",icon:"🏗️"},
   {id:"customer",label:"Customer Service",icon:"🎧"},{id:"design",label:"Design",icon:"🎨"},
   {id:"education",label:"Education",icon:"📚"},{id:"engineering",label:"Engineering",icon:"⚙️"},
@@ -256,6 +550,12 @@ const CATEGORIES = [
   {id:"healthcare",label:"Healthcare",icon:"🏥"},{id:"hospitality",label:"Hospitality",icon:"🏨"},
   {id:"marketing",label:"Marketing",icon:"📣"},{id:"software",label:"Software & IT",icon:"💻"},
   {id:"teaching",label:"Teaching",icon:"🏫"},
+  {id:"freelance",label:"Freelance / Project",icon:"💡",individual:true},
+  {id:"errand",label:"Errands & Delivery",icon:"🛵",individual:true},
+  {id:"homeservice",label:"Home Services",icon:"🏠",individual:true},
+  {id:"repair",label:"Repair & Maintenance",icon:"🔧",individual:true},
+  {id:"caregiving",label:"Caregiving / Domestic",icon:"🤝",individual:true},
+  {id:"event",label:"Events & Assistance",icon:"🎉",individual:true},
 ];
 const CAT_MAP  = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
 const TYPE_MAP = {"Full-Time":"full-time","Part-Time":"part-time","Internship":"internship","Remote":"remote"};
@@ -265,10 +565,19 @@ let allJobs=[], activeFilters={type:"",status:"",category:""}, selectedJob=null,
 
 /* ── Category pills ── */
 const catRow=document.getElementById("categoryRow");
+let lastWasIndividual=false;
 CATEGORIES.forEach(c=>{
+  if(c.individual&&!lastWasIndividual){
+    const div=document.createElement("div");
+    div.style.cssText="display:flex;align-items:center;gap:6px;flex-shrink:0;padding:0 4px;";
+    div.innerHTML='<span style="width:1px;height:28px;background:var(--border);"></span><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a78bfa;white-space:nowrap;">👤 Individual</span>';
+    catRow.appendChild(div);
+    lastWasIndividual=true;
+  }
   const pill=document.createElement("div");
-  pill.className="cat-pill"; pill.dataset.cat=c.id;
-  pill.innerHTML=`<span class="cat-pill-icon">${c.icon}</span>${c.label}`;
+  pill.className="cat-pill"+(c.individual?" individual":"");
+  pill.dataset.cat=c.id;
+  pill.innerHTML=c.label;
   pill.onclick=()=>toggleCategory(c.id,pill);
   catRow.appendChild(pill);
 });
@@ -297,7 +606,7 @@ if(user){
       <div class="sidebar-avatar">${user.profile_pic?`<img src="${user.profile_pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`:user.name[0].toUpperCase()}</div>
       <div class="sidebar-user-info"><div class="sidebar-user-name">${user.name}</div><div class="sidebar-user-role">${user.role}</div></div>
     </div>
-    <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;"><span class="icon">→</span> Sign Out</button>`;
+    <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;">Sign Out</button>`;
 }
 
 function setFilter(key,val,btn,navId){
@@ -326,6 +635,7 @@ async function loadJobs(){
   }
   document.getElementById("countAll").textContent=allJobs.length;
   document.getElementById("liveCount").textContent=allJobs.filter(j=>j.status==="open").length;
+  await loadSavedIds();
   filterJobs();
 }
 
@@ -339,7 +649,17 @@ function filterJobs(){
 
 function renderJobs(jobs){
   const c=document.getElementById("jobsContainer");
-  if(!jobs.length){ c.innerHTML=`<div class="empty-state"><div class="empty-state-icon">🔎</div>No positions match your filters.<br/><span style="margin-top:6px;display:block;font-size:11px;">Try clearing your category or type filter.</span></div>`; return; }
+  if(!jobs.length){
+    c.innerHTML=`<div class="empty-state-panpan">
+      <div id="espSvgWrap"></div>
+      <div class="esp-text">No positions match your filters.</div>
+      <div class="esp-sub">Try clearing your category or type filter.</div>
+    </div>`;
+    // inject Pan-Pan SVG into empty state
+    const wrap = document.getElementById("espSvgWrap");
+    if(wrap && window._panpanSVG) wrap.innerHTML = window._panpanSVG;
+    return;
+  }
   if(currentView==="grid") renderGrid(jobs,c);
   else renderList(jobs,c);
 }
@@ -362,38 +682,45 @@ function dlHtml(j){
 }
 
 function renderGrid(jobs,c){
+  const indivCats=new Set(["freelance","errand","homeservice","repair","caregiving","event"]);
   c.innerHTML=`<div class="jobs-grid">${jobs.map(j=>{
     const closed=j.status==="closed"||j.status==="full";
     const cat=CAT_MAP[j.category];
     const hasBanner=j.image_url&&j.image_url.length>0;
+    const isIndiv=indivCats.has(j.category);
     return `<div class="job-card${closed?" closed-card":""}">
       ${hasBanner
-        ?`<img class="job-card-banner" src="${j.image_url}" alt="${j.title}" onerror="this.parentElement.querySelector('.job-card-banner-placeholder').style.display='flex';this.style.display='none';"/><div class="job-card-banner-placeholder" style="display:none;">${catIcon(j)}</div>`
-        :`<div class="job-card-banner-placeholder">${catIcon(j)}</div>`
+        ?`<img class="job-card-banner" src="${j.image_url}" alt="${j.title}" onerror="this.style.display='none'"/>`
+        :`<div class="job-card-banner-placeholder"></div>`
       }
       <div class="job-card-body">
         <div class="jc-header">
           <div>
             <div class="jc-title">${j.title}</div>
-            <div class="jc-company">${j.company} &nbsp;·&nbsp; 📍 ${j.location}</div>
+            <div class="jc-company">${j.company} &nbsp;·&nbsp; 📍 ${j.location}${j.employer_is_verified?'<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:6px;font-family:var(--mono);">✓ VERIFIED</span>':''}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
             <span class="pill pill-${j.status}">${j.status}</span>
+            ${isIndiv?`<span class="pill-individual">👤 Individual</span>`:""}
           </div>
         </div>
         <div class="jc-meta">
           <span class="jc-meta-item">${TYPE_ICON[j.type]||""} ${j.type}</span>
-          ${cat?`<span class="jc-meta-item">${cat.icon} ${cat.label}</span>`:""}
+          ${cat?`<span class="jc-meta-item">${cat.label}</span>`:""}
           ${j.deadline?`<span class="jc-meta-item">${dlHtml(j)}</span>`:""}
         </div>
         ${j.max_applicants?slotsHtml(j):""}
         <div class="jc-footer">
           <div class="jc-salary">${j.salary||"Negotiable"}</div>
-          <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
-            onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
-            ${closed?`disabled style="opacity:0.5;cursor:not-allowed;"`:""}>
-            ${closed?(j.status==="full"?"Full":"Closed"):"Apply →"}
-          </button>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">🔖</button>`:""}
+            <button class="btn btn-ghost btn-sm" onclick="openDetailModal(${j.id})">Details</button>
+            <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
+              onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
+              ${closed?`disabled style="opacity:0.5;cursor:not-allowed;"`:""}>
+              ${closed?(j.status==="full"?"Full":"Closed"):"Apply →"}
+            </button>
+          </div>
         </div>
       </div>
     </div>`;
@@ -406,7 +733,7 @@ function renderList(jobs,c){
     const cat=CAT_MAP[j.category];
     return `<div class="job-list-row${closed?" closed-row":""}">
       <div class="jlr-thumb">
-        ${j.image_url?`<img src="${j.image_url}" onerror="this.parentElement.textContent='${catIcon(j)}'"/>`:catIcon(j)}
+        ${j.image_url?`<img src="${j.image_url}" onerror="this.style.display='none'"/>`:catIcon(j)}
       </div>
       <div class="jlr-main">
         <div class="jlr-title">
@@ -416,13 +743,15 @@ function renderList(jobs,c){
         </div>
         <div class="jlr-meta">
           <span>${j.company}</span><span>📍 ${j.location}</span>
-          ${cat?`<span>${cat.icon} ${cat.label}</span>`:""}
+          ${cat?`<span>${cat.label}</span>`:""}
           ${j.salary?`<span style="color:var(--ink);font-weight:600;font-family:var(--mono);">${j.salary}</span>`:""}
           ${j.deadline?dlHtml(j):""}
           ${j.max_applicants?slotsHtml(j):""}
         </div>
       </div>
       <div class="jlr-right">
+        ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">🔖</button>`:""}
+        <button class="btn btn-ghost btn-sm" onclick="openDetailModal(${j.id})">Details</button>
         <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
           onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
           ${closed?`disabled style="opacity:0.5;cursor:not-allowed;"`:""}>
@@ -444,10 +773,13 @@ function openModal(jObj){
   if(j.image_url){ mb.src=j.image_url; mb.style.display="block"; }
   else { mb.style.display="none"; }
   const u=getUser();
+  const _p=window._userProfile||{};
   document.getElementById("applyName").value=u?.name||"";
   document.getElementById("applyEmail").value=u?.email||"";
-  document.getElementById("applyCover").value="";
-  document.getElementById("applyResume").value="";
+  document.getElementById("applyCover").value=_p.default_cover||"";
+  document.getElementById("applyResume").value=_p.default_resume||"";
+  const _hint=document.getElementById("applyPrefillHint");
+  if(_hint) _hint.style.display=(_p.default_resume||_p.default_cover)?"flex":"none";
   document.getElementById("applyModal").classList.add("open");
 }
 function closeModal(){ document.getElementById("applyModal").classList.remove("open"); const a=document.getElementById("applyAlert"); a.innerHTML=""; a.className="alert"; }
@@ -468,7 +800,1481 @@ async function submitApplication(){
   } catch(e){ showAlert("applyAlert",e.message,"error"); }
 }
 
+/* ── Job Detail Modal ── */
+function openDetailModal(jobId) {
+  const j = allJobs.find(x => x.id === jobId);
+  if (!j) return;
+  selectedJob = j;
+
+  // Banner
+  const bi = document.getElementById("jdBannerImg");
+  const bp = document.getElementById("jdBannerPlaceholder");
+  if (j.image_url) { bi.src = j.image_url; bi.style.display = "block"; bp.style.display = "none"; }
+  else { bi.style.display = "none"; bp.style.display = "flex"; bp.textContent = catIcon(j); }
+
+  // Header
+  document.getElementById("jdTitle").textContent = j.title;
+  document.getElementById("jdCompany").textContent = j.company + "  ·  📍 " + j.location;
+
+  const cat = CAT_MAP[j.category];
+  const closed = j.status === "closed" || j.status === "full";
+  const tagParts = [
+    '<span class="jd-tag">' + (TYPE_ICON[j.type]||"") + " " + j.type + '</span>',
+    '<span class="pill pill-' + j.status + '" style="margin:0;">' + j.status + '</span>',
+    cat ? '<span class="jd-tag">' + cat.label + '</span>' : "",
+    j.view_count ? '<span class="jd-tag">👁 ' + j.view_count + ' views</span>' : "",
+  ];
+  document.getElementById("jdTags").innerHTML = tagParts.join("");
+
+  // Deadline color + label
+  var dlColor = "var(--ink-muted)", dlLabel = "No deadline";
+  if (j.deadline) {
+    var d = new Date(j.deadline);
+    var diff = Math.ceil((d - Date.now()) / 86400000);
+    dlColor = diff < 0 ? "var(--red)" : diff <= 3 ? "var(--gold)" : "var(--ink)";
+    dlLabel = d.toLocaleDateString("en-PH",{month:"long",day:"numeric",year:"numeric"})
+      + (diff < 0 ? " (Expired)" : diff === 0 ? " (Today)" : diff <= 3 ? " (" + diff + "d left)" : "");
+  }
+
+  // Slots color + label
+  var slotsColor = "var(--ink-muted)", slotsLabel = "Unlimited slots";
+  if (j.max_applicants) {
+    var pct = ((j.applicant_count||0) / j.max_applicants) * 100;
+    slotsColor = pct >= 100 ? "var(--red)" : pct >= 70 ? "var(--gold)" : "var(--green)";
+    slotsLabel = (j.applicant_count||0) + " / " + j.max_applicants + " applied";
+  }
+
+  // Posted
+  var posted = "—";
+  if (j.created_at) {
+    var days = Math.floor((Date.now() - new Date(j.created_at)) / 86400000);
+    posted = days === 0 ? "Today" : days === 1 ? "Yesterday" : days + " days ago";
+  }
+
+  document.getElementById("jdMetaGrid").innerHTML =
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Deadline</div><div class="jd-meta-val" style="color:' + dlColor + '">' + dlLabel + '</div></div></div>' +
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Applicants / Slots</div><div class="jd-meta-val" style="color:' + slotsColor + '">' + slotsLabel + '</div></div></div>' +
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Job Type</div><div class="jd-meta-val">' + j.type + '</div></div></div>' +
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Posted</div><div class="jd-meta-val">' + posted + '</div></div></div>';
+
+  // Description
+  var descEl = document.getElementById("jdDescription");
+  if (j.description && j.description.trim()) {
+    descEl.className = "jd-description";
+    descEl.textContent = j.description;
+  } else {
+    descEl.className = "jd-no-desc";
+    descEl.textContent = "No description provided for this position.";
+  }
+
+  document.getElementById("jdSalary").textContent = j.salary || "Negotiable";
+
+  // Individual safety warning
+  const indivCats=new Set(["freelance","errand","homeservice","repair","caregiving","event"]);
+  document.getElementById("jdSafetyBox").style.display = indivCats.has(j.category) ? "block" : "none";
+
+  // Transparency trust row
+  const postedDays = j.created_at ? Math.floor((Date.now()-new Date(j.created_at))/86400000) : null;
+  const postedLabel = postedDays===null?"—":postedDays===0?"Today":postedDays===1?"Yesterday":postedDays+" days ago";
+  document.getElementById("jdTrustBox").innerHTML =
+    '<div class="trust-row"><span>👥</span><span style="flex:1;">Applicants</span><span class="tr-val">'+(j.applicant_count||0)+(j.max_applicants?" / "+j.max_applicants+" slots":"")+'</span></div>'+
+    '<div class="trust-row"><span>👁</span><span style="flex:1;">Views</span><span class="tr-val">'+(j.view_count||0)+'</span></div>'+
+    (postedDays!==null?'<div class="trust-row"><span>🕐</span><span style="flex:1;">Posted</span><span class="tr-val">'+postedLabel+'</span></div>':"");
+
+  var applyBtn = document.getElementById("jdApplyBtn");
+  if (closed) {
+    applyBtn.textContent = j.status === "full" ? "Slots Full" : "Position Closed";
+    applyBtn.disabled = true; applyBtn.style.opacity = "0.4"; applyBtn.style.cursor = "not-allowed";
+  } else {
+    applyBtn.textContent = "Apply Now →";
+    applyBtn.disabled = false; applyBtn.style.opacity = ""; applyBtn.style.cursor = "";
+  }
+
+  document.getElementById("jobDetailModal").classList.add("open");
+}
+
+function closeDetailModal() {
+  document.getElementById("jobDetailModal").classList.remove("open");
+}
+
+function applyFromDetail() {
+  closeDetailModal();
+  if (!getUser()) { window.location.href = "login.html"; return; }
+  openModal(selectedJob);
+}
+
+function copyJobLink() {
+  var url = window.location.href.split("?")[0] + (selectedJob ? "?job=" + selectedJob.id : "");
+  navigator.clipboard.writeText(url).then(function() {
+    var btn = document.getElementById("jdShareBtn");
+    var orig = btn.textContent;
+    btn.textContent = "✓ Copied!";
+    setTimeout(function(){ btn.textContent = orig; }, 2000);
+  }).catch(function(){ prompt("Copy this link:", url); });
+}
+
+document.getElementById("jobDetailModal").addEventListener("click", function(e) {
+  if (e.target === document.getElementById("jobDetailModal")) closeDetailModal();
+});
+document.getElementById("safetyModal").addEventListener("click",function(e){if(e.target===document.getElementById("safetyModal"))document.getElementById("safetyModal").classList.remove("open");});
+document.getElementById("reportModal").addEventListener("click",function(e){if(e.target===document.getElementById("reportModal"))closeReportModal();});
+
+function openReportModal(){
+  if(!selectedJob)return;
+  document.getElementById("reportJobTitle").textContent="Report: "+selectedJob.title;
+  document.getElementById("reportReason").value="";
+  document.getElementById("reportDetails").value="";
+  document.getElementById("reportAlert").className="alert";
+  document.getElementById("reportAlert").innerHTML="";
+  document.getElementById("reportModal").classList.add("open");
+}
+function closeReportModal(){document.getElementById("reportModal").classList.remove("open");}
+
+async function submitReport(){
+  const reason=document.getElementById("reportReason").value;
+  if(!reason){showAlert("reportAlert","Please select a reason.","error");return;}
+  const details=document.getElementById("reportDetails").value.trim();
+  try{
+    await api("/admin/reports","POST",{job_id:selectedJob.id,reason,details:details||null});
+    showAlert("reportAlert","✓ Report submitted. Thank you for keeping JobTrack safe.","success");
+    setTimeout(()=>closeReportModal(),2000);
+  }catch(e){showAlert("reportAlert",e.message||"Failed to submit report.","error");}
+}
+
+
+// Shared shell modules initialize deduplicated notifications + saved-jobs.
+window.JobTrackShell.notifications.initJobsNotifications();
+
+// ══ USER PROFILE AUTO-FILL ════════════════════════════
+async function loadUserProfileForAutofill() {
+  const u = getUser(); if (!u) return;
+  try { window._userProfile = await api(`/users/${u.id}`); }
+  catch(e) { window._userProfile = {}; }
+}
+
+// ══ TOAST ════════════════════════════════════════════
+function showToast(msg, type="success") {
+  let t = document.getElementById("_jt_toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "_jt_toast";
+    t.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 18px;font-size:13px;color:var(--ink);box-shadow:0 8px 28px rgba(0,0,0,0.2);z-index:9999;transition:opacity 0.3s,transform 0.3s;white-space:nowrap;font-family:var(--font);pointer-events:none;";
+    document.body.appendChild(t);
+  }
+  t.style.color = type === "error" ? "var(--red)" : "var(--ink)";
+  t.textContent = msg;
+  t.style.opacity = "1";
+  t.style.transform = "translateX(-50%) translateY(0)";
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity="0"; t.style.transform="translateX(-50%) translateY(8px)"; }, 2800);
+}
+
+// ══ INIT FOR LOGGED-IN USERS ════════════════════════
+if (getUser()) {
+  document.getElementById("notifBellWrap").style.display = "block";
+  loadNotifCount();
+  loadUserProfileForAutofill();
+  setInterval(loadNotifCount, 30000);
+}
+
 loadJobs();
 </script>
+  <!-- Pan-Pan corner peek — always visible -->
+  <div class="panpan-corner" id="panpanCorner">
+<svg width="100%" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Pan-Pan the JobTrack mascot</title>
+<desc>Pan-Pan the panda mascot wearing a JT hat, sitting at a desk reviewing resumes on a monitor</desc>
+
+
+<!-- DESK -->
+<rect x="160" y="360" width="380" height="18" rx="4" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+<rect x="195" y="378" width="18" height="90" rx="3" fill="#222" stroke="#444" stroke-width="0.5"/>
+<rect x="487" y="378" width="18" height="90" rx="3" fill="#222" stroke="#444" stroke-width="0.5"/>
+<rect x="175" y="378" width="350" height="12" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+
+<!-- MONITOR -->
+<rect x="270" y="210" width="200" height="148" rx="8" fill="#111" stroke="#333" stroke-width="1.5"/>
+<rect x="278" y="218" width="184" height="118" rx="4" fill="#0d0d0d" stroke="#222" stroke-width="0.5"/>
+<!-- monitor stand -->
+<rect x="355" y="358" width="30" height="8" rx="2" fill="#222" stroke="#333" stroke-width="0.5"/>
+<rect x="340" y="364" width="60" height="6" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+
+<!-- SCREEN CONTENT -->
+<rect x="283" y="223" width="180" height="12" rx="2" fill="#1a3a1a"/>
+<text x="373" y="233" text-anchor="middle">JOBTRACK DASHBOARD</text>
+<rect x="283" y="240" width="80" height="8" rx="2" fill="#1a2a1a"/>
+<text x="323" y="247" text-anchor="middle">Applications: 12</text>
+<rect x="370" y="240" width="90" height="8" rx="2" fill="#1a2a1a"/>
+<text x="415" y="247" text-anchor="middle">Pending: 4</text>
+<rect x="283" y="254" width="177" height="1" fill="#2a2a2a"/>
+<!-- fake rows -->
+<rect x="283" y="260" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="260" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="260" width="50" height="6" rx="1" fill="#1f3a1f"/>
+<rect x="283" y="271" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="271" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="271" width="50" height="6" rx="1" fill="#3a1f1f"/>
+<rect x="283" y="282" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="282" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="282" width="50" height="6" rx="1" fill="#1f3a1f"/>
+<!-- accept badge on screen -->
+<rect x="390" y="310" width="48" height="14" rx="3" fill="var(--accent)"/>
+<text x="414" y="321" text-anchor="middle">HIRED!</text>
+
+<!-- KEYBOARD -->
+<rect x="270" y="355" width="120" height="8" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+<rect x="274" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="285" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="296" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="307" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="318" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="329" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="340" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="351" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="362" y="357" width="22" height="4" rx="1" fill="#3a3a3a"/>
+
+<!-- RESUME PAPERS on desk -->
+<rect x="430" y="338" width="50" height="64" rx="2" fill="#f5f5f5" stroke="#ccc" stroke-width="0.5" transform="rotate(-8 455 370)"/>
+<rect x="432" y="342" width="35" height="3" rx="1" fill="#ccc" transform="rotate(-8 455 370)"/>
+<rect x="432" y="348" width="28" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="432" y="353" width="32" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="432" y="358" width="24" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="427" y="340" width="50" height="64" rx="2" fill="#eee" stroke="#bbb" stroke-width="0.5" transform="rotate(-3 452 372)"/>
+<rect x="429" y="345" width="35" height="3" rx="1" fill="#bbb" transform="rotate(-3 452 372)"/>
+<rect x="429" y="351" width="26" height="2" rx="1" fill="#ccc" transform="rotate(-3 452 372)"/>
+
+<!-- COFFEE CUP -->
+<rect x="215" y="338" width="26" height="24" rx="3" fill="#1a1a1a" stroke="#444" stroke-width="0.5"/>
+<path d="M241 344 Q252 344 252 352 Q252 360 241 360" fill="none" stroke="#444" stroke-width="1.5"/>
+<rect x="217" y="340" width="22" height="4" rx="1" fill="var(--accent)" opacity="0.3"/>
+
+<!-- PAN-PAN BODY (sitting, leaning toward screen) -->
+<!-- body -->
+<ellipse cx="200" cy="310" rx="62" ry="66" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<!-- belly -->
+<ellipse cx="200" cy="322" rx="36" ry="38" fill="#fff" stroke="none"/>
+
+<!-- left arm (resting on desk, pointing at keyboard) -->
+<ellipse cx="148" cy="348" rx="18" ry="11" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-30 148 348)"/>
+<ellipse cx="140" cy="358" rx="13" ry="10" fill="#1a1a1a" stroke="#111" stroke-width="1.5"/>
+<!-- left hand fingers -->
+<ellipse cx="132" cy="363" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="138" cy="366" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="145" cy="365" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+
+<!-- right arm (raised, waving) -->
+<ellipse cx="258" cy="275" rx="18" ry="11" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-60 258 275)"/>
+<ellipse cx="272" cy="258" rx="13" ry="10" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-30 272 258)"/>
+<!-- right hand -->
+<ellipse cx="276" cy="247" rx="12" ry="10" fill="#e0e0e0" stroke="#111" stroke-width="1.2"/>
+<ellipse cx="270" cy="241" rx="4" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="278" cy="239" rx="4" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="284" cy="242" rx="3.5" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+
+<!-- legs (sitting) -->
+<ellipse cx="172" cy="368" rx="22" ry="12" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(15 172 368)"/>
+<ellipse cx="228" cy="368" rx="22" ry="12" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-15 228 368)"/>
+<!-- feet -->
+<ellipse cx="162" cy="376" rx="16" ry="9" fill="#1a1a1a" stroke="#111" stroke-width="1.2"/>
+<ellipse cx="238" cy="376" rx="16" ry="9" fill="#1a1a1a" stroke="#111" stroke-width="1.2"/>
+
+<!-- HEAD -->
+<circle cx="200" cy="218" r="64" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+
+<!-- ears -->
+<circle cx="148" cy="165" r="22" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<circle cx="148" cy="165" r="13" fill="#1a1a1a"/>
+<circle cx="252" cy="165" r="22" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<circle cx="252" cy="165" r="13" fill="#1a1a1a"/>
+
+<!-- eye patches -->
+<ellipse cx="183" cy="218" rx="22" ry="20" fill="#1a1a1a"/>
+<ellipse cx="217" cy="218" rx="22" ry="20" fill="#1a1a1a"/>
+
+<!-- eyes -->
+<circle cx="183" cy="218" r="13" fill="#fff"/>
+<circle cx="217" cy="218" r="13" fill="#fff"/>
+<circle cx="183" cy="218" r="7" fill="var(--accent)"/>
+<circle cx="217" cy="218" r="7" fill="var(--accent)"/>
+<circle cx="183" cy="218" r="4" fill="#111"/>
+<circle cx="217" cy="218" r="4" fill="#111"/>
+<!-- eye shine -->
+<circle cx="186" cy="215" r="2" fill="#fff"/>
+<circle cx="220" cy="215" r="2" fill="#fff"/>
+
+<!-- nose -->
+<ellipse cx="200" cy="232" rx="6" ry="4" fill="#555"/>
+
+<!-- CLOSED MOUTH / slight smile - no tongue -->
+<path d="M188 242 Q200 250 212 242" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round"/>
+
+<!-- cheek blush -->
+<ellipse cx="168" cy="230" rx="10" ry="6" fill="#d4f0d4" opacity="0.5"/>
+<ellipse cx="232" cy="230" rx="10" ry="6" fill="#d4f0d4" opacity="0.5"/>
+
+<!-- HAT brim -->
+<rect x="162" y="158" width="76" height="8" rx="2" fill="#111" stroke="#333" stroke-width="0.5"/>
+<!-- hat body -->
+<rect x="174" y="118" width="52" height="44" rx="3" fill="#1a1a1a" stroke="#333" stroke-width="0.8"/>
+<!-- hat band -->
+<rect x="174" y="150" width="52" height="7" rx="1" fill="var(--accent)"/>
+<!-- JT on hat -->
+<text x="200" y="143" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="var(--accent)">JT</text>
+
+<!-- NAMEPLATE -->
+<rect x="340" y="463" width="100" height="24" rx="12" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.5"/>
+<text x="390" y="479" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="var(--accent)">Pan-Pan</text>
+
+<!-- speech bubble -->
+<rect x="295" y="148" width="130" height="40" rx="8" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.2"/>
+<path d="M310 188 L300 200 L320 188" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/>
+<text x="360" y="165" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--accent)">You're hired!</text>
+<text x="360" y="179" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--accent)">Welcome to JobTrack</text>
+
+</svg>
+  </div>
+
+  <script>
+    // Store Pan-Pan SVG for reuse in empty state
+    window._panpanSVG = document.getElementById("panpanCorner").innerHTML;
+  </script>
+</body>
+</html><!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Browse Jobs — JobTrack</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    /* ── Category scroll with arrow buttons ── */
+    .cat-scroll-wrap { position:relative; }
+    .cat-scroll-btn {
+      position:absolute; top:50%; transform:translateY(-50%);
+      width:28px; height:28px; border-radius:50%;
+      background:var(--surface2); border:1px solid var(--border);
+      display:grid; place-items:center; cursor:pointer; z-index:5;
+      font-size:13px; color:var(--ink-soft); transition:all 0.15s;
+      user-select:none;
+    }
+    .cat-scroll-btn:hover { background:var(--surface3); color:var(--ink); border-color:rgba(255,255,255,0.2); }
+    .cat-scroll-btn.left { left:-8px; }
+    .cat-scroll-btn.right { right:-8px; }
+    .cat-scroll {
+      display:flex; gap:8px; overflow-x:auto; padding:4px 4px 8px;
+      scrollbar-width:none; -ms-overflow-style:none;
+      scroll-behavior:smooth;
+    }
+    .cat-scroll::-webkit-scrollbar { display:none; }
+    .cat-pill {
+      display:inline-flex; align-items:center; gap:6px;
+      padding:7px 14px; background:var(--surface); border:1px solid var(--border);
+      border-radius:100px; font-size:12px; font-weight:500; color:var(--ink-soft);
+      cursor:pointer; white-space:nowrap; transition:all 0.15s; flex-shrink:0;
+    }
+    .cat-pill:hover { background:var(--surface2); color:var(--ink); border-color:rgba(255,255,255,0.15); }
+    .cat-pill.active { background:rgba(232,149,109,0.1); border-color:rgba(232,149,109,0.5); color:var(--accent); }
+    .cat-pill-icon { display:none; }
+
+    /* ── Job cards ── */
+    .jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:14px; }
+    .job-card {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); overflow:hidden;
+      display:flex; flex-direction:column;
+      transition:border-color 0.15s,transform 0.15s,box-shadow 0.15s;
+      position:relative;
+    }
+    .job-card:hover { border-color:rgba(255,255,255,0.16); transform:translateY(-2px); box-shadow:0 8px 28px rgba(0,0,0,0.35); }
+    .job-card.closed-card { opacity:0.5; }
+
+    /* Job banner image */
+    .job-card-banner {
+      width:100%; height:140px; object-fit:cover;
+      display:block; border-bottom:1px solid var(--border);
+      background:linear-gradient(135deg,#1a1a2e,#16213e);
+    }
+    .job-card-banner-placeholder {
+      height:80px; background:linear-gradient(135deg,#0f0f1a 0%,#1a1a2e 100%);
+      display:flex; align-items:center; justify-content:center;
+      font-size:28px; border-bottom:1px solid var(--border);
+      position:relative; overflow:hidden;
+    }
+    .job-card-banner-placeholder::before {
+      content:''; position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,0.02) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.02) 1px,transparent 1px);
+      background-size:20px 20px;
+    }
+    .job-card-body { padding:16px; flex:1; display:flex; flex-direction:column; gap:10px; }
+
+    .jc-header { display:flex; align-items:flex-start; justify-content:space-between; gap:10px; }
+    .jc-title { font-size:14px; font-weight:600; color:var(--ink); letter-spacing:-0.2px; margin-bottom:3px; }
+    .jc-company { font-size:12px; color:var(--ink-muted); }
+    .jc-badge { width:36px; height:36px; border-radius:8px; background:var(--surface2); border:1px solid var(--border); display:grid; place-items:center; font-size:16px; flex-shrink:0; }
+
+    .jc-meta { display:flex; flex-wrap:wrap; gap:6px; }
+    .jc-meta-item { display:flex; align-items:center; gap:4px; background:var(--surface2); padding:3px 8px; border-radius:100px; border:1px solid var(--border); font-family:var(--mono); font-size:10px; color:var(--ink-muted); }
+
+    .jc-slots { display:flex; align-items:center; gap:6px; font-size:10px; color:var(--ink-muted); font-family:var(--mono); }
+    .jc-slots-bar { width:60px; height:3px; background:var(--surface3); border-radius:2px; overflow:hidden; }
+    .jc-slots-fill { height:100%; background:var(--green); border-radius:2px; }
+    .jc-slots-fill.warn { background:var(--gold); }
+    .jc-slots-fill.full { background:var(--red); }
+
+    .jc-footer { display:flex; align-items:center; justify-content:space-between; margin-top:auto; padding-top:10px; border-top:1px solid var(--border-soft); }
+    .jc-salary { font-size:13px; font-weight:700; color:var(--ink); font-family:var(--mono); }
+
+    /* ── List view ── */
+    .jobs-list-view { display:flex; flex-direction:column; background:var(--border); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; gap:1px; }
+    .job-list-row { background:var(--surface); padding:14px 18px; display:flex; align-items:center; gap:14px; transition:background 0.12s; }
+    .job-list-row:hover { background:var(--surface2); }
+    .job-list-row.closed-row { opacity:0.5; }
+    .jlr-thumb { width:44px; height:44px; border-radius:8px; object-fit:cover; flex-shrink:0; background:var(--surface2); border:1px solid var(--border); display:grid; place-items:center; font-size:18px; overflow:hidden; }
+    .jlr-thumb img { width:100%; height:100%; object-fit:cover; border-radius:8px; }
+    .jlr-main { flex:1; min-width:0; }
+    .jlr-title { font-size:13px; font-weight:600; margin-bottom:3px; display:flex; align-items:center; gap:8px; flex-wrap:wrap; }
+    .jlr-meta { display:flex; align-items:center; gap:8px; font-size:11px; color:var(--ink-muted); flex-wrap:wrap; }
+    .jlr-right { display:flex; align-items:center; gap:10px; flex-shrink:0; }
+
+    /* ── Topbar ── */
+    .jobs-topbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin-bottom:16px; flex-wrap:wrap; }
+    .search-input-wrap { position:relative; flex:1; max-width:320px; }
+    .search-input-wrap input { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); color:var(--ink); padding:9px 12px 9px 36px; font-family:var(--font); font-size:13px; outline:none; transition:border-color 0.15s; width:100%; }
+    .search-input-wrap input:focus { border-color:rgba(255,255,255,0.2); }
+    .search-input-wrap input::placeholder { color:var(--ink-muted); }
+    .search-icon { display:none; }
+    .view-toggle { display:flex; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius); overflow:hidden; }
+    .view-btn { padding:7px 11px; background:none; border:none; color:var(--ink-muted); font-size:13px; cursor:pointer; transition:all 0.15s; }
+    .view-btn.active { background:var(--surface2); color:var(--ink); }
+    .live-count-badge { display:flex; align-items:center; gap:6px; font-size:11px; color:var(--ink-muted); font-family:var(--mono); background:var(--surface); border:1px solid var(--border); padding:5px 10px; border-radius:100px; }
+    @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.5}}
+    .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 2s infinite;flex-shrink:0;}
+
+    /* ── Panel ── */
+    .panel { background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); overflow:hidden; margin-bottom:14px; }
+    .panel-header { display:flex; align-items:center; justify-content:space-between; padding:12px 18px; border-bottom:1px solid var(--border); }
+    .panel-header h3 { font-size:13px; font-weight:600; }
+    .panel-body { padding:14px 18px; }
+
+    /* ── Empty ── */
+    .empty-state { text-align:center; padding:60px 24px; color:var(--ink-muted); font-family:var(--mono); font-size:12px; }
+    .empty-state-icon { display:none; }
+
+    /* ── Pan-Pan corner peek ── */
+    @keyframes floatY { 0%,100%{transform:translateY(0px)} 50%{transform:translateY(-10px)} }
+    @keyframes panpanIn { from{opacity:0;transform:translateY(60px)} to{opacity:1;transform:translateY(0)} }
+
+    .panpan-corner {
+      position:fixed;
+      bottom:0; right:40px;
+      width:160px;
+      z-index:99;
+      animation:panpanIn 0.6s 0.3s cubic-bezier(0.16,1,0.3,1) both;
+      pointer-events:none;
+    }
+    .panpan-corner svg {
+      width:100%;
+      display:block;
+      filter:drop-shadow(0 -8px 24px rgba(232,149,109,0.12)) drop-shadow(0 4px 12px rgba(0,0,0,0.5));
+      animation:floatY 3.5s ease-in-out infinite;
+    }
+
+    /* ── Pan-Pan empty state ── */
+    .empty-state-panpan {
+      display:flex; flex-direction:column; align-items:center;
+      padding:48px 24px 60px;
+      color:var(--ink-muted); font-family:var(--mono); font-size:12px;
+      text-align:center;
+    }
+    .empty-state-panpan svg {
+      width:180px; margin-bottom:0;
+      filter:drop-shadow(0 8px 20px rgba(0,0,0,0.4));
+      animation:floatY 3.5s ease-in-out infinite;
+    }
+    .empty-state-panpan .esp-text { margin-top:4px; font-size:13px; color:var(--ink-soft); }
+    .empty-state-panpan .esp-sub  { margin-top:6px; font-size:11px; color:var(--ink-muted); }
+
+        @media(max-width:680px){
+      .jobs-grid { grid-template-columns:1fr; }
+      .jobs-topbar { flex-direction:column; align-items:stretch; }
+      .search-input-wrap { max-width:100%; }
+    }
+
+    /* ══ MOBILE JOBS ══ */
+    @media (max-width:900px) {
+      .jobs-grid { grid-template-columns:1fr 1fr; }
+      .jobs-topbar { flex-direction:column; align-items:stretch; gap:8px; }
+      .search-input-wrap { max-width:100%; }
+    }
+    @media (max-width:680px) {
+      .jobs-grid { grid-template-columns:1fr; }
+      .jobs-topbar { flex-direction:column; align-items:stretch; gap:8px; }
+      .search-input-wrap { max-width:100%; }
+    }
+    @media (max-width:600px) {
+      .jobs-grid { grid-template-columns:1fr; }
+      .cat-scroll-btn { display:none; }
+      .live-count-badge { display:none; }
+      .cat-scroll { gap:6px; padding:2px 0 6px; }
+      .cat-pill { font-size:11px; padding:6px 10px; }
+      .panel-header { flex-wrap:wrap; gap:6px; }
+      .panel-header h3 { font-size:12px; }
+      #applyModal .modal-box { width:100%; max-height:100vh; border-radius:0; margin:0; max-width:100%; }
+      .panpan-corner { width:80px; right:6px; }
+    }
+    /* ── Job Detail Modal ── */
+    .jd-modal-overlay {
+      display:none; position:fixed; inset:0;
+      background:rgba(0,0,0,0.85); z-index:300;
+      align-items:center; justify-content:center;
+      backdrop-filter:blur(6px);
+    }
+    .jd-modal-overlay.open { display:flex; }
+    .jd-modal-box {
+      background:var(--surface); border:1px solid var(--border);
+      border-radius:var(--radius-lg); width:92%; max-width:640px;
+      max-height:92vh; overflow:hidden; display:flex; flex-direction:column;
+      box-shadow:0 40px 100px rgba(0,0,0,0.8);
+      animation:fadeUp 0.22s cubic-bezier(0.16,1,0.3,1);
+    }
+    .jd-banner { width:100%; height:160px; object-fit:cover; display:block; border-bottom:1px solid var(--border); flex-shrink:0; }
+    .jd-banner-placeholder {
+      height:90px; background:linear-gradient(135deg,#0f0f1a,#1a1a2e);
+      display:flex; align-items:center; justify-content:center;
+      font-size:36px; flex-shrink:0; position:relative; overflow:hidden;
+    }
+    .jd-banner-placeholder::before {
+      content:''; position:absolute; inset:0;
+      background-image:linear-gradient(rgba(255,255,255,0.025) 1px,transparent 1px),linear-gradient(90deg,rgba(255,255,255,0.025) 1px,transparent 1px);
+      background-size:24px 24px;
+    }
+    .jd-header { padding:20px 24px 14px; border-bottom:1px solid var(--border); display:flex; align-items:flex-start; justify-content:space-between; gap:12px; flex-shrink:0; }
+    .jd-header-left { flex:1; min-width:0; }
+    .jd-title { font-size:18px; font-weight:700; letter-spacing:-0.4px; margin-bottom:4px; line-height:1.2; }
+    .jd-company { font-size:13px; color:var(--ink-muted); margin-bottom:10px; }
+    .jd-tags { display:flex; flex-wrap:wrap; gap:6px; }
+    .jd-tag { display:inline-flex; align-items:center; gap:4px; padding:3px 9px; background:var(--surface2); border:1px solid var(--border); border-radius:100px; font-size:11px; color:var(--ink-muted); font-family:var(--mono); }
+    .jd-close { background:none; border:1px solid var(--border); border-radius:var(--radius); cursor:pointer; color:var(--ink-muted); font-size:14px; padding:6px 10px; transition:all 0.15s; flex-shrink:0; }
+    .jd-close:hover { background:var(--surface2); color:var(--ink); }
+    .jd-body { padding:20px 24px; overflow-y:auto; flex:1; }
+    .jd-section-label { font-size:10px; font-weight:700; text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-muted); margin-bottom:10px; display:flex; align-items:center; gap:8px; }
+    .jd-section-label::after { content:''; flex:1; height:1px; background:var(--border); }
+    .jd-description { font-size:13px; color:var(--ink-soft); line-height:1.8; white-space:pre-wrap; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:14px 16px; }
+    .jd-no-desc { font-size:13px; color:var(--ink-muted); font-style:italic; padding:20px; text-align:center; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); }
+    .jd-meta-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:18px; }
+    .jd-meta-item { display:flex; align-items:center; gap:10px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); padding:10px 12px; }
+    .jd-meta-icon { font-size:16px; flex-shrink:0; }
+    .jd-meta-key { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-muted); margin-bottom:2px; }
+    .jd-meta-val { font-size:12px; font-weight:600; color:var(--ink); font-family:var(--mono); }
+    .jd-footer { padding:14px 24px; border-top:1px solid var(--border); display:flex; align-items:center; justify-content:space-between; gap:10px; background:var(--surface2); flex-shrink:0; }
+    .jd-salary-display { font-size:16px; font-weight:700; color:var(--ink); font-family:var(--mono); }
+    .jd-salary-label { font-size:10px; color:var(--ink-muted); font-weight:400; display:block; }
+    .jd-footer-actions { display:flex; gap:8px; align-items:center; }
+    @media(max-width:600px){
+      .jd-modal-box { width:100%; max-height:100vh; border-radius:12px 12px 0 0; align-self:flex-end; }
+      .jd-meta-grid { grid-template-columns:1fr; }
+    }
+    /* ── Safety & Trust & Report ── */
+    .safety-banner { display:flex; align-items:flex-start; gap:12px; background:rgba(255,204,68,0.07); border:1px solid rgba(255,204,68,0.25); border-radius:var(--radius-lg); padding:12px 16px; margin-bottom:14px; font-size:12px; color:var(--ink-soft); line-height:1.6; }
+    .safety-banner-icon { display:none; }
+    .safety-banner strong { color:var(--gold); }
+    .safety-warning-box { background:rgba(255,204,68,0.06); border:1px solid rgba(255,204,68,0.2); border-radius:var(--radius); padding:12px 14px; margin-top:10px; font-size:12px; color:var(--ink-soft); line-height:1.7; }
+    .safety-warning-box .sw-title { font-size:11px; font-weight:700; text-transform:uppercase; letter-spacing:0.1em; color:var(--gold); margin-bottom:8px; display:flex; align-items:center; gap:6px; }
+    .safety-warning-box ul { margin:0; padding-left:16px; }
+    .safety-warning-box ul li { margin-bottom:3px; }
+    .report-btn { display:inline-flex; align-items:center; gap:5px; font-size:11px; color:var(--red); background:none; border:1px solid rgba(255,68,68,0.25); border-radius:var(--radius); padding:4px 10px; cursor:pointer; transition:all 0.15s; font-family:var(--font); }
+    .report-btn:hover { background:rgba(255,68,68,0.08); border-color:rgba(255,68,68,0.4); }
+    .trust-row { display:flex; align-items:center; gap:8px; padding:8px 12px; background:var(--surface2); border:1px solid var(--border); border-radius:var(--radius); font-size:12px; color:var(--ink-muted); margin-bottom:6px; }
+    .trust-row .tr-val { color:var(--ink); font-weight:600; font-family:var(--mono); }
+    .pill-individual { background:rgba(167,139,250,0.12); color:#a78bfa; display:inline-flex; align-items:center; gap:4px; padding:3px 8px; border-radius:100px; font-size:11px; font-weight:600; font-family:var(--mono); }
+    .pill-individual::before { content:''; width:4px; height:4px; border-radius:50%; background:#a78bfa; }
+    .cat-pill.individual { border-color:rgba(167,139,250,0.25); }
+    .cat-pill.individual.active { background:rgba(167,139,250,0.12); border-color:rgba(167,139,250,0.5); color:#a78bfa; }
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <!-- MOBILE TOPBAR -->
+  <div class="mobile-topbar">
+    <div class="mobile-topbar-logo">
+      <div class="logo-box" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
+      <span>JobTrack</span>
+    </div>
+    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
+      <div class="sidebar-logo-text">JobTrack <span>/ Jobs</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link">Home</a>
+        <a href="jobs.html"     class="sidebar-link active">Browse Jobs</a>
+        <a href="dashboard.html" class="sidebar-link" id="dashLink">Dashboard</a>
+      </nav>
+    </div>
+    <div class="sidebar-section" style="margin-top:8px;">
+      <div class="sidebar-section-label">Job Type</div>
+      <nav class="sidebar-nav" id="typeNav">
+        <button class="sidebar-link active" onclick="setFilter('type','',this,'typeNav')">All Types <span class="sidebar-badge" id="countAll">—</span></button>
+        <button class="sidebar-link" onclick="setFilter('type','Full-Time',this,'typeNav')">Full-Time</button>
+        <button class="sidebar-link" onclick="setFilter('type','Part-Time',this,'typeNav')">Part-Time</button>
+        <button class="sidebar-link" onclick="setFilter('type','Internship',this,'typeNav')">Internship</button>
+        <button class="sidebar-link" onclick="setFilter('type','Remote',this,'typeNav')">Remote</button>
+      </nav>
+    </div>
+    <div class="sidebar-section" style="margin-top:4px;">
+      <div class="sidebar-section-label">Status</div>
+      <nav class="sidebar-nav" id="statusNav">
+        <button class="sidebar-link active" onclick="setFilter('status','',this,'statusNav')">All</button>
+        <button class="sidebar-link" onclick="setFilter('status','open',this,'statusNav')">Open</button>
+        <button class="sidebar-link" onclick="setFilter('status','full',this,'statusNav')">Full</button>
+        <button class="sidebar-link" onclick="setFilter('status','closed',this,'statusNav')">Closed</button>
+      </nav>
+    </div>
+    <div class="sidebar-bottom" id="sidebarBottom">
+      <div class="sidebar-link" style="color:var(--ink-muted);font-size:12px;cursor:default;pointer-events:none;">Not signed in</div>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="topbar">
+      <div class="topbar-title">JobTrack / <strong>Browse Jobs</strong></div>
+      <div class="topbar-actions">
+        <div class="live-count-badge"><div class="live-dot"></div><span id="liveCount">—</span> live</div>
+        <!-- Notification Bell -->
+        <div id="notifBellWrap" style="position:relative;display:none;">
+          <button id="notifBell" onclick="toggleNotifPanel()" style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;cursor:pointer;color:var(--ink-muted);font-size:14px;transition:all 0.15s;" title="Notifications">
+            🔔<span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:var(--mono);min-width:16px;text-align:center;"></span>
+          </button>
+          <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,0.15);z-index:200;overflow:hidden;">
+            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
+              <span style="font-size:13px;font-weight:600;">Notifications</span>
+              <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--font);">Mark all read</button>
+            </div>
+            <div id="notifList" style="max-height:320px;overflow-y:auto;"></div>
+          </div>
+        </div>
+        <!-- Saved jobs chip -->
+        <a id="savedJobsChip" href="dashboard.html" style="display:none;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:100px;font-family:var(--mono);text-decoration:none;" title="Saved jobs">🔖 <span id="savedCountChip">0</span></a>
+        <a href="login.html" class="btn btn-ghost btn-sm" id="authBtn">Login</a>
+      </div>
+    </div>
+
+    <div class="content-area">
+
+      <!-- Safety Banner -->
+      <div class="safety-banner animate-in">
+        
+        <div>
+          <strong>Stay Safe on JobTrack.</strong>
+          Legitimate employers and hirers <strong>never ask for payment</strong> before hiring. Never share bank details, send GCash, or pay a "processing fee" to get a job.
+          <button onclick="document.getElementById('safetyModal').classList.add('open')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:12px;font-family:var(--font);text-decoration:underline;padding:0;margin-left:4px;">Learn more →</button>
+        </div>
+      </div>
+
+      <!-- Category scroll with arrow buttons -->
+      <div class="panel animate-in" style="margin-bottom:14px;">
+        <div class="panel-header">
+          <h3>Browse by Category</h3>
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);">Use ‹ › to scroll</span>
+            <button class="btn btn-ghost btn-sm" id="clearCatBtn" onclick="clearCategory()" style="display:none;">Clear ✕</button>
+          </div>
+        </div>
+        <div class="panel-body" style="padding-top:10px;padding-bottom:14px;">
+          <div class="cat-scroll-wrap">
+            <button class="cat-scroll-btn left" id="catScrollLeft" onclick="scrollCats(-1)">‹</button>
+            <div class="cat-scroll" id="categoryRow"></div>
+            <button class="cat-scroll-btn right" id="catScrollRight" onclick="scrollCats(1)">›</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search + view toggle -->
+      <div class="jobs-topbar animate-in delay-1">
+        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:200px;">
+          <div class="search-input-wrap">
+            
+            <input type="text" id="searchInput" placeholder="Search title or company..." oninput="filterJobs()"/>
+          </div>
+          <span id="jobCount" style="font-family:var(--mono);font-size:12px;color:var(--ink-muted);white-space:nowrap;">Loading...</span>
+        </div>
+        <div style="display:flex;align-items:center;gap:8px;">
+          <div class="view-toggle">
+            <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view">⊞</button>
+            <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="List view">☰</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Listings -->
+      <div id="jobsContainer" class="animate-in delay-2"></div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Job Detail Modal -->
+<div class="jd-modal-overlay" id="jobDetailModal">
+  <div class="jd-modal-box">
+    <img id="jdBannerImg" class="jd-banner" src="" alt="" style="display:none;" onerror="this.style.display='none';document.getElementById('jdBannerPlaceholder').style.display='flex'"/>
+    <div id="jdBannerPlaceholder" class="jd-banner-placeholder">📋</div>
+    <div class="jd-header">
+      <div class="jd-header-left">
+        <div class="jd-title" id="jdTitle">—</div>
+        <div class="jd-company" id="jdCompany">—</div>
+        <div class="jd-tags" id="jdTags"></div>
+      </div>
+      <button class="jd-close" onclick="closeDetailModal()">✕</button>
+    </div>
+    <div class="jd-body">
+      <div class="jd-meta-grid" id="jdMetaGrid"></div>
+      <div id="jdTrustBox" style="margin-bottom:10px;"></div>
+      <div id="jdSafetyBox" style="display:none;">
+        <div class="safety-warning-box">
+          <div class="sw-title">👤 Individual Hirer — Safety Reminders</div>
+          <ul>
+            <li><strong>Meet in a public place first</strong> — mall, café, or barangay hall</li>
+            <li><strong>Verify their identity</strong> — ask for a valid ID before any work begins</li>
+            <li><strong>Never pay in advance</strong> — pay upon completion or agreed milestone only</li>
+            <li>Do not share your home address until you have confirmed who they are</li>
+            <li>Tell someone where you're going and who you're meeting</li>
+          </ul>
+        </div>
+      </div>
+      <div class="jd-section-label" style="margin-top:14px;">Job Description</div>
+      <div id="jdDescription" class="jd-description"></div>
+    </div>
+    <div class="jd-footer">
+      <div>
+        <span class="jd-salary-label">Salary</span>
+        <span class="jd-salary-display" id="jdSalary">Negotiable</span>
+      </div>
+      <div class="jd-footer-actions">
+        <button class="report-btn" onclick="openReportModal()">🚩 Report</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyJobLink()" id="jdShareBtn">🔗 Share</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeDetailModal()">Close</button>
+        <button class="btn btn-primary btn-sm" id="jdApplyBtn" onclick="applyFromDetail()">Apply Now →</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Safety Guide Modal -->
+<div class="modal-overlay" id="safetyModal">
+  <div class="modal-box" style="max-width:520px;">
+    <div class="modal-header">
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);font-family:var(--mono);margin-bottom:4px;">Safety Guide</div><h3>Protecting Yourself on JobTrack</h3></div>
+      <button class="modal-close" onclick="document.getElementById('safetyModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
+      <div class="safety-warning-box">
+        <div class="sw-title">⚠️ Common Scam Warning Signs</div>
+        <ul>
+          <li>Asked to pay a <strong>processing fee, training fee, or deposit</strong> before starting</li>
+          <li>Employer asks for your <strong>bank account, GCash, or government ID</strong> upfront</li>
+          <li>Job offers very high pay for little work with no interview</li>
+          <li>Assigned a <strong>"test task"</strong> then ghosted without payment</li>
+          <li>Communication moves to <strong>personal WhatsApp/Telegram</strong> immediately</li>
+          <li>Sent a check and asked to <strong>forward part of it</strong> — it will bounce</li>
+        </ul>
+      </div>
+      <div class="safety-warning-box" style="border-color:rgba(77,159,255,0.2);background:rgba(77,159,255,0.05);">
+        <div class="sw-title" style="color:var(--accent3);">👤 For Individual / Odd Job Hirers</div>
+        <ul>
+          <li><strong>Meet in a public place first</strong> — mall, café, or barangay hall</li>
+          <li><strong>Verify identity</strong> — ask for a valid ID before work begins</li>
+          <li><strong>Never send payment in advance</strong> — pay upon completion only</li>
+          <li>Do not share your home address until identity is confirmed</li>
+          <li>Tell someone where you're going and who you're meeting</li>
+          <li>For domestic/home work, request a <strong>barangay clearance</strong></li>
+        </ul>
+      </div>
+      <div class="safety-warning-box" style="border-color:rgba(68,221,136,0.2);background:rgba(68,221,136,0.04);">
+        <div class="sw-title" style="color:var(--green);">✓ JobTrack Platform Policy</div>
+        <ul>
+          <li>Employers are <strong>prohibited from charging applicants any fees</strong></li>
+          <li>Use the <strong>🚩 Report</strong> button on any suspicious listing</li>
+          <li>Reported jobs are reviewed and may be removed</li>
+          <li>Your personal data is never sold to third parties</li>
+        </ul>
+      </div>
+    </div>
+    <div class="modal-footer"><button class="btn btn-primary btn-sm" onclick="document.getElementById('safetyModal').classList.remove('open')">Got it ✓</button></div>
+  </div>
+</div>
+
+<!-- Report Job Modal -->
+<div class="modal-overlay" id="reportModal">
+  <div class="modal-box" style="max-width:440px;">
+    <div class="modal-header">
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);font-family:var(--mono);margin-bottom:4px;">Report Listing</div><h3 id="reportJobTitle">Report this Job</h3></div>
+      <button class="modal-close" onclick="closeReportModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="reportAlert" class="alert"></div>
+      <div class="form-group">
+        <label>Reason for Report</label>
+        <select id="reportReason">
+          <option value="">— Select a reason —</option>
+          <option value="fee">Asked me to pay a fee before hiring</option>
+          <option value="fake">Fake or non-existent job posting</option>
+          <option value="data">Suspicious — collecting personal data / ID</option>
+          <option value="unpaid">Assigned work without payment / ghosted</option>
+          <option value="scam">Possible scam or fraud</option>
+          <option value="other">Other</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Additional Details <span style="color:var(--ink-muted);font-weight:400;">(optional)</span></label>
+        <textarea id="reportDetails" placeholder="Describe what happened..." style="min-height:80px;"></textarea>
+      </div>
+      <div style="font-size:11px;color:var(--ink-muted);margin-top:4px;">Reports are reviewed by the JobTrack admin team. Thank you for keeping the platform safe.</div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeReportModal()">Cancel</button>
+      <button class="btn btn-danger btn-sm" onclick="submitReport()">Submit Report →</button>
+    </div>
+  </div>
+</div>
+
+<!-- Apply Modal -->
+<div class="modal-overlay" id="applyModal">
+  <div class="modal-box" style="max-width:560px;">
+    <div class="modal-header">
+      <!-- Job banner inside modal if available -->
+      <div style="flex:1;">
+        <img id="modalBannerImg" src="" style="width:100%;height:100px;object-fit:cover;border-radius:var(--radius);margin-bottom:10px;display:none;" onerror="this.style.display='none'"/>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Submit Application</div>
+        <h3 id="modalJobTitle">—</h3>
+        <div id="modalJobMeta" style="font-size:12px;color:var(--ink-muted);margin-top:3px;"></div>
+      </div>
+      <button class="modal-close" onclick="closeModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="applyAlert" class="alert"></div>
+      <div id="applyPrefillHint" style="display:none;align-items:center;gap:8px;background:rgba(30,168,60,0.08);border:1px solid rgba(30,168,60,0.2);border-radius:var(--radius);padding:8px 12px;font-size:12px;color:var(--accent);margin-bottom:12px;">
+        ✓ Pre-filled from your profile. <a href="dashboard.html" style="color:var(--accent);text-decoration:underline;font-weight:600;">Edit defaults →</a>
+      </div>
+      <div class="form-group"><label>Full Name</label><input type="text" id="applyName"/></div>
+      <div class="form-group"><label>Email Address</label><input type="email" id="applyEmail"/></div>
+      <div class="form-group"><label>Cover Letter</label><textarea id="applyCover" placeholder="Why are you a great fit for this role?" style="min-height:100px;"></textarea></div>
+      <div class="form-group"><label>Resume Link (Google Drive / URL)</label><input type="url" id="applyResume" placeholder="https://drive.google.com/..."/></div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="submitApplication()">Submit Application →</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/main.js"></script>
+<script src="../js/shell/notifications.js"></script>
+<script src="../js/shell/savedJobs.js"></script>
+<script>
+const CATEGORIES = [
+  {id:"arts",label:"Arts & Media",icon:"🎬"},{id:"business",label:"Business",icon:"💼"},
+  {id:"agriculture",label:"Agriculture & Forestry",icon:"🌾"},
+  {id:"cleaning",label:"Cleaning",icon:"🧹"},{id:"construction",label:"Construction",icon:"🏗️"},
+  {id:"customer",label:"Customer Service",icon:"🎧"},{id:"design",label:"Design",icon:"🎨"},
+  {id:"education",label:"Education",icon:"📚"},{id:"engineering",label:"Engineering",icon:"⚙️"},
+  {id:"finance",label:"Finance",icon:"💰"},{id:"government",label:"Gov / NGO",icon:"🏛️"},
+  {id:"healthcare",label:"Healthcare",icon:"🏥"},{id:"hospitality",label:"Hospitality",icon:"🏨"},
+  {id:"marketing",label:"Marketing",icon:"📣"},{id:"software",label:"Software & IT",icon:"💻"},
+  {id:"teaching",label:"Teaching",icon:"🏫"},
+  {id:"freelance",label:"Freelance / Project",icon:"💡",individual:true},
+  {id:"errand",label:"Errands & Delivery",icon:"🛵",individual:true},
+  {id:"homeservice",label:"Home Services",icon:"🏠",individual:true},
+  {id:"repair",label:"Repair & Maintenance",icon:"🔧",individual:true},
+  {id:"caregiving",label:"Caregiving / Domestic",icon:"🤝",individual:true},
+  {id:"event",label:"Events & Assistance",icon:"🎉",individual:true},
+];
+const CAT_MAP  = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
+const TYPE_MAP = {"Full-Time":"full-time","Part-Time":"part-time","Internship":"internship","Remote":"remote"};
+const TYPE_ICON = {"Full-Time":"🏢","Part-Time":"⏰","Internship":"🎓","Remote":"🌐"};
+
+let allJobs=[], activeFilters={type:"",status:"",category:""}, selectedJob=null, currentView="grid";
+
+/* ── Category pills ── */
+const catRow=document.getElementById("categoryRow");
+let lastWasIndividual=false;
+CATEGORIES.forEach(c=>{
+  if(c.individual&&!lastWasIndividual){
+    const div=document.createElement("div");
+    div.style.cssText="display:flex;align-items:center;gap:6px;flex-shrink:0;padding:0 4px;";
+    div.innerHTML='<span style="width:1px;height:28px;background:var(--border);"></span><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a78bfa;white-space:nowrap;">👤 Individual</span>';
+    catRow.appendChild(div);
+    lastWasIndividual=true;
+  }
+  const pill=document.createElement("div");
+  pill.className="cat-pill"+(c.individual?" individual":"");
+  pill.dataset.cat=c.id;
+  pill.innerHTML=c.label;
+  pill.onclick=()=>toggleCategory(c.id,pill);
+  catRow.appendChild(pill);
+});
+
+/* ── Scroll arrows ── */
+function scrollCats(dir){
+  catRow.scrollBy({left:dir*200,behavior:"smooth"});
+}
+// Show/hide arrows based on scroll position
+catRow.addEventListener("scroll",updateScrollBtns);
+function updateScrollBtns(){
+  const atStart=catRow.scrollLeft<=4;
+  const atEnd=catRow.scrollLeft+catRow.clientWidth>=catRow.scrollWidth-4;
+  document.getElementById("catScrollLeft").style.opacity=atStart?"0.3":"1";
+  document.getElementById("catScrollRight").style.opacity=atEnd?"0.3":"1";
+}
+setTimeout(updateScrollBtns,100);
+
+/* ── Auth ── */
+const user=getUser();
+if(user){
+  document.getElementById("authBtn").textContent="Dashboard";
+  document.getElementById("authBtn").href="dashboard.html";
+  document.getElementById("sidebarBottom").innerHTML=`
+    <div class="sidebar-user">
+      <div class="sidebar-avatar">${user.profile_pic?`<img src="${user.profile_pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`:user.name[0].toUpperCase()}</div>
+      <div class="sidebar-user-info"><div class="sidebar-user-name">${user.name}</div><div class="sidebar-user-role">${user.role}</div></div>
+    </div>
+    <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;">Sign Out</button>`;
+}
+
+function setFilter(key,val,btn,navId){
+  activeFilters[key]=val;
+  document.getElementById(navId).querySelectorAll(".sidebar-link").forEach(b=>b.classList.remove("active"));
+  btn.classList.add("active"); filterJobs();
+}
+function toggleCategory(id,pill){
+  if(activeFilters.category===id){ activeFilters.category=""; pill.classList.remove("active"); document.getElementById("clearCatBtn").style.display="none"; }
+  else{ document.querySelectorAll(".cat-pill").forEach(p=>p.classList.remove("active")); pill.classList.add("active"); activeFilters.category=id; document.getElementById("clearCatBtn").style.display="inline-flex"; }
+  filterJobs();
+}
+function clearCategory(){ activeFilters.category=""; document.querySelectorAll(".cat-pill").forEach(p=>p.classList.remove("active")); document.getElementById("clearCatBtn").style.display="none"; filterJobs(); }
+function setView(v){ currentView=v; document.getElementById("gridViewBtn").classList.toggle("active",v==="grid"); document.getElementById("listViewBtn").classList.toggle("active",v==="list"); filterJobs(); }
+
+async function loadJobs(){
+  try{ allJobs=await api("/jobs"); }
+  catch{
+    allJobs=[
+      {id:1,title:"Frontend Developer",company:"TechCorp Philippines",location:"Davao City",type:"Full-Time",salary:"₱35k–₱45k",status:"open",category:"software",max_applicants:10,deadline:"2026-05-01",image_url:""},
+      {id:2,title:"Data Analyst",company:"Insights Inc.",location:"Remote",type:"Remote",salary:"₱28k–₱38k",status:"open",category:"business",image_url:""},
+      {id:3,title:"IT Support Intern",company:"StartupHub Cebu",location:"Cebu City",type:"Internship",salary:"₱8k/mo",status:"full",category:"software",max_applicants:5,image_url:""},
+      {id:4,title:"Backend Engineer",company:"CloudSoft Solutions",location:"Manila",type:"Full-Time",salary:"₱50k–₱65k",status:"open",category:"software",image_url:""},
+      {id:5,title:"UI/UX Designer",company:"Creative Co.",location:"Davao City",type:"Part-Time",salary:"₱18k–₱25k",status:"closed",category:"design",max_applicants:3,image_url:""},
+    ];
+  }
+  document.getElementById("countAll").textContent=allJobs.length;
+  document.getElementById("liveCount").textContent=allJobs.filter(j=>j.status==="open").length;
+  await loadSavedIds();
+  filterJobs();
+}
+
+function filterJobs(){
+  const q=document.getElementById("searchInput").value.toLowerCase();
+  const {type,status,category}=activeFilters;
+  const jobs=allJobs.filter(j=>(j.title.toLowerCase().includes(q)||j.company.toLowerCase().includes(q))&&(!type||j.type===type)&&(!status||j.status===status)&&(!category||j.category===category));
+  document.getElementById("jobCount").textContent=`${jobs.length} position${jobs.length!==1?"s":""} found`;
+  renderJobs(jobs);
+}
+
+function renderJobs(jobs){
+  const c=document.getElementById("jobsContainer");
+  if(!jobs.length){
+    c.innerHTML=`<div class="empty-state-panpan">
+      <div id="espSvgWrap"></div>
+      <div class="esp-text">No positions match your filters.</div>
+      <div class="esp-sub">Try clearing your category or type filter.</div>
+    </div>`;
+    // inject Pan-Pan SVG into empty state
+    const wrap = document.getElementById("espSvgWrap");
+    if(wrap && window._panpanSVG) wrap.innerHTML = window._panpanSVG;
+    return;
+  }
+  if(currentView==="grid") renderGrid(jobs,c);
+  else renderList(jobs,c);
+}
+
+function catIcon(j){ return (CAT_MAP[j.category]?.icon)||TYPE_ICON[j.type]||"📋"; }
+
+function slotsHtml(j){
+  if(!j.max_applicants) return "";
+  const filled=j.applicant_count||0, pct=Math.min((filled/j.max_applicants)*100,100);
+  const cls=pct>=100?"full":pct>=70?"warn":"";
+  return `<div class="jc-slots"><span>${filled}/${j.max_applicants}</span><div class="jc-slots-bar"><div class="jc-slots-fill ${cls}" style="width:${pct}%"></div></div></div>`;
+}
+
+function dlHtml(j){
+  if(!j.deadline) return "";
+  const d=new Date(j.deadline), diff=Math.ceil((d-Date.now())/(86400000));
+  const label=diff<0?"Expired":diff===0?"Today":diff<=3?`${diff}d left`:d.toLocaleDateString("en-PH",{month:"short",day:"numeric"});
+  const color=diff<0?"var(--red)":diff<=3?"var(--gold)":"var(--ink-muted)";
+  return `<span style="font-size:10px;color:${color};font-family:var(--mono);">⏰ ${label}</span>`;
+}
+
+function renderGrid(jobs,c){
+  const indivCats=new Set(["freelance","errand","homeservice","repair","caregiving","event"]);
+  c.innerHTML=`<div class="jobs-grid">${jobs.map(j=>{
+    const closed=j.status==="closed"||j.status==="full";
+    const cat=CAT_MAP[j.category];
+    const hasBanner=j.image_url&&j.image_url.length>0;
+    const isIndiv=indivCats.has(j.category);
+    return `<div class="job-card${closed?" closed-card":""}">
+      ${hasBanner
+        ?`<img class="job-card-banner" src="${j.image_url}" alt="${j.title}" onerror="this.style.display='none'"/>`
+        :`<div class="job-card-banner-placeholder"></div>`
+      }
+      <div class="job-card-body">
+        <div class="jc-header">
+          <div>
+            <div class="jc-title">${j.title}</div>
+            <div class="jc-company">${j.company} &nbsp;·&nbsp; 📍 ${j.location}${j.employer_is_verified?'<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:6px;font-family:var(--mono);">✓ VERIFIED</span>':''}</div>
+          </div>
+          <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
+            <span class="pill pill-${j.status}">${j.status}</span>
+            ${isIndiv?`<span class="pill-individual">👤 Individual</span>`:""}
+          </div>
+        </div>
+        <div class="jc-meta">
+          <span class="jc-meta-item">${TYPE_ICON[j.type]||""} ${j.type}</span>
+          ${cat?`<span class="jc-meta-item">${cat.label}</span>`:""}
+          ${j.deadline?`<span class="jc-meta-item">${dlHtml(j)}</span>`:""}
+        </div>
+        ${j.max_applicants?slotsHtml(j):""}
+        <div class="jc-footer">
+          <div class="jc-salary">${j.salary||"Negotiable"}</div>
+          <div style="display:flex;gap:6px;align-items:center;">
+            ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">🔖</button>`:""}
+            <button class="btn btn-ghost btn-sm" onclick="openDetailModal(${j.id})">Details</button>
+            <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
+              onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
+              ${closed?`disabled style="opacity:0.5;cursor:not-allowed;"`:""}>
+              ${closed?(j.status==="full"?"Full":"Closed"):"Apply →"}
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function renderList(jobs,c){
+  c.innerHTML=`<div class="jobs-list-view">${jobs.map(j=>{
+    const closed=j.status==="closed"||j.status==="full";
+    const cat=CAT_MAP[j.category];
+    return `<div class="job-list-row${closed?" closed-row":""}">
+      <div class="jlr-thumb">
+        ${j.image_url?`<img src="${j.image_url}" onerror="this.style.display='none'"/>`:catIcon(j)}
+      </div>
+      <div class="jlr-main">
+        <div class="jlr-title">
+          ${j.title}
+          <span class="pill pill-${j.status}">${j.status}</span>
+          <span class="type-tag ${TYPE_MAP[j.type]||""}">${j.type}</span>
+        </div>
+        <div class="jlr-meta">
+          <span>${j.company}</span><span>📍 ${j.location}</span>
+          ${cat?`<span>${cat.label}</span>`:""}
+          ${j.salary?`<span style="color:var(--ink);font-weight:600;font-family:var(--mono);">${j.salary}</span>`:""}
+          ${j.deadline?dlHtml(j):""}
+          ${j.max_applicants?slotsHtml(j):""}
+        </div>
+      </div>
+      <div class="jlr-right">
+        ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">🔖</button>`:""}
+        <button class="btn btn-ghost btn-sm" onclick="openDetailModal(${j.id})">Details</button>
+        <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
+          onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
+          ${closed?`disabled style="opacity:0.5;cursor:not-allowed;"`:""}>
+          ${closed?(j.status==="full"?"Full":"Closed"):"Apply →"}
+        </button>
+      </div>
+    </div>`;
+  }).join("")}</div>`;
+}
+
+function openModal(jObj){
+  const j=typeof jObj==="string"?JSON.parse(jObj.replace(/&quot;/g,'"')):jObj;
+  if(!getUser()){ window.location.href="login.html"; return; }
+  selectedJob=j;
+  document.getElementById("modalJobTitle").textContent=j.title;
+  document.getElementById("modalJobMeta").textContent=j.company+(j.max_applicants?` · ${j.applicant_count||0}/${j.max_applicants} applicants`:"");
+  // Show banner in modal if available
+  const mb=document.getElementById("modalBannerImg");
+  if(j.image_url){ mb.src=j.image_url; mb.style.display="block"; }
+  else { mb.style.display="none"; }
+  const u=getUser();
+  const _p=window._userProfile||{};
+  document.getElementById("applyName").value=u?.name||"";
+  document.getElementById("applyEmail").value=u?.email||"";
+  document.getElementById("applyCover").value=_p.default_cover||"";
+  document.getElementById("applyResume").value=_p.default_resume||"";
+  const _hint=document.getElementById("applyPrefillHint");
+  if(_hint) _hint.style.display=(_p.default_resume||_p.default_cover)?"flex":"none";
+  document.getElementById("applyModal").classList.add("open");
+}
+function closeModal(){ document.getElementById("applyModal").classList.remove("open"); const a=document.getElementById("applyAlert"); a.innerHTML=""; a.className="alert"; }
+
+async function submitApplication(){
+  const u=getUser();
+  if(!u){ window.location.href="login.html"; return; }
+  try{
+    await api("/applications","POST",{
+      job_id:selectedJob.id, user_id:u.id,
+      name:document.getElementById("applyName").value,
+      email:document.getElementById("applyEmail").value,
+      cover_letter:document.getElementById("applyCover").value,
+      resume_url:document.getElementById("applyResume").value,
+    });
+    showAlert("applyAlert","Application submitted successfully!","success");
+    setTimeout(()=>{ closeModal(); loadJobs(); },1600);
+  } catch(e){ showAlert("applyAlert",e.message,"error"); }
+}
+
+/* ── Job Detail Modal ── */
+function openDetailModal(jobId) {
+  const j = allJobs.find(x => x.id === jobId);
+  if (!j) return;
+  selectedJob = j;
+
+  // Banner
+  const bi = document.getElementById("jdBannerImg");
+  const bp = document.getElementById("jdBannerPlaceholder");
+  if (j.image_url) { bi.src = j.image_url; bi.style.display = "block"; bp.style.display = "none"; }
+  else { bi.style.display = "none"; bp.style.display = "flex"; bp.textContent = catIcon(j); }
+
+  // Header
+  document.getElementById("jdTitle").textContent = j.title;
+  document.getElementById("jdCompany").textContent = j.company + "  ·  📍 " + j.location;
+
+  const cat = CAT_MAP[j.category];
+  const closed = j.status === "closed" || j.status === "full";
+  const tagParts = [
+    '<span class="jd-tag">' + (TYPE_ICON[j.type]||"") + " " + j.type + '</span>',
+    '<span class="pill pill-' + j.status + '" style="margin:0;">' + j.status + '</span>',
+    cat ? '<span class="jd-tag">' + cat.label + '</span>' : "",
+    j.view_count ? '<span class="jd-tag">👁 ' + j.view_count + ' views</span>' : "",
+  ];
+  document.getElementById("jdTags").innerHTML = tagParts.join("");
+
+  // Deadline color + label
+  var dlColor = "var(--ink-muted)", dlLabel = "No deadline";
+  if (j.deadline) {
+    var d = new Date(j.deadline);
+    var diff = Math.ceil((d - Date.now()) / 86400000);
+    dlColor = diff < 0 ? "var(--red)" : diff <= 3 ? "var(--gold)" : "var(--ink)";
+    dlLabel = d.toLocaleDateString("en-PH",{month:"long",day:"numeric",year:"numeric"})
+      + (diff < 0 ? " (Expired)" : diff === 0 ? " (Today)" : diff <= 3 ? " (" + diff + "d left)" : "");
+  }
+
+  // Slots color + label
+  var slotsColor = "var(--ink-muted)", slotsLabel = "Unlimited slots";
+  if (j.max_applicants) {
+    var pct = ((j.applicant_count||0) / j.max_applicants) * 100;
+    slotsColor = pct >= 100 ? "var(--red)" : pct >= 70 ? "var(--gold)" : "var(--green)";
+    slotsLabel = (j.applicant_count||0) + " / " + j.max_applicants + " applied";
+  }
+
+  // Posted
+  var posted = "—";
+  if (j.created_at) {
+    var days = Math.floor((Date.now() - new Date(j.created_at)) / 86400000);
+    posted = days === 0 ? "Today" : days === 1 ? "Yesterday" : days + " days ago";
+  }
+
+  document.getElementById("jdMetaGrid").innerHTML =
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Deadline</div><div class="jd-meta-val" style="color:' + dlColor + '">' + dlLabel + '</div></div></div>' +
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Applicants / Slots</div><div class="jd-meta-val" style="color:' + slotsColor + '">' + slotsLabel + '</div></div></div>' +
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Job Type</div><div class="jd-meta-val">' + j.type + '</div></div></div>' +
+    '<div class="jd-meta-item"><span class="jd-meta-icon" style="display:none"></span><div><div class="jd-meta-key">Posted</div><div class="jd-meta-val">' + posted + '</div></div></div>';
+
+  // Description
+  var descEl = document.getElementById("jdDescription");
+  if (j.description && j.description.trim()) {
+    descEl.className = "jd-description";
+    descEl.textContent = j.description;
+  } else {
+    descEl.className = "jd-no-desc";
+    descEl.textContent = "No description provided for this position.";
+  }
+
+  document.getElementById("jdSalary").textContent = j.salary || "Negotiable";
+
+  // Individual safety warning
+  const indivCats=new Set(["freelance","errand","homeservice","repair","caregiving","event"]);
+  document.getElementById("jdSafetyBox").style.display = indivCats.has(j.category) ? "block" : "none";
+
+  // Transparency trust row
+  const postedDays = j.created_at ? Math.floor((Date.now()-new Date(j.created_at))/86400000) : null;
+  const postedLabel = postedDays===null?"—":postedDays===0?"Today":postedDays===1?"Yesterday":postedDays+" days ago";
+  document.getElementById("jdTrustBox").innerHTML =
+    '<div class="trust-row"><span>👥</span><span style="flex:1;">Applicants</span><span class="tr-val">'+(j.applicant_count||0)+(j.max_applicants?" / "+j.max_applicants+" slots":"")+'</span></div>'+
+    '<div class="trust-row"><span>👁</span><span style="flex:1;">Views</span><span class="tr-val">'+(j.view_count||0)+'</span></div>'+
+    (postedDays!==null?'<div class="trust-row"><span>🕐</span><span style="flex:1;">Posted</span><span class="tr-val">'+postedLabel+'</span></div>':"");
+
+  var applyBtn = document.getElementById("jdApplyBtn");
+  if (closed) {
+    applyBtn.textContent = j.status === "full" ? "Slots Full" : "Position Closed";
+    applyBtn.disabled = true; applyBtn.style.opacity = "0.4"; applyBtn.style.cursor = "not-allowed";
+  } else {
+    applyBtn.textContent = "Apply Now →";
+    applyBtn.disabled = false; applyBtn.style.opacity = ""; applyBtn.style.cursor = "";
+  }
+
+  document.getElementById("jobDetailModal").classList.add("open");
+}
+
+function closeDetailModal() {
+  document.getElementById("jobDetailModal").classList.remove("open");
+}
+
+function applyFromDetail() {
+  closeDetailModal();
+  if (!getUser()) { window.location.href = "login.html"; return; }
+  openModal(selectedJob);
+}
+
+function copyJobLink() {
+  var url = window.location.href.split("?")[0] + (selectedJob ? "?job=" + selectedJob.id : "");
+  navigator.clipboard.writeText(url).then(function() {
+    var btn = document.getElementById("jdShareBtn");
+    var orig = btn.textContent;
+    btn.textContent = "✓ Copied!";
+    setTimeout(function(){ btn.textContent = orig; }, 2000);
+  }).catch(function(){ prompt("Copy this link:", url); });
+}
+
+document.getElementById("jobDetailModal").addEventListener("click", function(e) {
+  if (e.target === document.getElementById("jobDetailModal")) closeDetailModal();
+});
+document.getElementById("safetyModal").addEventListener("click",function(e){if(e.target===document.getElementById("safetyModal"))document.getElementById("safetyModal").classList.remove("open");});
+document.getElementById("reportModal").addEventListener("click",function(e){if(e.target===document.getElementById("reportModal"))closeReportModal();});
+
+function openReportModal(){
+  if(!selectedJob)return;
+  document.getElementById("reportJobTitle").textContent="Report: "+selectedJob.title;
+  document.getElementById("reportReason").value="";
+  document.getElementById("reportDetails").value="";
+  document.getElementById("reportAlert").className="alert";
+  document.getElementById("reportAlert").innerHTML="";
+  document.getElementById("reportModal").classList.add("open");
+}
+function closeReportModal(){document.getElementById("reportModal").classList.remove("open");}
+
+async function submitReport(){
+  const reason=document.getElementById("reportReason").value;
+  if(!reason){showAlert("reportAlert","Please select a reason.","error");return;}
+  const details=document.getElementById("reportDetails").value.trim();
+  try{
+    await api("/admin/reports","POST",{job_id:selectedJob.id,reason,details:details||null});
+    showAlert("reportAlert","✓ Report submitted. Thank you for keeping JobTrack safe.","success");
+    setTimeout(()=>closeReportModal(),2000);
+  }catch(e){showAlert("reportAlert",e.message||"Failed to submit report.","error");}
+}
+
+
+// ══ USER PROFILE AUTO-FILL ════════════════════════════
+async function loadUserProfileForAutofill() {
+  const u = getUser(); if (!u) return;
+  try { window._userProfile = await api(`/users/${u.id}`); }
+  catch(e) { window._userProfile = {}; }
+}
+
+// ══ TOAST ════════════════════════════════════════════
+function showToast(msg, type="success") {
+  let t = document.getElementById("_jt_toast");
+  if (!t) {
+    t = document.createElement("div");
+    t.id = "_jt_toast";
+    t.style.cssText = "position:fixed;bottom:24px;left:50%;transform:translateX(-50%);background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:10px 18px;font-size:13px;color:var(--ink);box-shadow:0 8px 28px rgba(0,0,0,0.2);z-index:9999;transition:opacity 0.3s,transform 0.3s;white-space:nowrap;font-family:var(--font);pointer-events:none;";
+    document.body.appendChild(t);
+  }
+  t.style.color = type === "error" ? "var(--red)" : "var(--ink)";
+  t.textContent = msg;
+  t.style.opacity = "1";
+  t.style.transform = "translateX(-50%) translateY(0)";
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => { t.style.opacity="0"; t.style.transform="translateX(-50%) translateY(8px)"; }, 2800);
+}
+
+// ══ INIT FOR LOGGED-IN USERS ════════════════════════
+if (getUser()) {
+  document.getElementById("notifBellWrap").style.display = "block";
+  loadNotifCount();
+  loadUserProfileForAutofill();
+  setInterval(loadNotifCount, 30000);
+}
+
+loadJobs();
+</script>
+  <!-- Pan-Pan corner peek — always visible -->
+  <div class="panpan-corner" id="panpanCorner">
+<svg width="100%" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Pan-Pan the JobTrack mascot</title>
+<desc>Pan-Pan the panda mascot wearing a JT hat, sitting at a desk reviewing resumes on a monitor</desc>
+
+
+<!-- DESK -->
+<rect x="160" y="360" width="380" height="18" rx="4" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+<rect x="195" y="378" width="18" height="90" rx="3" fill="#222" stroke="#444" stroke-width="0.5"/>
+<rect x="487" y="378" width="18" height="90" rx="3" fill="#222" stroke="#444" stroke-width="0.5"/>
+<rect x="175" y="378" width="350" height="12" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+
+<!-- MONITOR -->
+<rect x="270" y="210" width="200" height="148" rx="8" fill="#111" stroke="#333" stroke-width="1.5"/>
+<rect x="278" y="218" width="184" height="118" rx="4" fill="#0d0d0d" stroke="#222" stroke-width="0.5"/>
+<!-- monitor stand -->
+<rect x="355" y="358" width="30" height="8" rx="2" fill="#222" stroke="#333" stroke-width="0.5"/>
+<rect x="340" y="364" width="60" height="6" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+
+<!-- SCREEN CONTENT -->
+<rect x="283" y="223" width="180" height="12" rx="2" fill="#1a3a1a"/>
+<text x="373" y="233" text-anchor="middle">JOBTRACK DASHBOARD</text>
+<rect x="283" y="240" width="80" height="8" rx="2" fill="#1a2a1a"/>
+<text x="323" y="247" text-anchor="middle">Applications: 12</text>
+<rect x="370" y="240" width="90" height="8" rx="2" fill="#1a2a1a"/>
+<text x="415" y="247" text-anchor="middle">Pending: 4</text>
+<rect x="283" y="254" width="177" height="1" fill="#2a2a2a"/>
+<!-- fake rows -->
+<rect x="283" y="260" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="260" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="260" width="50" height="6" rx="1" fill="#1f3a1f"/>
+<rect x="283" y="271" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="271" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="271" width="50" height="6" rx="1" fill="#3a1f1f"/>
+<rect x="283" y="282" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="282" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="282" width="50" height="6" rx="1" fill="#1f3a1f"/>
+<!-- accept badge on screen -->
+<rect x="390" y="310" width="48" height="14" rx="3" fill="var(--accent)"/>
+<text x="414" y="321" text-anchor="middle">HIRED!</text>
+
+<!-- KEYBOARD -->
+<rect x="270" y="355" width="120" height="8" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+<rect x="274" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="285" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="296" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="307" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="318" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="329" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="340" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="351" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="362" y="357" width="22" height="4" rx="1" fill="#3a3a3a"/>
+
+<!-- RESUME PAPERS on desk -->
+<rect x="430" y="338" width="50" height="64" rx="2" fill="#f5f5f5" stroke="#ccc" stroke-width="0.5" transform="rotate(-8 455 370)"/>
+<rect x="432" y="342" width="35" height="3" rx="1" fill="#ccc" transform="rotate(-8 455 370)"/>
+<rect x="432" y="348" width="28" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="432" y="353" width="32" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="432" y="358" width="24" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="427" y="340" width="50" height="64" rx="2" fill="#eee" stroke="#bbb" stroke-width="0.5" transform="rotate(-3 452 372)"/>
+<rect x="429" y="345" width="35" height="3" rx="1" fill="#bbb" transform="rotate(-3 452 372)"/>
+<rect x="429" y="351" width="26" height="2" rx="1" fill="#ccc" transform="rotate(-3 452 372)"/>
+
+<!-- COFFEE CUP -->
+<rect x="215" y="338" width="26" height="24" rx="3" fill="#1a1a1a" stroke="#444" stroke-width="0.5"/>
+<path d="M241 344 Q252 344 252 352 Q252 360 241 360" fill="none" stroke="#444" stroke-width="1.5"/>
+<rect x="217" y="340" width="22" height="4" rx="1" fill="var(--accent)" opacity="0.3"/>
+
+<!-- PAN-PAN BODY (sitting, leaning toward screen) -->
+<!-- body -->
+<ellipse cx="200" cy="310" rx="62" ry="66" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<!-- belly -->
+<ellipse cx="200" cy="322" rx="36" ry="38" fill="#fff" stroke="none"/>
+
+<!-- left arm (resting on desk, pointing at keyboard) -->
+<ellipse cx="148" cy="348" rx="18" ry="11" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-30 148 348)"/>
+<ellipse cx="140" cy="358" rx="13" ry="10" fill="#1a1a1a" stroke="#111" stroke-width="1.5"/>
+<!-- left hand fingers -->
+<ellipse cx="132" cy="363" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="138" cy="366" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="145" cy="365" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+
+<!-- right arm (raised, waving) -->
+<ellipse cx="258" cy="275" rx="18" ry="11" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-60 258 275)"/>
+<ellipse cx="272" cy="258" rx="13" ry="10" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-30 272 258)"/>
+<!-- right hand -->
+<ellipse cx="276" cy="247" rx="12" ry="10" fill="#e0e0e0" stroke="#111" stroke-width="1.2"/>
+<ellipse cx="270" cy="241" rx="4" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="278" cy="239" rx="4" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="284" cy="242" rx="3.5" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+
+<!-- legs (sitting) -->
+<ellipse cx="172" cy="368" rx="22" ry="12" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(15 172 368)"/>
+<ellipse cx="228" cy="368" rx="22" ry="12" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-15 228 368)"/>
+<!-- feet -->
+<ellipse cx="162" cy="376" rx="16" ry="9" fill="#1a1a1a" stroke="#111" stroke-width="1.2"/>
+<ellipse cx="238" cy="376" rx="16" ry="9" fill="#1a1a1a" stroke="#111" stroke-width="1.2"/>
+
+<!-- HEAD -->
+<circle cx="200" cy="218" r="64" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+
+<!-- ears -->
+<circle cx="148" cy="165" r="22" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<circle cx="148" cy="165" r="13" fill="#1a1a1a"/>
+<circle cx="252" cy="165" r="22" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<circle cx="252" cy="165" r="13" fill="#1a1a1a"/>
+
+<!-- eye patches -->
+<ellipse cx="183" cy="218" rx="22" ry="20" fill="#1a1a1a"/>
+<ellipse cx="217" cy="218" rx="22" ry="20" fill="#1a1a1a"/>
+
+<!-- eyes -->
+<circle cx="183" cy="218" r="13" fill="#fff"/>
+<circle cx="217" cy="218" r="13" fill="#fff"/>
+<circle cx="183" cy="218" r="7" fill="var(--accent)"/>
+<circle cx="217" cy="218" r="7" fill="var(--accent)"/>
+<circle cx="183" cy="218" r="4" fill="#111"/>
+<circle cx="217" cy="218" r="4" fill="#111"/>
+<!-- eye shine -->
+<circle cx="186" cy="215" r="2" fill="#fff"/>
+<circle cx="220" cy="215" r="2" fill="#fff"/>
+
+<!-- nose -->
+<ellipse cx="200" cy="232" rx="6" ry="4" fill="#555"/>
+
+<!-- CLOSED MOUTH / slight smile - no tongue -->
+<path d="M188 242 Q200 250 212 242" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round"/>
+
+<!-- cheek blush -->
+<ellipse cx="168" cy="230" rx="10" ry="6" fill="#d4f0d4" opacity="0.5"/>
+<ellipse cx="232" cy="230" rx="10" ry="6" fill="#d4f0d4" opacity="0.5"/>
+
+<!-- HAT brim -->
+<rect x="162" y="158" width="76" height="8" rx="2" fill="#111" stroke="#333" stroke-width="0.5"/>
+<!-- hat body -->
+<rect x="174" y="118" width="52" height="44" rx="3" fill="#1a1a1a" stroke="#333" stroke-width="0.8"/>
+<!-- hat band -->
+<rect x="174" y="150" width="52" height="7" rx="1" fill="var(--accent)"/>
+<!-- JT on hat -->
+<text x="200" y="143" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="var(--accent)">JT</text>
+
+<!-- NAMEPLATE -->
+<rect x="340" y="463" width="100" height="24" rx="12" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.5"/>
+<text x="390" y="479" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="var(--accent)">Pan-Pan</text>
+
+<!-- speech bubble -->
+<rect x="295" y="148" width="130" height="40" rx="8" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.2"/>
+<path d="M310 188 L300 200 L320 188" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/>
+<text x="360" y="165" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--accent)">You're hired!</text>
+<text x="360" y="179" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--accent)">Welcome to JobTrack</text>
+
+</svg>
+  </div>
+
+  <script>
+    // Store Pan-Pan SVG for reuse in empty state
+    window._panpanSVG = document.getElementById("panpanCorner").innerHTML;
+  </script>
 </body>
 </html>
