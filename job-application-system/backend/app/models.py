@@ -6,6 +6,7 @@ from enum import Enum
 class UserRole(str, Enum):
     applicant = "applicant"
     employer  = "employer"
+    admin     = "admin"
 
 class JobType(str, Enum):
     full_time  = "Full-Time"
@@ -50,18 +51,26 @@ class UserLogin(BaseModel):
 
 
 class UserProfileUpdate(BaseModel):
-    about_me:    Optional[str] = Field(None, max_length=500)
-    profile_pic: Optional[str] = Field(None)
-    banner_url:  Optional[str] = Field(None)                                    # employer cover photo
-    instagram:   Optional[str] = Field(None, max_length=30)
-    facebook:    Optional[str] = Field(None, max_length=80)
-    phone:       Optional[str] = Field(None, max_length=30)    # NEW: contact number
-    website:     Optional[str] = Field(None, max_length=2000)  # company website
+    about_me:       Optional[str] = Field(None, max_length=500)
+    profile_pic:    Optional[str] = Field(None)
+    banner_url:     Optional[str] = Field(None)
+    instagram:      Optional[str] = Field(None, max_length=30)
+    facebook:       Optional[str] = Field(None, max_length=80)
+    phone:          Optional[str] = Field(None, max_length=30)
+    website:        Optional[str] = Field(None, max_length=2000)
+    default_resume: Optional[str] = Field(None, max_length=500)
+    default_cover:  Optional[str] = Field(None, max_length=2000)
 
     @validator("profile_pic", "banner_url", "website")
     def validate_url(cls, v):
         if v and not v.startswith("http") and not v.startswith("data:image"):
             raise ValueError("Must be a valid URL or data URI.")
+        return v
+
+    @validator("default_resume")
+    def validate_resume(cls, v):
+        if v and not v.startswith("http"):
+            raise ValueError("Resume URL must start with http.")
         return v
 
     @validator("instagram")
@@ -83,7 +92,7 @@ class JobCreate(BaseModel):
     max_applicants: Optional[int] = Field(None, ge=1, le=10000)
     deadline:       Optional[str] = Field(None)
     status:         JobStatus = JobStatus.open
-    image_url:      Optional[str] = Field(None)                                   # job banner image
+    image_url:      Optional[str] = Field(None)
 
     @validator("title", "company", "location")
     def strip_whitespace(cls, v):
@@ -116,7 +125,7 @@ class JobUpdate(BaseModel):
     max_applicants: Optional[int]       = Field(None, ge=1, le=10000)
     deadline:       Optional[str]       = None
     status:         Optional[JobStatus] = None
-    image_url:      Optional[str]       = Field(None)                                   # job banner image
+    image_url:      Optional[str]       = Field(None)
 
 
 class ApplicationCreate(BaseModel):
@@ -143,3 +152,25 @@ class ApplicationStatusUpdate(BaseModel):
 
 class ApplicationNotesUpdate(BaseModel):
     notes: Optional[str] = Field(None, max_length=1000)
+
+class ReportCreate(BaseModel):
+    job_id:   int  = Field(..., ge=1)
+    reason:   str  = Field(..., min_length=2, max_length=100)
+    details:  Optional[str] = Field(None, max_length=1000)
+
+class ReportStatusUpdate(BaseModel):
+    status:      str            = Field(..., pattern="^(pending|reviewed|dismissed|actioned)$")
+    admin_notes: Optional[str]  = Field(None, max_length=1000)
+
+class UserReportCreate(BaseModel):
+    reported_id: int  = Field(..., ge=1)
+    reason:      str  = Field(..., min_length=2, max_length=100)
+    details:     Optional[str] = Field(None, max_length=1000)
+
+class UserReportStatusUpdate(BaseModel):
+    status:      str           = Field(..., pattern="^(pending|reviewed|dismissed|actioned)$")
+    admin_notes: Optional[str] = Field(None, max_length=1000)
+
+class EmployerVerificationUpdate(BaseModel):
+    user_id:     int  = Field(..., ge=1)
+    is_verified: bool = True

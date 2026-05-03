@@ -6,159 +6,201 @@
   <title>JobTrack — Job Application System</title>
   <link rel="stylesheet" href="css/style.css"/>
   <style>
-    @keyframes pulse { 0%,100%{opacity:1}50%{opacity:0.5} }
+    @keyframes pulse  { 0%,100%{opacity:1}50%{opacity:0.5} }
+    @keyframes floatY { 0%,100%{transform:translateY(0px) rotate(-2deg)} 50%{transform:translateY(-14px) rotate(2deg)} }
+    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
 
-    .nav-user-chip {
-      display:flex; align-items:center; gap:8px; padding:5px 12px 5px 6px;
-      background:var(--surface); border:1px solid var(--border); border-radius:100px;
-      cursor:pointer; transition:all 0.15s; text-decoration:none;
-    }
-    .nav-user-chip:hover { border-color:rgba(255,255,255,0.15); background:var(--surface2); }
-    .nav-user-avatar {
-      width:24px; height:24px; border-radius:50%; background:var(--surface3);
-      display:grid; place-items:center; font-size:10px; font-weight:700;
-      color:var(--ink); overflow:hidden; flex-shrink:0;
-    }
-    .nav-user-avatar img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
-    .nav-user-name { font-size:12px; font-weight:500; color:var(--ink); }
-    .nav-user-role { font-size:10px; color:var(--ink-muted); font-family:var(--mono); }
+    /* ── Nav ── */
+    .nav-user-chip { display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;background:var(--surface);border:1px solid var(--border);border-radius:100px;cursor:pointer;transition:all 0.15s;text-decoration:none; }
+    .nav-user-chip:hover { border-color:rgba(255,255,255,0.15);background:var(--surface2); }
+    .nav-user-avatar { width:24px;height:24px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--ink);overflow:hidden;flex-shrink:0; }
+    .nav-user-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
+    .nav-user-name { font-size:12px;font-weight:500;color:var(--ink); }
+    .nav-user-role { font-size:10px;color:var(--ink-muted);font-family:var(--mono); }
 
+    /* ── HERO ── */
     .hero-section {
-      padding:100px 32px 80px; text-align:center;
-      position:relative; overflow:hidden;
+      padding:100px 32px 80px;
+      text-align:center;
+      position:relative;
+      overflow:hidden;
       border-bottom:1px solid var(--border);
     }
+    .hero-grid-bg {
+      position:absolute;inset:0;
+      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+      background-size:48px 48px;opacity:0.35;
+      mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 80%);
+      pointer-events:none;
+    }
+    .hero-left {
+      position:relative; z-index:2;
+      animation:fadeUp 0.6s ease forwards;
+    }
     .hero-eyebrow {
-      display:inline-block; font-size:11px; font-weight:600; font-family:var(--mono);
-      text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-muted);
-      margin-bottom:20px;
+      display:inline-flex;align-items:center;gap:8px;
+      font-size:11px;font-weight:600;font-family:var(--mono);
+      text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-muted);
+      margin-bottom:24px;
+      background:var(--surface);border:1px solid var(--border);
+      padding:5px 12px;border-radius:100px;
     }
+    .hero-eyebrow::before { content:"";width:5px;height:5px;border-radius:50%;background:var(--accent); }
     .hero-title {
-      font-size:clamp(32px,5vw,60px); font-weight:700; line-height:1.08;
-      letter-spacing:-1.5px; margin-bottom:16px; color:var(--ink);
+      font-size:clamp(36px,5vw,64px);font-weight:700;line-height:1.06;
+      letter-spacing:-2px;margin-bottom:18px;color:var(--ink);
     }
-    .hero-sub {
-      font-size:15px; color:var(--ink-soft); max-width:440px;
-      line-height:1.7; margin:0 auto 32px;
+    .hero-title .hl {
+      background:linear-gradient(135deg,var(--accent),#44ffaa);
+      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
     }
-    .hero-cta { display:flex; gap:10px; justify-content:center; }
+    .hero-sub { font-size:15px;color:var(--ink-soft);line-height:1.75;max-width:460px;margin:0 auto 36px; }
+    .hero-cta { display:flex;gap:10px;justify-content:center;flex-wrap:wrap; }
 
-    .stats-bar {
-      display:flex; justify-content:center;
-      border-bottom:1px solid var(--border); background:var(--surface);
+    /* ── Pan-Pan section (below features, above CTA) ── */
+    .panpan-section {
+      border-top:1px solid var(--border);
+      border-bottom:1px solid var(--border);
+      background:var(--surface);
+      overflow:hidden;
+      position:relative;
     }
-    .stats-bar-item {
-      flex:1; max-width:220px; padding:20px 24px; text-align:center;
-      border-right:1px solid var(--border);
+    /* dark grid bg same style as hero */
+    .panpan-section::before {
+      content:"";
+      position:absolute;inset:0;
+      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
+      background-size:48px 48px;opacity:0.35;
+      pointer-events:none;
     }
+    /* 3D floor grid at bottom */
+    .panpan-section::after {
+      content:"";
+      position:absolute;bottom:0;left:0;right:0;height:180px;
+      background:
+        linear-gradient(rgba(232,149,109,0.04) 1px,transparent 1px),
+        linear-gradient(90deg,rgba(232,149,109,0.04) 1px,transparent 1px);
+      background-size:40px 40px;
+      transform:perspective(400px) rotateX(55deg);
+      transform-origin:bottom center;
+      pointer-events:none;
+    }
+    .panpan-inner {
+      max-width:1100px;margin:0 auto;
+      display:grid;grid-template-columns:1fr 420px;
+      align-items:center;gap:0;
+      position:relative;z-index:2;
+    }
+    .panpan-text {
+      padding:64px 48px 64px 32px;
+    }
+    .panpan-eyebrow {
+      font-size:11px;font-weight:600;font-family:var(--mono);
+      text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-muted);
+      margin-bottom:14px;
+    }
+    .panpan-title {
+      font-size:clamp(26px,3.5vw,40px);font-weight:700;
+      letter-spacing:-1.2px;line-height:1.1;margin-bottom:16px;color:var(--ink);
+    }
+    .panpan-name { color:var(--accent); }
+    .panpan-sub {
+      font-size:14px;color:var(--ink-muted);line-height:1.7;
+      max-width:380px;margin-bottom:28px;
+    }
+    .panpan-svg-col {
+      border-left:1px solid var(--border);
+      display:flex;align-items:flex-end;justify-content:center;
+      padding:32px 0 0;
+      overflow:hidden;
+      min-height:340px;
+      position:relative;
+    }
+    /* green glow behind Pan-Pan */
+    .panpan-glow {
+      position:absolute;
+      width:300px;height:300px;border-radius:50%;
+      background:radial-gradient(circle,rgba(232,149,109,0.07) 0%,transparent 70%);
+      top:50%;left:50%;transform:translate(-50%,-50%);
+      pointer-events:none;
+    }
+    .panpan-float-wrap {
+      position:relative;z-index:3;
+      animation:floatY 4s ease-in-out infinite;
+      filter:drop-shadow(0 20px 36px rgba(0,0,0,0.55)) drop-shadow(0 6px 14px rgba(232,149,109,0.08));
+      width:100%;max-width:400px;
+    }
+    .panpan-floor-shadow {
+      position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+      width:160px;height:16px;
+      background:radial-gradient(ellipse,rgba(0,0,0,0.4) 0%,transparent 70%);
+      border-radius:50%;z-index:2;
+      animation:floatY 4s ease-in-out infinite reverse;
+    }
+    .panpan-name-tag {
+      position:absolute;bottom:16px;right:16px;z-index:4;
+      font-size:10px;font-family:var(--mono);color:var(--ink-muted);
+      display:flex;align-items:center;gap:5px;
+    }
+    .panpan-name-tag::before { content:"";width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite; }
+
+    /* ── Stats ── */
+    .stats-bar { display:flex;justify-content:center;border-bottom:1px solid var(--border);background:var(--surface); }
+    .stats-bar-item { flex:1;max-width:220px;padding:20px 24px;text-align:center;border-right:1px solid var(--border); }
     .stats-bar-item:last-child { border-right:none; }
-    .stats-bar-num {
-      font-size:24px; font-weight:700; color:var(--ink);
-      font-family:var(--mono); letter-spacing:-1px; margin-bottom:3px;
-    }
-    .stats-bar-label {
-      font-size:11px; color:var(--ink-muted);
-      text-transform:uppercase; letter-spacing:0.1em; font-weight:500;
-    }
-    .stats-live-badge {
-      display:flex; align-items:center; justify-content:center;
-      gap:5px; font-size:10px; font-family:var(--mono); color:var(--ink-muted); margin-top:3px;
-    }
-    .stats-live-badge .dot {
-      width:5px; height:5px; border-radius:50%;
-      background:var(--green); animation:pulse 2s infinite;
-    }
+    .stats-bar-num { font-size:24px;font-weight:700;color:var(--ink);font-family:var(--mono);letter-spacing:-1px;margin-bottom:3px; }
+    .stats-bar-label { font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:500; }
+    .stats-live-badge { display:flex;align-items:center;justify-content:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--ink-muted);margin-top:3px; }
+    .stats-live-badge .dot { width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite; }
     .stat-updating { color:var(--ink) !important; }
 
-    .features-section {
-      max-width:1100px; margin:0 auto; padding:64px 32px 80px;
-    }
-    .features-label {
-      font-size:11px; font-weight:600; font-family:var(--mono);
-      text-transform:uppercase; letter-spacing:0.12em; color:var(--ink-muted);
-      margin-bottom:12px;
-    }
-    .features-heading {
-      font-size:24px; font-weight:700; letter-spacing:-0.5px;
-      margin-bottom:8px; color:var(--ink);
-    }
-    .features-sub {
-      font-size:13px; color:var(--ink-muted); line-height:1.65;
-      max-width:480px; margin-bottom:40px;
-    }
-
-    .feat-grid {
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:1px;
-      background:var(--border);
-      border:1px solid var(--border);
-      border-radius:12px 12px 0 0;
-      overflow:hidden;
-    }
-    .feat-grid-bottom {
-      display:grid;
-      grid-template-columns:repeat(3,1fr);
-      gap:1px;
-      background:var(--border);
-      border:1px solid var(--border);
-      border-top:none;
-      border-radius:0 0 12px 12px;
-      overflow:hidden;
-      margin-bottom:0;
-    }
-    .feat-card {
-      background:var(--surface);
-      padding:28px 26px;
-      transition:background 0.15s;
-    }
+    /* ── Features ── */
+    .features-section { max-width:1100px;margin:0 auto;padding:64px 32px 80px; }
+    .features-label { font-size:11px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-muted);margin-bottom:12px; }
+    .features-heading { font-size:24px;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px;color:var(--ink); }
+    .features-sub { font-size:13px;color:var(--ink-muted);line-height:1.65;max-width:480px;margin-bottom:40px; }
+    .feat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px 12px 0 0;overflow:hidden; }
+    .feat-grid-bottom { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden; }
+    .feat-card { background:var(--surface);padding:28px 26px;transition:background 0.15s; }
     .feat-card:hover { background:var(--surface2); }
-    .feat-card-label {
-      font-size:10px; font-weight:700; font-family:var(--mono);
-      text-transform:uppercase; letter-spacing:0.1em; color:var(--ink-muted);
-      margin-bottom:10px;
-    }
-    .feat-card h3 {
-      font-size:15px; font-weight:600; color:var(--ink);
-      letter-spacing:-0.2px; margin-bottom:8px; line-height:1.3;
-    }
-    .feat-card p {
-      font-size:13px; color:var(--ink-muted); line-height:1.65;
-    }
-    .feat-tags { display:flex; flex-wrap:wrap; gap:5px; margin-top:14px; }
-    .feat-tag {
-      font-size:10px; font-family:var(--mono); padding:3px 8px;
-      background:var(--surface2); border:1px solid var(--border);
-      border-radius:4px; color:var(--ink-muted);
-    }
+    .feat-card-label { font-size:10px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:10px; }
+    .feat-card h3 { font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-0.2px;margin-bottom:8px;line-height:1.3; }
+    .feat-card p { font-size:13px;color:var(--ink-muted);line-height:1.65; }
+    .feat-tags { display:flex;flex-wrap:wrap;gap:5px;margin-top:14px; }
+    .feat-tag { font-size:10px;font-family:var(--mono);padding:3px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink-muted); }
 
-    .cta-section {
-      border-top:1px solid var(--border);
-      padding:64px 32px;
-      text-align:center;
-    }
-    .cta-section h2 {
-      font-size:28px; font-weight:700; letter-spacing:-1px;
-      margin-bottom:10px; color:var(--ink);
-    }
-    .cta-section p {
-      font-size:14px; color:var(--ink-muted); margin-bottom:28px; line-height:1.7;
-    }
-    .cta-btns { display:flex; gap:10px; justify-content:center; }
+    /* ── CTA ── */
+    .cta-section { border-top:1px solid var(--border);padding:64px 32px;text-align:center; }
+    .cta-section h2 { font-size:28px;font-weight:700;letter-spacing:-1px;margin-bottom:10px;color:var(--ink); }
+    .cta-section p { font-size:14px;color:var(--ink-muted);margin-bottom:28px;line-height:1.7; }
+    .cta-btns { display:flex;gap:10px;justify-content:center; }
 
-    .landing-footer {
-      border-top:1px solid var(--border); padding:16px 28px;
-      display:flex; justify-content:space-between; align-items:center;
-    }
-    .landing-footer p { font-size:12px; color:var(--ink-muted); font-family:var(--mono); }
+    /* ── Footer ── */
+    .landing-footer { border-top:1px solid var(--border);padding:16px 28px;display:flex;justify-content:space-between;align-items:center; }
+    .landing-footer p { font-size:12px;color:var(--ink-muted);font-family:var(--mono); }
 
-    @media (max-width:860px) {
-      .feat-grid, .feat-grid-bottom { grid-template-columns:1fr 1fr; }
-      .feat-grid { border-radius:12px 12px 0 0; }
+    /* ── Responsive ── */
+    @media (max-width:900px) {
+      .hero-section { grid-template-columns:1fr; min-height:auto; padding:48px 20px 36px; }
+      .hero-left { padding:0; }
+      .hero-right { min-height:60vw; border-left:none; border-top:1px solid var(--border); }
+      .panpan-pointer { display:none; }
+      .hero-sub { font-size:14px; }
+      /* panpan section stack */
+      .panpan-inner { grid-template-columns:1fr; }
+      .panpan-svg-col { border-left:none; border-top:1px solid var(--border); min-height:260px; }
+      .panpan-text { padding:36px 24px 28px; }
     }
-    @media (max-width:560px) {
-      .feat-grid, .feat-grid-bottom { grid-template-columns:1fr; }
-      .hero-cta, .cta-btns { flex-direction:column; align-items:center; }
+    @media (max-width:600px) {
+      .feat-grid,.feat-grid-bottom { grid-template-columns:1fr; }
+      .hero-cta,.cta-btns { flex-direction:column; align-items:stretch; }
+      .hero-cta .btn, .cta-btns .btn { justify-content:center; }
+      .cta-btns { align-items:center; }
+      .hero-section { padding:36px 16px 28px; }
+      .stats-bar-num { font-size:20px; }
+      .stats-bar-item { padding:14px 12px; }
+      .cta-section { padding:36px 16px; }
+      .features-section { padding:36px 16px 48px; }
     }
   </style>
 </head>
@@ -172,17 +214,22 @@
     <div class="landing-nav-links" id="navLinks"></div>
   </nav>
 
+  <!-- HERO — centered -->
   <section class="hero-section animate-in">
-    <div class="hero-eyebrow">JobTrack</div>
-    <h1 class="hero-title">The job platform<br/><span class="highlight">built for results</span></h1>
-    <p class="hero-sub">A streamlined job application system connecting applicants with employers — built for clarity, speed, and transparency.</p>
-    <div class="hero-cta">
-      <a href="pages/jobs.html" class="btn btn-primary btn-lg">Browse Jobs</a>
-      <a href="pages/register.html" class="btn btn-ghost btn-lg" id="ctaSecondary">Get Started</a>
+    <div class="hero-grid-bg"></div>
+    <div class="hero-left">
+      <div class="hero-eyebrow">JobTrack</div>
+      <h1 class="hero-title">Job Platform<br/><span class="hl">Built For Results</span></h1>
+      <p class="hero-sub">A streamlined job application system connecting applicants with employers — built for clarity, speed, and transparency.</p>
+      <div class="hero-cta">
+        <a href="pages/jobs.html" class="btn btn-primary btn-lg">Browse Jobs</a>
+        <a href="pages/register.html" class="btn btn-ghost btn-lg" id="ctaSecondary">Get Started</a>
+      </div>
     </div>
   </section>
 
-  <div class="stats-bar animate-in delay-1">
+  <!-- STATS -->
+  <div class="stats-bar animate-in">
     <div class="stats-bar-item">
       <div class="stats-bar-num" id="statJobs">--</div>
       <div class="stats-bar-label">Jobs Listed</div>
@@ -200,59 +247,240 @@
     </div>
   </div>
 
-  <section class="features-section animate-in delay-2">
+  <!-- FEATURES -->
+  <section class="features-section animate-in">
     <div class="features-label">Platform Features</div>
     <h2 class="features-heading">Everything you need, nothing you don't.</h2>
-    <p class="features-sub">Built on Supabase and FastAPI — a full-stack system with real-time data, secure auth, and clean employer tools.</p>
-
+    <p class="features-sub">Built on Supabase and FastAPI — a full-stack job platform with real-time data, messaging, admin tools, and individual hire support.</p>
     <div class="feat-grid">
       <div class="feat-card">
         <div class="feat-card-label">For Applicants</div>
         <h3>Quick Apply</h3>
-        <p>Submit applications in under 2 minutes. Your profile pre-fills name and email — no repetitive forms.</p>
+        <p>Submit applications in under 2 minutes. Profile pre-fills your name and email — no repetitive forms.</p>
       </div>
       <div class="feat-card">
         <div class="feat-card-label">Real-Time</div>
         <h3>Application Tracking</h3>
-        <p>Monitor every application status live. Dashboard updates every 30 seconds automatically.</p>
+        <p>Monitor every application status live. Dashboard auto-refreshes every 30 seconds with accept / reject updates.</p>
       </div>
       <div class="feat-card">
-        <div class="feat-card-label">Discovery</div>
-        <h3>Browse by Interest</h3>
-        <p>Filter across 15 job categories — Software, Healthcare, Design, Teaching, and more — instantly.</p>
+        <div class="feat-card-label">Messaging</div>
+        <h3>Built-In Chat</h3>
+        <p>Applicants and employers chat directly per application. Supports image attachments, reply threads, and unread badges.</p>
+        <div class="feat-tags">
+          <span class="feat-tag">Reply</span>
+          <span class="feat-tag">Images</span>
+          <span class="feat-tag">Unread</span>
+        </div>
       </div>
     </div>
     <div class="feat-grid-bottom">
       <div class="feat-card">
         <div class="feat-card-label">For Employers</div>
         <h3>Hiring Pipeline</h3>
-        <p>Post jobs with deadlines and slot limits. Review applicants, accept or reject in one click.</p>
-      </div>
-      <div class="feat-card">
-        <div class="feat-card-label">Security</div>
-        <h3>Secure by Default</h3>
-        <p>bcrypt hashing, JWT tokens, rate limiting, and role-based access control on every endpoint.</p>
+        <p>Post jobs with slot limits, deadlines, and banner images. Review applicants, add private notes, and accept or reject in one click.</p>
         <div class="feat-tags">
-          <span class="feat-tag">JWT</span>
-          <span class="feat-tag">bcrypt</span>
-          <span class="feat-tag">RBAC</span>
-          <span class="feat-tag">Rate Limit</span>
+          <span class="feat-tag">Analytics</span>
+          <span class="feat-tag">Notes</span>
+          <span class="feat-tag">Email Alerts</span>
         </div>
       </div>
       <div class="feat-card">
-        <div class="feat-card-label">Search</div>
-        <h3>Full-Text Search</h3>
-        <p>PostgreSQL-powered search across job titles, companies, and descriptions in milliseconds.</p>
+        <div class="feat-card-label">Safety &amp; Trust</div>
+        <h3>Report &amp; Admin Panel</h3>
+        <p>Flag suspicious listings or users. Admins review reports, close or delete jobs, and manage all users from a dedicated control panel.</p>
         <div class="feat-tags">
-          <span class="feat-tag">PostgreSQL</span>
-          <span class="feat-tag">Supabase</span>
-          <span class="feat-tag">FastAPI</span>
+          <span class="feat-tag">Job Reports</span>
+          <span class="feat-tag">User Reports</span>
+          <span class="feat-tag">Admin</span>
+        </div>
+      </div>
+      <div class="feat-card">
+        <div class="feat-card-label">Individual Hire</div>
+        <h3>Personal &amp; Odd Jobs</h3>
+        <p>Post errands, home services, caregiving, repairs, and events. Built-in safety reminders for meeting in public and verifying identity.</p>
+        <div class="feat-tags">
+          <span class="feat-tag">Freelance</span>
+          <span class="feat-tag">Errands</span>
+          <span class="feat-tag">Home Services</span>
         </div>
       </div>
     </div>
   </section>
 
-  <section class="cta-section animate-in delay-3">
+
+  <!-- PAN-PAN MASCOT SECTION -->
+  <section class="panpan-section animate-in">
+    <div class="panpan-inner">
+      <div class="panpan-text">
+        <div class="panpan-eyebrow">Meet Our Mascot</div>
+        <h2 class="panpan-title">Say hello to<br/><span class="panpan-name">Pan-Pan</span> 🐼</h2>
+        <p class="panpan-sub">Pan-Pan is JobTrack's friendly panda — always at the desk, reviewing applications, and making sure every applicant finds their perfect match.</p>
+        <a href="pages/register.html" class="btn btn-primary">Start Your Journey →</a>
+      </div>
+      <div class="panpan-svg-col">
+        <div class="panpan-glow"></div>
+        <div class="panpan-float-wrap">
+<svg width="100%" viewBox="0 0 680 520" role="img" xmlns="http://www.w3.org/2000/svg">
+<title>Pan-Pan the JobTrack mascot</title>
+<desc>Pan-Pan the panda mascot wearing a JT hat, sitting at a desk reviewing resumes on a monitor</desc>
+
+
+<!-- DESK -->
+<rect x="160" y="360" width="380" height="18" rx="4" fill="#2a2a2a" stroke="#444" stroke-width="1"/>
+<rect x="195" y="378" width="18" height="90" rx="3" fill="#222" stroke="#444" stroke-width="0.5"/>
+<rect x="487" y="378" width="18" height="90" rx="3" fill="#222" stroke="#444" stroke-width="0.5"/>
+<rect x="175" y="378" width="350" height="12" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+
+<!-- MONITOR -->
+<rect x="270" y="210" width="200" height="148" rx="8" fill="#111" stroke="#333" stroke-width="1.5"/>
+<rect x="278" y="218" width="184" height="118" rx="4" fill="#0d0d0d" stroke="#222" stroke-width="0.5"/>
+<!-- monitor stand -->
+<rect x="355" y="358" width="30" height="8" rx="2" fill="#222" stroke="#333" stroke-width="0.5"/>
+<rect x="340" y="364" width="60" height="6" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+
+<!-- SCREEN CONTENT -->
+<rect x="283" y="223" width="180" height="12" rx="2" fill="#1a3a1a"/>
+<text x="373" y="233" text-anchor="middle">JOBTRACK DASHBOARD</text>
+<rect x="283" y="240" width="80" height="8" rx="2" fill="#1a2a1a"/>
+<text x="323" y="247" text-anchor="middle">Applications: 12</text>
+<rect x="370" y="240" width="90" height="8" rx="2" fill="#1a2a1a"/>
+<text x="415" y="247" text-anchor="middle">Pending: 4</text>
+<rect x="283" y="254" width="177" height="1" fill="#2a2a2a"/>
+<!-- fake rows -->
+<rect x="283" y="260" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="260" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="260" width="50" height="6" rx="1" fill="#1f3a1f"/>
+<rect x="283" y="271" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="271" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="271" width="50" height="6" rx="1" fill="#3a1f1f"/>
+<rect x="283" y="282" width="60" height="6" rx="1" fill="#1a2a1a"/>
+<rect x="350" y="282" width="50" height="6" rx="1" fill="#222"/>
+<rect x="407" y="282" width="50" height="6" rx="1" fill="#1f3a1f"/>
+<!-- accept badge on screen -->
+<rect x="390" y="310" width="48" height="14" rx="3" fill="var(--accent)"/>
+<text x="414" y="321" text-anchor="middle">HIRED!</text>
+
+<!-- KEYBOARD -->
+<rect x="270" y="355" width="120" height="8" rx="2" fill="#1a1a1a" stroke="#333" stroke-width="0.5"/>
+<rect x="274" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="285" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="296" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="307" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="318" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="329" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="340" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="351" y="357" width="8" height="4" rx="1" fill="#2a2a2a"/>
+<rect x="362" y="357" width="22" height="4" rx="1" fill="#3a3a3a"/>
+
+<!-- RESUME PAPERS on desk -->
+<rect x="430" y="338" width="50" height="64" rx="2" fill="#f5f5f5" stroke="#ccc" stroke-width="0.5" transform="rotate(-8 455 370)"/>
+<rect x="432" y="342" width="35" height="3" rx="1" fill="#ccc" transform="rotate(-8 455 370)"/>
+<rect x="432" y="348" width="28" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="432" y="353" width="32" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="432" y="358" width="24" height="2" rx="1" fill="#ddd" transform="rotate(-8 455 370)"/>
+<rect x="427" y="340" width="50" height="64" rx="2" fill="#eee" stroke="#bbb" stroke-width="0.5" transform="rotate(-3 452 372)"/>
+<rect x="429" y="345" width="35" height="3" rx="1" fill="#bbb" transform="rotate(-3 452 372)"/>
+<rect x="429" y="351" width="26" height="2" rx="1" fill="#ccc" transform="rotate(-3 452 372)"/>
+
+<!-- COFFEE CUP -->
+<rect x="215" y="338" width="26" height="24" rx="3" fill="#1a1a1a" stroke="#444" stroke-width="0.5"/>
+<path d="M241 344 Q252 344 252 352 Q252 360 241 360" fill="none" stroke="#444" stroke-width="1.5"/>
+<rect x="217" y="340" width="22" height="4" rx="1" fill="var(--accent)" opacity="0.3"/>
+
+<!-- PAN-PAN BODY (sitting, leaning toward screen) -->
+<!-- body -->
+<ellipse cx="200" cy="310" rx="62" ry="66" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<!-- belly -->
+<ellipse cx="200" cy="322" rx="36" ry="38" fill="#fff" stroke="none"/>
+
+<!-- left arm (resting on desk, pointing at keyboard) -->
+<ellipse cx="148" cy="348" rx="18" ry="11" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-30 148 348)"/>
+<ellipse cx="140" cy="358" rx="13" ry="10" fill="#1a1a1a" stroke="#111" stroke-width="1.5"/>
+<!-- left hand fingers -->
+<ellipse cx="132" cy="363" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="138" cy="366" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="145" cy="365" rx="5" ry="4" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+
+<!-- right arm (raised, waving) -->
+<ellipse cx="258" cy="275" rx="18" ry="11" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-60 258 275)"/>
+<ellipse cx="272" cy="258" rx="13" ry="10" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-30 272 258)"/>
+<!-- right hand -->
+<ellipse cx="276" cy="247" rx="12" ry="10" fill="#e0e0e0" stroke="#111" stroke-width="1.2"/>
+<ellipse cx="270" cy="241" rx="4" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="278" cy="239" rx="4" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+<ellipse cx="284" cy="242" rx="3.5" ry="5" fill="#e0e0e0" stroke="#111" stroke-width="1"/>
+
+<!-- legs (sitting) -->
+<ellipse cx="172" cy="368" rx="22" ry="12" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(15 172 368)"/>
+<ellipse cx="228" cy="368" rx="22" ry="12" fill="#1a1a1a" stroke="#111" stroke-width="1.5" transform="rotate(-15 228 368)"/>
+<!-- feet -->
+<ellipse cx="162" cy="376" rx="16" ry="9" fill="#1a1a1a" stroke="#111" stroke-width="1.2"/>
+<ellipse cx="238" cy="376" rx="16" ry="9" fill="#1a1a1a" stroke="#111" stroke-width="1.2"/>
+
+<!-- HEAD -->
+<circle cx="200" cy="218" r="64" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+
+<!-- ears -->
+<circle cx="148" cy="165" r="22" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<circle cx="148" cy="165" r="13" fill="#1a1a1a"/>
+<circle cx="252" cy="165" r="22" fill="#f0f0f0" stroke="#111" stroke-width="2.5"/>
+<circle cx="252" cy="165" r="13" fill="#1a1a1a"/>
+
+<!-- eye patches -->
+<ellipse cx="183" cy="218" rx="22" ry="20" fill="#1a1a1a"/>
+<ellipse cx="217" cy="218" rx="22" ry="20" fill="#1a1a1a"/>
+
+<!-- eyes -->
+<circle cx="183" cy="218" r="13" fill="#fff"/>
+<circle cx="217" cy="218" r="13" fill="#fff"/>
+<circle cx="183" cy="218" r="7" fill="var(--accent)"/>
+<circle cx="217" cy="218" r="7" fill="var(--accent)"/>
+<circle cx="183" cy="218" r="4" fill="#111"/>
+<circle cx="217" cy="218" r="4" fill="#111"/>
+<!-- eye shine -->
+<circle cx="186" cy="215" r="2" fill="#fff"/>
+<circle cx="220" cy="215" r="2" fill="#fff"/>
+
+<!-- nose -->
+<ellipse cx="200" cy="232" rx="6" ry="4" fill="#555"/>
+
+<!-- CLOSED MOUTH / slight smile - no tongue -->
+<path d="M188 242 Q200 250 212 242" fill="none" stroke="#444" stroke-width="2" stroke-linecap="round"/>
+
+<!-- cheek blush -->
+<ellipse cx="168" cy="230" rx="10" ry="6" fill="#d4f0d4" opacity="0.5"/>
+<ellipse cx="232" cy="230" rx="10" ry="6" fill="#d4f0d4" opacity="0.5"/>
+
+<!-- HAT brim -->
+<rect x="162" y="158" width="76" height="8" rx="2" fill="#111" stroke="#333" stroke-width="0.5"/>
+<!-- hat body -->
+<rect x="174" y="118" width="52" height="44" rx="3" fill="#1a1a1a" stroke="#333" stroke-width="0.8"/>
+<!-- hat band -->
+<rect x="174" y="150" width="52" height="7" rx="1" fill="var(--accent)"/>
+<!-- JT on hat -->
+<text x="200" y="143" text-anchor="middle" font-family="monospace" font-size="13" font-weight="700" fill="var(--accent)">JT</text>
+
+<!-- NAMEPLATE -->
+<rect x="340" y="463" width="100" height="24" rx="12" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.5"/>
+<text x="390" y="479" text-anchor="middle" font-family="sans-serif" font-size="12" font-weight="700" fill="var(--accent)">Pan-Pan</text>
+
+<!-- speech bubble -->
+<rect x="295" y="148" width="130" height="40" rx="8" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.2"/>
+<path d="M310 188 L300 200 L320 188" fill="#1a1a1a" stroke="var(--accent)" stroke-width="1.2" stroke-linejoin="round"/>
+<text x="360" y="165" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--accent)">You're hired!</text>
+<text x="360" y="179" text-anchor="middle" font-family="monospace" font-size="9" fill="var(--accent)">Welcome to JobTrack</text>
+
+</svg>
+        </div>
+        <div class="panpan-floor-shadow"></div>
+        <div class="panpan-name-tag">Pan-Pan · JobTrack mascot</div>
+      </div>
+    </div>
+  </section>
+
+  <!-- CTA -->
+  <section class="cta-section animate-in">
     <h2>Ready to get started?</h2>
     <p>Create a free account and start applying for jobs or posting positions today.</p>
     <div class="cta-btns">
@@ -266,6 +494,7 @@
     <p>ongoing startup...</p>
   </footer>
 
+  <script src="js/config.js"></script>
   <script src="js/main.js"></script>
   <script>
     const user = getUser();
@@ -303,8 +532,8 @@
 
     async function fetchLiveStats() {
       try {
-        var jobRes = await fetch("http://localhost:8000/jobs/stats").then(function(r){return r.json();}).catch(function(){return null;});
-        var appRes = await fetch("http://localhost:8000/applications/public").then(function(r){return r.json();}).catch(function(){return null;});
+        var jobRes = await fetch(((window.JT_CONFIG && window.JT_CONFIG.API_BASE)||"http://localhost:8000") + "/jobs/stats").then(function(r){return r.json();}).catch(function(){return null;});
+        var appRes = await fetch(((window.JT_CONFIG && window.JT_CONFIG.API_BASE)||"http://localhost:8000") + "/applications/public").then(function(r){return r.json();}).catch(function(){return null;});
         var jobs = (jobRes && jobRes.job_count) ? jobRes.job_count : 0;
         var total = (appRes && appRes.total) ? appRes.total : 0;
         var accepted = (appRes && appRes.accepted) ? appRes.accepted : 0;

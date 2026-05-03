@@ -3,11 +3,18 @@ Email notification utility — JobTrack
 Uses fastapi-mail. Add to requirements.txt: fastapi-mail==1.4.1
 
 Environment variables needed in .env:
-  MAIL_USERNAME=your@gmail.com
-  MAIL_PASSWORD=your_app_password
-  MAIL_FROM=your@gmail.com
+  MAIL_USERNAME=jobtrack31@gmail.com
+  MAIL_PASSWORD=your_app_password          <- Gmail App Password (not your real password)
+  MAIL_FROM=jobtrack31@gmail.com
   MAIL_PORT=587
   MAIL_SERVER=smtp.gmail.com
+
+HOW TO GET A GMAIL APP PASSWORD:
+  1. Go to myaccount.google.com > Security
+  2. Enable 2-Step Verification (required)
+  3. Go to Security > App passwords
+  4. Create a new app password for "Mail"
+  5. Paste the 16-character code into MAIL_PASSWORD in your .env
 """
 import os
 from typing import Optional
@@ -24,11 +31,17 @@ except ImportError:
 def _get_mail_config():
     if not MAIL_ENABLED:
         return None
+    username = os.getenv("MAIL_USERNAME", "")
+    password = os.getenv("MAIL_PASSWORD", "")
+    # Don't attempt to connect with placeholder credentials
+    if not username or not password or password in ("your_app_password", "your_gmail_app_password"):
+        print("⚠  Mail credentials not configured. Set MAIL_USERNAME and MAIL_PASSWORD in .env")
+        return None
     try:
         return ConnectionConfig(
-            MAIL_USERNAME   = os.getenv("MAIL_USERNAME", ""),
-            MAIL_PASSWORD   = os.getenv("MAIL_PASSWORD", ""),
-            MAIL_FROM       = os.getenv("MAIL_FROM", "noreply@jobtrack.com"),
+            MAIL_USERNAME   = username,
+            MAIL_PASSWORD   = password,
+            MAIL_FROM       = os.getenv("MAIL_FROM", username),
             MAIL_PORT       = int(os.getenv("MAIL_PORT", "587")),
             MAIL_SERVER     = os.getenv("MAIL_SERVER", "smtp.gmail.com"),
             MAIL_STARTTLS   = True,
@@ -41,7 +54,7 @@ def _get_mail_config():
         return None
 
 # ── Email templates ──────────────────────────────────────
-def _accepted_html(applicant_name: str, job_title: str, company: str) -> str:
+def _accepted_html(applicant_name: str, job_title: str, company: str, frontend_base: str = "") -> str:
     return f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#f2f2f2;border-radius:12px;overflow:hidden;">
       <div style="background:#111;padding:24px;border-bottom:1px solid #222;">
@@ -57,7 +70,7 @@ def _accepted_html(applicant_name: str, job_title: str, company: str) -> str:
         <p style="color:#a0a0a0;line-height:1.7;">
           The employer will be in touch with next steps. Best of luck!
         </p>
-        <a href="http://127.0.0.1:5500/job-application-system/frontend/pages/dashboard.html"
+        <a href="{frontend_base}/pages/dashboard.html"
            style="display:inline-block;margin-top:20px;padding:12px 24px;background:#7fff00;color:#000;
                   border-radius:8px;text-decoration:none;font-weight:700;">
           View Dashboard →
@@ -69,7 +82,7 @@ def _accepted_html(applicant_name: str, job_title: str, company: str) -> str:
     </div>
     """
 
-def _rejected_html(applicant_name: str, job_title: str, company: str) -> str:
+def _rejected_html(applicant_name: str, job_title: str, company: str, frontend_base: str = "") -> str:
     return f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#f2f2f2;border-radius:12px;overflow:hidden;">
       <div style="background:#111;padding:24px;border-bottom:1px solid #222;">
@@ -86,7 +99,7 @@ def _rejected_html(applicant_name: str, job_title: str, company: str) -> str:
           After careful consideration, the employer has decided not to move forward
           with your application at this time. Don't be discouraged — keep applying!
         </p>
-        <a href="http://127.0.0.1:5500/job-application-system/frontend/pages/jobs.html"
+        <a href="{frontend_base}/pages/jobs.html"
            style="display:inline-block;margin-top:20px;padding:12px 24px;background:#f2f2f2;color:#000;
                   border-radius:8px;text-decoration:none;font-weight:700;">
           Browse More Jobs →
@@ -98,7 +111,7 @@ def _rejected_html(applicant_name: str, job_title: str, company: str) -> str:
     </div>
     """
 
-def _reviewed_html(applicant_name: str, job_title: str, company: str) -> str:
+def _reviewed_html(applicant_name: str, job_title: str, company: str, frontend_base: str = "") -> str:
     return f"""
     <div style="font-family:Arial,sans-serif;max-width:560px;margin:0 auto;background:#0a0a0a;color:#f2f2f2;border-radius:12px;overflow:hidden;">
       <div style="background:#111;padding:24px;border-bottom:1px solid #222;">
@@ -138,17 +151,18 @@ async def send_status_email(
         return False
 
     config = _get_mail_config()
-    if not config or not os.getenv("MAIL_USERNAME"):
+    if not config:
         print(f"[Email] Skipped (mail not configured): {new_status} → {to_email}")
         return False
 
+    _fe = os.getenv("FRONTEND_URL", "http://127.0.0.1:5500/job-application-system/frontend")
     templates = {
-        "accepted": (_accepted_html(applicant_name, job_title, company),
-                     f"🎉 You've been accepted — {job_title}"),
-        "rejected": (_rejected_html(applicant_name, job_title, company),
+        "accepted": (_accepted_html(applicant_name, job_title, company, _fe),
+                     f"You've been accepted — {job_title}"),
+        "rejected": (_rejected_html(applicant_name, job_title, company, _fe),
                      f"Application update — {job_title}"),
-        "reviewed": (_reviewed_html(applicant_name, job_title, company),
-                     f"👀 Your application is being reviewed — {job_title}"),
+        "reviewed": (_reviewed_html(applicant_name, job_title, company, _fe),
+                     f"Your application is being reviewed — {job_title}"),
     }
 
     if new_status not in templates:

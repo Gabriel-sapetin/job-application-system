@@ -1,0 +1,868 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Admin Panel — JobTrack</title>
+  <link rel="stylesheet" href="../css/style.css"/>
+  <style>
+    .tab-panel{display:none!important;}.tab-panel.active{display:block!important;}
+    .admin-topbar{height:52px;border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 24px;position:sticky;top:0;z-index:40;background:rgba(10,10,10,0.95);backdrop-filter:blur(8px);}
+    .admin-badge{display:inline-flex;align-items:center;gap:6px;background:rgba(255,68,68,0.1);border:1px solid rgba(255,68,68,0.3);color:var(--red);padding:4px 10px;border-radius:100px;font-size:11px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.08em;}
+    .stat-cards{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;}
+    .stat-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;position:relative;overflow:hidden;transition:border-color 0.15s;}
+    .stat-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:var(--border);}
+    .stat-card.c-red::before{background:var(--red);}
+    .stat-card.c-gold::before{background:var(--gold);}
+    .stat-card.c-green::before{background:var(--green);}
+    .stat-card.c-blue::before{background:var(--accent3);}
+    .stat-card-label{font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);margin-bottom:8px;}
+    .stat-card-num{font-size:32px;font-weight:700;font-family:var(--mono);letter-spacing:-1.5px;color:var(--ink);line-height:1;}
+    .stat-card-sub{font-size:11px;color:var(--ink-muted);margin-top:6px;font-family:var(--mono);}
+    .panel{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);overflow:hidden;margin-bottom:14px;}
+    .panel-header{display:flex;align-items:center;justify-content:space-between;padding:12px 18px;border-bottom:1px solid var(--border);background:var(--surface2);}
+    .panel-header h3{font-size:13px;font-weight:600;}
+    .pill{display:inline-flex;align-items:center;gap:4px;padding:3px 8px;border-radius:100px;font-size:11px;font-weight:600;font-family:var(--mono);text-transform:uppercase;}
+    .pill::before{content:'';width:4px;height:4px;border-radius:50%;background:currentColor;}
+    .pill-pending{background:rgba(255,204,68,0.12);color:var(--gold);}
+    .pill-reviewed{background:rgba(77,159,255,0.12);color:var(--accent3);}
+    .pill-actioned{background:rgba(68,221,136,0.12);color:var(--green);}
+    .pill-dismissed{background:rgba(255,255,255,0.06);color:var(--ink-muted);}
+    .pill-open{background:rgba(68,221,136,0.12);color:var(--green);}
+    .pill-closed{background:rgba(255,68,68,0.12);color:var(--red);}
+    .pill-full{background:rgba(255,204,68,0.12);color:var(--gold);}
+    .pill-applicant{background:rgba(77,159,255,0.1);color:var(--accent3);}
+    .pill-employer{background:rgba(127,255,0,0.1);color:var(--accent);}
+    .pill-admin{background:rgba(255,68,68,0.1);color:var(--red);}
+    .report-card{background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);padding:16px 18px;margin-bottom:10px;transition:border-color 0.15s;}
+    .report-card:hover{border-color:rgba(255,255,255,0.12);}
+    .report-card.urgent{border-color:rgba(255,68,68,0.3);background:rgba(255,68,68,0.03);}
+    .rc-header{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:10px;}
+    .rc-job{font-size:14px;font-weight:600;margin-bottom:2px;}
+    .rc-company{font-size:12px;color:var(--ink-muted);}
+    .rc-reason{display:inline-flex;align-items:center;gap:5px;font-size:11px;font-weight:600;font-family:var(--mono);background:rgba(255,68,68,0.08);border:1px solid rgba(255,68,68,0.2);color:var(--red);padding:3px 9px;border-radius:100px;margin-bottom:8px;}
+    .rc-details{font-size:13px;color:var(--ink-soft);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;margin-bottom:10px;font-style:italic;}
+    .rc-meta{display:flex;align-items:center;gap:12px;font-size:11px;color:var(--ink-muted);font-family:var(--mono);}
+    .rc-actions{display:flex;gap:6px;flex-wrap:wrap;margin-top:10px;}
+    .notes-input{width:100%;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);padding:8px 10px;font-family:var(--font);font-size:12px;resize:none;min-height:60px;outline:none;margin-top:8px;transition:border-color 0.15s;}
+    .notes-input:focus{border-color:rgba(255,255,255,0.2);}
+    .filter-bar{display:flex;gap:8px;padding:12px 18px;border-bottom:1px solid var(--border);flex-wrap:wrap;}
+    .filter-btn{padding:5px 12px;background:none;border:1px solid var(--border);border-radius:100px;font-size:12px;color:var(--ink-muted);cursor:pointer;transition:all 0.15s;font-family:var(--font);}
+    .filter-btn:hover{background:var(--surface2);color:var(--ink);}
+    .filter-btn.active{background:var(--surface3);color:var(--ink);border-color:rgba(255,255,255,0.2);}
+    .data-table{width:100%;border-collapse:collapse;}
+    .data-table th{text-align:left;padding:10px 16px;font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);border-bottom:1px solid var(--border);}
+    .data-table td{padding:10px 16px;border-bottom:1px solid rgba(255,255,255,0.04);font-size:13px;color:var(--ink);vertical-align:middle;}
+    .data-table tr:last-child td{border-bottom:none;}
+    .data-table tr:hover td{background:var(--surface2);}
+    .empty-msg{text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;}
+    @media(max-width:900px){.stat-cards{grid-template-columns:1fr 1fr;}.admin-topbar{display:none!important;}}
+  </style>
+</head>
+<body>
+<div class="app-layout">
+  <div class="mobile-topbar">
+    <div class="mobile-topbar-logo"><div class="logo-box">JT</div><span>Admin</span></div>
+    <button class="hamburger" id="hamburgerBtn"><span></span><span></span><span></span></button>
+  </div>
+  <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+  <aside class="sidebar">
+    <div class="sidebar-logo">
+      <div class="sidebar-logo-icon">JT</div>
+      <div class="sidebar-logo-text">JobTrack <span style="color:var(--red);">/ Admin</span></div>
+    </div>
+    <div class="sidebar-section">
+      <div class="sidebar-section-label">Navigation</div>
+      <nav class="sidebar-nav">
+        <a href="../index.html" class="sidebar-link"><span class="icon">⌂</span> Home</a>
+        <a href="jobs.html" class="sidebar-link"><span class="icon">◈</span> Browse Jobs</a>
+        <a href="dashboard.html" class="sidebar-link"><span class="icon">▦</span> Dashboard</a>
+      </nav>
+    </div>
+    <div class="sidebar-section" style="margin-top:8px;">
+      <div class="sidebar-section-label">Admin Panel</div>
+      <nav class="sidebar-nav">
+        <button class="sidebar-link active adm-tab-btn" onclick="showTab('tabReports',this)"><span class="icon">🚩</span> Reports <span class="sidebar-badge" id="reportsBadge">0</span></button>
+        <button class="sidebar-link adm-tab-btn" onclick="showTab('tabUserReports',this)"><span class="icon">🚨</span> User Reports <span class="sidebar-badge" id="userReportsBadge">0</span></button>
+        <button class="sidebar-link adm-tab-btn" onclick="showTab('tabJobs',this)"><span class="icon">📌</span> All Jobs</button>
+        <button class="sidebar-link adm-tab-btn" onclick="showTab('tabUsers',this)"><span class="icon">👥</span> All Users</button>
+        <button class="sidebar-link adm-tab-btn" onclick="showTab('tabIdVerif',this);loadIdVerifications()"><span class="icon">🪪</span> ID Verifications <span class="sidebar-badge" id="idVerifBadge">0</span></button>
+        <button class="sidebar-link adm-tab-btn" onclick="showTab('tabStats',this)"><span class="icon">📊</span> Overview</button>
+      </nav>
+    </div>
+    <div class="sidebar-bottom">
+      <div class="sidebar-user" id="sidebarUser"></div>
+      <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;"><span class="icon">→</span> Sign Out</button>
+    </div>
+  </aside>
+
+  <div class="main-content">
+    <div class="admin-topbar">
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span class="admin-badge">🔐 Admin</span>
+        <span style="font-size:13px;color:var(--ink-muted);font-family:var(--mono);">JobTrack Control Panel</span>
+      </div>
+      <button class="btn btn-ghost btn-sm" onclick="loadAll()">↻ Refresh</button>
+    </div>
+
+    <div class="content-area">
+
+      <!-- ── REPORTS TAB ── -->
+      <div id="tabReports" class="tab-panel active">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>🚩 Job Reports</h3>
+            <span style="font-size:12px;color:var(--ink-muted);">Review and take action on flagged listings</span>
+          </div>
+          <div class="filter-bar" id="reportFilterBar">
+            <button class="filter-btn active" onclick="filterReports('',this)">All</button>
+            <button class="filter-btn" onclick="filterReports('pending',this)">Pending</button>
+            <button class="filter-btn" onclick="filterReports('reviewed',this)">Reviewed</button>
+            <button class="filter-btn" onclick="filterReports('actioned',this)">Actioned</button>
+            <button class="filter-btn" onclick="filterReports('dismissed',this)">Dismissed</button>
+          </div>
+          <div style="padding:16px;" id="reportsContainer">
+            <div class="empty-msg">Loading reports...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── USER REPORTS TAB ── -->
+      <div id="tabUserReports" class="tab-panel">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>🚨 User Reports</h3>
+            <span style="font-size:12px;color:var(--ink-muted);">Reports against specific users</span>
+          </div>
+          <div class="filter-bar" id="userReportFilterBar">
+            <button class="filter-btn active" onclick="filterUserReports('',this)">All</button>
+            <button class="filter-btn" onclick="filterUserReports('pending',this)">Pending</button>
+            <button class="filter-btn" onclick="filterUserReports('reviewed',this)">Reviewed</button>
+            <button class="filter-btn" onclick="filterUserReports('actioned',this)">Actioned</button>
+            <button class="filter-btn" onclick="filterUserReports('dismissed',this)">Dismissed</button>
+          </div>
+          <div style="padding:16px;" id="userReportsContainer">
+            <div class="empty-msg">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── JOBS TAB ── -->
+      <div id="tabJobs" class="tab-panel">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>📌 All Job Listings</h3>
+            <input type="text" id="jobSearchAdmin" placeholder="Search..." oninput="filterJobsAdmin()" style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);padding:6px 10px;font-size:12px;outline:none;width:200px;"/>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table" id="jobsAdminTable">
+              <thead><tr><th>Title</th><th>Company</th><th>Category</th><th>Apps</th><th>Views</th><th>Status</th><th>Posted</th><th>Actions</th></tr></thead>
+              <tbody id="jobsAdminBody"><tr><td colspan="8" class="empty-msg">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── USERS TAB ── -->
+      <div id="tabUsers" class="tab-panel">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>👥 All Users</h3>
+            <input type="text" id="userSearch" placeholder="Search..." oninput="filterUsersAdmin()" style="background:var(--surface3);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);padding:6px 10px;font-size:12px;outline:none;width:200px;"/>
+          </div>
+          <div style="overflow-x:auto;">
+            <table class="data-table">
+              <thead><tr><th>Name</th><th>Email</th><th>Role</th><th>Joined</th><th>Actions</th></tr></thead>
+              <tbody id="usersAdminBody"><tr><td colspan="5" class="empty-msg">Loading...</td></tr></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── ID VERIFICATIONS TAB ── -->
+      <div id="tabIdVerif" class="tab-panel">
+        <div class="panel">
+          <div class="panel-header">
+            <h3>🪪 ID Verification Submissions</h3>
+            <span style="font-size:12px;color:var(--ink-muted);">Review employer ID submissions and grant verification</span>
+          </div>
+          <div class="filter-bar">
+            <button class="filter-btn active" onclick="filterIdVerif('',this)">All</button>
+            <button class="filter-btn" onclick="filterIdVerif('pending',this)">Pending</button>
+            <button class="filter-btn" onclick="filterIdVerif('approved',this)">Approved</button>
+            <button class="filter-btn" onclick="filterIdVerif('rejected',this)">Rejected</button>
+          </div>
+          <div style="padding:16px;" id="idVerifContainer">
+            <div class="empty-msg">Loading...</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ── STATS TAB ── -->
+      <div id="tabStats" class="tab-panel">
+        <div class="stat-cards" id="statsCards">
+          <div class="stat-card c-blue"><div class="stat-card-label">Total Users</div><div class="stat-card-num" id="stUsers">—</div><div class="stat-card-sub" id="stUsersSub"></div></div>
+          <div class="stat-card c-green"><div class="stat-card-label">Total Jobs</div><div class="stat-card-num" id="stJobs">—</div><div class="stat-card-sub" id="stJobsSub"></div></div>
+          <div class="stat-card c-gold"><div class="stat-card-label">Applications</div><div class="stat-card-num" id="stApps">—</div><div class="stat-card-sub" id="stAppsSub"></div></div>
+          <div class="stat-card c-red"><div class="stat-card-label">Reports</div><div class="stat-card-num" id="stReports">—</div><div class="stat-card-sub" id="stReportsSub"></div></div>
+        </div>
+        <div class="panel">
+          <div class="panel-header"><h3>Platform Summary</h3></div>
+          <div style="padding:18px;" id="statsSummary"><div class="empty-msg">Loading...</div></div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<!-- Report Action Modal -->
+<div class="modal-overlay" id="reportActionModal">
+  <div class="modal-box" style="max-width:460px;">
+    <div class="modal-header">
+      <h3>Update Report</h3>
+      <button class="modal-close" onclick="document.getElementById('reportActionModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body">
+      <div id="ramAlert" class="alert"></div>
+      <input type="hidden" id="ramReportId"/>
+      <div class="form-group">
+        <label>Status</label>
+        <select id="ramStatus">
+          <option value="pending">Pending</option>
+          <option value="reviewed">Reviewed</option>
+          <option value="actioned">Actioned (removed/warned)</option>
+          <option value="dismissed">Dismissed</option>
+        </select>
+      </div>
+      <div class="form-group">
+        <label>Admin Notes</label>
+        <textarea id="ramNotes" placeholder="Notes about what action was taken..." style="min-height:80px;"></textarea>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('reportActionModal').classList.remove('open')">Cancel</button>
+      <button class="btn btn-primary btn-sm" onclick="saveReportAction()">Save →</button>
+    </div>
+  </div>
+</div>
+
+<script src="../js/config.js"></script>
+<script src="../js/main.js"></script>
+<script>
+const API = (window.JT_CONFIG && window.JT_CONFIG.API_BASE) || "http://localhost:8000";
+const user = getUser();
+if (!user || user.role !== "admin") {
+  alert("Admin access only.");
+  window.location.href = "login.html";
+}
+
+document.getElementById("sidebarUser").innerHTML = `
+  <div class="sidebar-avatar">${user.name[0].toUpperCase()}</div>
+  <div class="sidebar-user-info">
+    <div class="sidebar-user-name">${user.name}</div>
+    <div class="sidebar-user-role" style="color:var(--red);">admin</div>
+  </div>`;
+
+// ── Tab switching ────────────────────────────────────────
+function showTab(id, btn) {
+  document.querySelectorAll(".tab-panel").forEach(t => t.classList.remove("active"));
+  document.querySelectorAll(".adm-tab-btn").forEach(b => b.classList.remove("active"));
+  document.getElementById(id).classList.add("active");
+  if (btn) btn.classList.add("active");
+}
+
+// ── Data stores ──────────────────────────────────────────
+let _reports = [], _jobs = [], _users = [], _reportFilter = "";
+
+// ── Load everything ──────────────────────────────────────
+async function loadAll() {
+  await Promise.all([loadReports(), loadUserReports(), loadJobsAdmin(), loadUsersAdmin(), loadStats(), loadIdVerifCount()]);
+  }
+
+
+
+// ── REPORTS ─────────────────────────────────────────────
+async function loadReports() {
+  try {
+    _reports = await api("/admin/reports");
+    const pending = _reports.filter(r => r.status === "pending").length;
+    document.getElementById("reportsBadge").textContent = pending || _reports.length;
+    renderReports();
+  } catch(e) {
+    document.getElementById("reportsContainer").innerHTML = `<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+function filterReports(status, btn) {
+  _reportFilter = status;
+  document.querySelectorAll("#reportFilterBar .filter-btn").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  renderReports();
+}
+
+const REASON_LABELS = {
+  fee: "Asked for fee", fake: "Fake listing", data: "Data harvesting",
+  unpaid: "Unpaid work / ghosted", scam: "Scam / fraud", other: "Other"
+};
+
+function renderReports() {
+  const container = document.getElementById("reportsContainer");
+  const list = _reportFilter ? _reports.filter(r => r.status === _reportFilter) : _reports;
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-msg">No reports${_reportFilter ? " with status: " + _reportFilter : ""}.</div>`;
+    return;
+  }
+  container.innerHTML = list.map(r => {
+    const job = r.jobs || {};
+    const reporter = r.users || {};
+    const date = r.created_at ? r.created_at.split("T")[0] : "—";
+    const isUrgent = r.status === "pending" && (r.reason === "scam" || r.reason === "fee");
+    return `<div class="report-card${isUrgent ? " urgent" : ""}">
+      <div class="rc-header">
+        <div>
+          <div class="rc-job">${job.title || "Unknown Job"} <span style="font-size:11px;color:var(--ink-muted);">#${job.id || r.job_id}</span></div>
+          <div class="rc-company">${job.company || "—"} · Job status: <span class="pill pill-${job.status||"open"}">${job.status||"open"}</span></div>
+        </div>
+        <span class="pill pill-${r.status}">${r.status}</span>
+      </div>
+      <div class="rc-reason">⚠ ${REASON_LABELS[r.reason] || r.reason}</div>
+      ${r.details ? `<div class="rc-details">"${r.details}"</div>` : ""}
+      <div class="rc-meta">
+        <span>📅 ${date}</span>
+        ${reporter.name ? `<span>👤 Reported by: ${reporter.name} (${reporter.email})</span>` : "<span>👤 Anonymous</span>"}
+        ${r.admin_notes ? `<span>📝 Note: ${r.admin_notes}</span>` : ""}
+      </div>
+      <div class="rc-actions">
+        <button class="btn btn-ghost btn-sm" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);" onclick="openReportAction(${r.id}, '${r.status}', \`${(r.admin_notes||"").replace(/`/g,"'")}\`)">Update Status</button>
+        ${job.status !== "closed" ? `<button class="btn btn-warning btn-sm" onclick="adminCloseJob(${job.id||r.job_id}, ${r.id})">Close Job</button>` : ""}
+        <button class="btn btn-danger btn-sm" onclick="adminDeleteJob(${job.id||r.job_id}, ${r.id})">Delete Job</button>
+        <button class="btn btn-ghost btn-sm" onclick="deleteReport(${r.id})" style="color:var(--ink-muted);">Dismiss Report</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+function openReportAction(reportId, currentStatus, currentNotes) {
+  document.getElementById("ramReportId").value = reportId;
+  document.getElementById("ramStatus").value = currentStatus;
+  document.getElementById("ramNotes").value = currentNotes || "";
+  document.getElementById("ramAlert").className = "alert";
+  document.getElementById("ramAlert").innerHTML = "";
+  document.getElementById("reportActionModal").classList.add("open");
+}
+
+async function saveReportAction() {
+  const id = document.getElementById("ramReportId").value;
+  const status = document.getElementById("ramStatus").value;
+  const notes = document.getElementById("ramNotes").value.trim() || null;
+  try {
+    await api(`/admin/reports/${id}`, "PATCH", { status, admin_notes: notes });
+    showAlert("ramAlert", "✓ Report updated.", "success");
+    setTimeout(() => { document.getElementById("reportActionModal").classList.remove("open"); loadReports(); }, 1000);
+  } catch(e) { showAlert("ramAlert", e.message, "error"); }
+}
+
+async function deleteReport(id) {
+  if (!await showConfirm("Dismiss Report", "Mark this report as handled and remove it?")) return;
+  try { await api(`/admin/reports/${id}`, "DELETE"); loadReports(); }
+  catch(e) { alert(e.message); }
+}
+
+async function adminCloseJob(jobId, reportId) {
+  if (!await showConfirm("Close Job", "Close this job listing? Applicants can no longer apply.")) return;
+  try {
+    await api(`/admin/jobs/${jobId}/status?status=closed`, "PATCH");
+    await api(`/admin/reports/${reportId}`, "PATCH", { status: "actioned", admin_notes: "Job closed by admin." });
+    loadAll();
+  } catch(e) { alert(e.message); }
+}
+
+async function adminDeleteJob(jobId, reportId) {
+  if (!await showConfirm("Delete Job", "Permanently delete this job listing? This cannot be undone.")) return;
+  try {
+    await api(`/admin/jobs/${jobId}`, "DELETE");
+    await api(`/admin/reports/${reportId}`, "PATCH", { status: "actioned", admin_notes: "Job deleted by admin." });
+    loadAll();
+  } catch(e) { alert(e.message); }
+}
+
+// ── JOBS ────────────────────────────────────────────────
+async function loadJobsAdmin() {
+  try {
+    _jobs = await api("/admin/jobs");
+    renderJobsAdmin(_jobs);
+  } catch(e) {
+    document.getElementById("jobsAdminBody").innerHTML = `<tr><td colspan="8" class="empty-msg" style="color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function filterJobsAdmin() {
+  const q = document.getElementById("jobSearchAdmin").value.toLowerCase();
+  renderJobsAdmin(_jobs.filter(j => j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q)));
+}
+
+function renderJobsAdmin(jobs) {
+  const tbody = document.getElementById("jobsAdminBody");
+  if (!jobs.length) { tbody.innerHTML = `<tr><td colspan="8" class="empty-msg">No jobs found.</td></tr>`; return; }
+  tbody.innerHTML = jobs.map(j => {
+    const date = j.created_at ? j.created_at.split("T")[0] : "—";
+    return `<tr>
+      <td><div style="font-weight:600;font-size:13px;">${j.title}</div></td>
+      <td style="font-size:12px;color:var(--ink-muted);">${j.company}</td>
+      <td style="font-size:12px;color:var(--ink-muted);">${j.category||"—"}</td>
+      <td style="font-family:var(--mono);font-size:12px;">${j.applicant_count||0}${j.max_applicants?" / "+j.max_applicants:""}</td>
+      <td style="font-family:var(--mono);font-size:12px;">${j.view_count||0}</td>
+      <td><span class="pill pill-${j.status||"open"}">${j.status||"open"}</span></td>
+      <td style="font-size:12px;color:var(--ink-muted);font-family:var(--mono);">${date}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap;">
+        ${j.status!=="open"?`<button class="btn btn-success btn-sm" onclick="adminSetJobStatus(${j.id},'open')">Open</button>`:""}
+        ${j.status!=="closed"?`<button class="btn btn-warning btn-sm" onclick="adminSetJobStatus(${j.id},'closed')">Close</button>`:""}
+        <button class="btn btn-danger btn-sm" onclick="adminRemoveJob(${j.id})">Delete</button>
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+async function adminSetJobStatus(id, status) {
+  try { await api(`/admin/jobs/${id}/status?status=${status}`, "PATCH"); loadJobsAdmin(); }
+  catch(e) { alert(e.message); }
+}
+
+async function adminRemoveJob(id) {
+  if (!await showConfirm("Delete Job", "Permanently delete this job? Cannot be undone.")) return;
+  try { await api(`/admin/jobs/${id}`, "DELETE"); loadJobsAdmin(); }
+  catch(e) { alert(e.message); }
+}
+
+// ── USERS ────────────────────────────────────────────────
+async function loadUsersAdmin() {
+  try {
+    _users = await api("/admin/users");
+    renderUsersAdmin(_users);
+  } catch(e) {
+    document.getElementById("usersAdminBody").innerHTML = `<tr><td colspan="5" class="empty-msg" style="color:var(--red);">Error: ${e.message}</td></tr>`;
+  }
+}
+
+function filterUsersAdmin() {
+  const q = document.getElementById("userSearch").value.toLowerCase();
+  renderUsersAdmin(_users.filter(u => u.name.toLowerCase().includes(q) || u.email.toLowerCase().includes(q)));
+}
+
+function renderUsersAdmin(users) {
+  const tbody = document.getElementById("usersAdminBody");
+  if (!users.length) { tbody.innerHTML = `<tr><td colspan="6" class="empty-msg">No users found.</td></tr>`; return; }
+  tbody.innerHTML = users.map(u => {
+    const date = u.created_at ? u.created_at.split("T")[0] : "—";
+    const isSelf = u.id === user.id;
+    const isEmployer = u.role === "employer";
+    return `<tr>
+      <td>
+        <div style="display:flex;align-items:center;gap:9px;">
+          <div style="width:28px;height:28px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0;">
+            ${u.profile_pic?`<img src="${u.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`:(u.name[0]||"?").toUpperCase()}
+          </div>
+          <div style="font-weight:600;font-size:13px;">${u.name}${isSelf?' <span style="font-size:10px;color:var(--ink-muted);">(you)</span>':""}</div>
+        </div>
+      </td>
+      <td style="font-size:12px;color:var(--ink-muted);font-family:var(--mono);">${u.email}</td>
+      <td><span class="pill pill-${u.role}">${u.role}</span>${u.is_verified?'<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:5px;font-family:var(--mono);">✓ VERIFIED</span>':''}</td>
+      <td style="font-size:12px;color:var(--ink-muted);font-family:var(--mono);">${date}</td>
+      <td style="display:flex;gap:5px;flex-wrap:wrap;">
+        ${isEmployer && !u.is_verified ? `<button class="btn btn-success btn-sm" onclick="adminVerifyUser(${u.id},true)">✓ Verify</button>` : ""}
+        ${isEmployer && u.is_verified  ? `<button class="btn btn-warning btn-sm" onclick="adminVerifyUser(${u.id},false)">Unverify</button>` : ""}
+        ${!isSelf?`<button class="btn btn-danger btn-sm" onclick="adminDeleteUser(${u.id})">Delete</button>`:"<span style='font-size:11px;color:var(--ink-muted);'>—</span>"}
+      </td>
+    </tr>`;
+  }).join("");
+}
+
+async function adminVerifyUser(id, verify) {
+  const action = verify ? "verify" : "unverify";
+  try { await api(`/admin/users/${id}/${action}`, "PATCH"); loadUsersAdmin(); }
+  catch(e) { alert(e.message); }
+}
+
+async function adminDeleteUser(id) {
+  if (!await showConfirm("Delete User", "Permanently delete this user and all their data?")) return;
+  try { await api(`/admin/users/${id}`, "DELETE"); loadUsersAdmin(); }
+  catch(e) { alert(e.message); }
+}
+
+// ── STATS ────────────────────────────────────────────────
+async function loadStats() {
+  try {
+    const s = await api("/admin/stats");
+    document.getElementById("stUsers").textContent = s.users.total;
+    document.getElementById("stUsersSub").textContent = `${s.users.applicants} applicants · ${s.users.employers} employers`;
+    document.getElementById("stJobs").textContent = s.jobs.total;
+    document.getElementById("stJobsSub").textContent = `${s.jobs.open} open · ${s.jobs.closed} closed`;
+    document.getElementById("stApps").textContent = s.applications.total;
+    document.getElementById("stAppsSub").textContent = `${s.applications.accepted} accepted · ${s.applications.pending} pending`;
+    document.getElementById("stReports").textContent = s.reports.total;
+    document.getElementById("stReportsSub").textContent = `${s.reports.pending} pending · ${s.reports.actioned} actioned`;
+    document.getElementById("statsSummary").innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:10px;">Users</div>
+          ${bar("Applicants", s.users.applicants, s.users.total, "var(--accent3)")}
+          ${bar("Employers", s.users.employers, s.users.total, "var(--accent)")}
+          ${bar("Admins", s.users.admins, s.users.total, "var(--red)")}
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:10px;">Applications</div>
+          ${bar("Pending", s.applications.pending, s.applications.total, "var(--gold)")}
+          ${bar("Accepted", s.applications.accepted, s.applications.total, "var(--green)")}
+          ${bar("Rejected", s.applications.rejected, s.applications.total, "var(--red)")}
+        </div>
+      </div>`;
+  } catch(e) {
+    document.getElementById("statsSummary").innerHTML = `<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+function bar(label, val, total, color) {
+  const pct = total > 0 ? Math.round((val / total) * 100) : 0;
+  return `<div style="margin-bottom:10px;">
+    <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;">
+      <span style="color:var(--ink-soft);">${label}</span>
+      <span style="font-family:var(--mono);color:var(--ink-muted);">${val} (${pct}%)</span>
+    </div>
+    <div style="height:5px;background:var(--surface3);border-radius:3px;overflow:hidden;">
+      <div style="height:100%;width:${pct}%;background:${color};border-radius:3px;"></div>
+    </div>
+  </div>`;
+}
+
+document.getElementById("reportActionModal").addEventListener("click", function(e) {
+  if (e.target === document.getElementById("reportActionModal")) document.getElementById("reportActionModal").classList.remove("open");
+});
+
+// ── User Reports ──────────────────────────────────────────
+let _userReports = [], _userReportFilter = "";
+
+// ── ID VERIFICATIONS ────────────────────────────────────
+let _idVerifs = [], _idVerifFilter = "";
+
+async function loadIdVerifCount() {
+  try {
+    const data = await api("/admin/id-verifications");
+    const pending = (data||[]).filter(v=>v.status==="pending").length;
+    const badge = document.getElementById("idVerifBadge");
+    if (badge) badge.textContent = pending;
+  } catch(e) {}
+}
+
+async function loadIdVerifications() {
+  const container = document.getElementById("idVerifContainer");
+  container.innerHTML = '<div class="empty-msg">Loading...</div>';
+  try {
+    _idVerifs = await api("/admin/id-verifications");
+    renderIdVerifs();
+  } catch(e) {
+    container.innerHTML = `<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+function filterIdVerif(status, btn) {
+  _idVerifFilter = status;
+  document.querySelectorAll(".filter-bar .filter-btn").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  renderIdVerifs();
+}
+
+const ID_TYPE_LABELS = {
+  national_id:"Philippine National ID (PhilSys)", postal_id:"Postal ID", school_id:"School ID",
+  philhealth_id:"PhilHealth ID", sss_id:"SSS ID / UMID", pagibig_id:"Pag-IBIG ID",
+  drivers_license:"Driver's License", passport:"Passport", tin_id:"TIN ID",
+  barangay_id:"Barangay ID", voters_id:"Voter's ID", other:"Other Valid ID"
+};
+
+function renderIdVerifs() {
+  const container = document.getElementById("idVerifContainer");
+  const list = _idVerifFilter ? _idVerifs.filter(v => v.status === _idVerifFilter) : _idVerifs;
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-msg">No ID submissions${_idVerifFilter?" with status: "+_idVerifFilter:""}.</div>`;
+    return;
+  }
+  container.innerHTML = list.map(v => {
+    const u = v.users || {};
+    const date = v.created_at ? v.created_at.split("T")[0] : "—";
+    const statusColor = {pending:"var(--gold)",approved:"var(--green)",rejected:"var(--red)"}[v.status]||"var(--ink-muted)";
+    const av = u.profile_pic
+      ? `<img src="${u.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+      : (u.name||"?")[0].toUpperCase();
+    return `<div class="report-card${v.status==="pending"?" urgent":""}">
+      <div class="rc-header">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;">
+          <div style="width:40px;height:40px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:14px;font-weight:700;overflow:hidden;flex-shrink:0;">${av}</div>
+          <div>
+            <div class="rc-job">${u.name||"Unknown"} ${u.is_verified?'<span style="background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;font-family:var(--mono);margin-left:4px;">✓ VERIFIED</span>':''}</div>
+            <div class="rc-company">${u.email||"—"} · <span class="pill pill-${u.role||"employer"}">${u.role||"employer"}</span></div>
+          </div>
+        </div>
+        <span class="pill pill-${v.status}" style="color:${statusColor};">${v.status}</span>
+      </div>
+      <div style="display:flex;align-items:flex-start;gap:14px;margin-top:10px;">
+        <div style="flex:1;">
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);margin-bottom:4px;">ID Type</div>
+          <div style="font-size:13px;color:var(--ink);font-weight:500;">${ID_TYPE_LABELS[v.id_type]||v.id_type||"—"}</div>
+          <div style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);margin-top:4px;">📅 Submitted: ${date}</div>
+          ${v.admin_notes?`<div style="margin-top:8px;font-size:12px;color:var(--ink-muted);background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">📝 ${v.admin_notes}</div>`:""}
+        </div>
+        <div>
+          <div style="font-size:11px;font-weight:700;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);margin-bottom:6px;">ID Image</div>
+          ${v.id_url
+            ? `<a href="${v.id_url}" target="_blank"><img src="${v.id_url}" style="width:160px;height:100px;object-fit:cover;border-radius:8px;border:2px solid var(--border);cursor:zoom-in;display:block;" onerror="this.outerHTML='<a href=\\'${v.id_url}\\' target=\\'_blank\\' class=\\'btn btn-ghost btn-sm\\' style=\\'color:var(--accent3)\\'>📄 View Document →</a>'"/></a>`
+            : `<div style="font-size:12px;color:var(--ink-muted);">No image</div>`
+          }
+        </div>
+      </div>
+      <div class="rc-actions" style="margin-top:12px;">
+        ${v.status!=="approved"?`<button class="btn btn-success btn-sm" onclick="reviewIdVerif(${v.id},'approved',${u.id||0})">✓ Approve & Verify</button>`:""}
+        ${v.status!=="rejected"?`<button class="btn btn-danger btn-sm" onclick="promptRejectId(${v.id})">✕ Reject</button>`:""}
+        ${v.status==="approved"&&u.id?`<button class="btn btn-warning btn-sm" onclick="reviewIdVerif(${v.id},'rejected',0,true)">Unverify</button>`:""}
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function reviewIdVerif(verifId, status, userId, unverify=false) {
+  const label = status==="approved" ? "Approve and grant ✓ VERIFIED badge?" : "Reject this ID submission?";
+  if (!await showConfirm("ID Verification", label)) return;
+  try {
+    await api(`/admin/id-verifications/${verifId}`, "PATCH", { status, admin_notes: status==="approved"?"ID verified by admin.":"ID rejected by admin." });
+    if (userId && status === "approved") await api(`/admin/users/${userId}/verify`, "PATCH");
+    if (unverify && userId) await api(`/admin/users/${userId}/unverify`, "PATCH");
+    loadIdVerifications(); loadUsersAdmin();
+  } catch(e) { alert(e.message); }
+}
+
+async function promptRejectId(verifId) {
+  if (!await showConfirm("Reject ID", "Reject this ID submission?")) return;
+  try {
+    await api(`/admin/id-verifications/${verifId}`, "PATCH", { status: "rejected", admin_notes: "ID not accepted." });
+    loadIdVerifications();
+  } catch(e) { alert(e.message); }
+}
+
+loadAll();
+setInterval(loadAll, 30000);
+
+async function loadUserReports() {
+  try {
+    _userReports = await api("/admin/user-reports");
+    const pending = _userReports.filter(r => r.status === "pending").length;
+    document.getElementById("userReportsBadge").textContent = pending || _userReports.length;
+    renderUserReports();
+  } catch(e) {
+    document.getElementById("userReportsContainer").innerHTML =
+      `<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+function filterUserReports(status, btn) {
+  _userReportFilter = status;
+  document.querySelectorAll("#userReportFilterBar .filter-btn").forEach(b => b.classList.remove("active"));
+  if (btn) btn.classList.add("active");
+  renderUserReports();
+}
+
+const USER_REASON_LABELS = {
+  ghosted:  "Ghosted after acceptance",
+  fraud:    "Fraudulent / fake profile",
+  abusive:  "Abusive behavior",
+  no_show:  "No-show after agreement",
+  payment:  "Took payment, no delivery",
+  spam:     "Spam / fake applicant",
+  other:    "Other",
+};
+
+function renderUserReports() {
+  const container = document.getElementById("userReportsContainer");
+  const list = _userReportFilter
+    ? _userReports.filter(r => r.status === _userReportFilter)
+    : _userReports;
+
+  if (!list.length) {
+    container.innerHTML = `<div class="empty-msg">No user reports${_userReportFilter ? " with status: " + _userReportFilter : ""}.</div>`;
+    return;
+  }
+
+  container.innerHTML = list.map(r => {
+    const reported = r.reported || {};
+    const reporter = r.reporter || {};
+    const date = r.created_at ? r.created_at.split("T")[0] : "—";
+    const isUrgent = r.status === "pending" && ["fraud","payment","abusive"].includes(r.reason);
+
+    const reportedAvatar = reported.profile_pic
+      ? `<img src="${reported.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+      : (reported.name||"?")[0].toUpperCase();
+    const reporterAvatar = reporter.profile_pic
+      ? `<img src="${reporter.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+      : (reporter.name||"?")[0].toUpperCase();
+
+    return `<div class="report-card${isUrgent ? " urgent" : ""}">
+      <div class="rc-header">
+        <div style="flex:1;">
+          <!-- Reported user -->
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:13px;font-weight:700;overflow:hidden;flex-shrink:0;border:2px solid rgba(255,68,68,0.4);">${reportedAvatar}</div>
+            <div>
+              <div style="font-size:12px;color:var(--ink-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;font-family:var(--mono);">Reported User</div>
+              <div class="rc-job" style="margin-bottom:0;">
+                <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:12px;color:var(--accent3);border-color:rgba(77,159,255,0.3);"
+                  onclick="viewAdminUserProfile(${reported.id||0}, 'reported')">
+                  ${reported.name || "Unknown"}
+                </button>
+                <span style="font-size:11px;color:var(--ink-muted);">${reported.email||""} · <span class="pill pill-${reported.role||"applicant"}" style="font-size:9px;">${reported.role||"—"}</span></span>
+              </div>
+            </div>
+          </div>
+          <!-- Reporter -->
+          <div style="display:flex;align-items:center;gap:10px;">
+            <div style="width:36px;height:36px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:13px;font-weight:700;overflow:hidden;flex-shrink:0;border:2px solid rgba(77,159,255,0.3);">${reporterAvatar}</div>
+            <div>
+              <div style="font-size:12px;color:var(--ink-muted);font-weight:600;text-transform:uppercase;letter-spacing:0.08em;font-family:var(--mono);">Reported By</div>
+              <div>
+                <button class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:12px;color:var(--ink-soft);border-color:var(--border);"
+                  onclick="viewAdminUserProfile(${reporter.id||0}, 'reporter')">
+                  ${reporter.name || "Anonymous"}
+                </button>
+                <span style="font-size:11px;color:var(--ink-muted);">${reporter.email||""}</span>
+              </div>
+            </div>
+          </div>
+        </div>
+        <span class="pill pill-${r.status}">${r.status}</span>
+      </div>
+      <div class="rc-reason">⚠ ${USER_REASON_LABELS[r.reason] || r.reason}</div>
+      ${r.details ? `<div class="rc-details">"${r.details}"</div>` : ""}
+      <div class="rc-meta">
+        <span>📅 ${date}</span>
+        ${r.admin_notes ? `<span>📝 Note: ${r.admin_notes}</span>` : ""}
+      </div>
+      <div class="rc-actions">
+        <button class="btn btn-ghost btn-sm" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);"
+          onclick="openUserReportAction(${r.id}, '${r.status}', \`${(r.admin_notes||"").replace(/`/g,"'")}\`)">
+          Update Status
+        </button>
+        <button class="btn btn-danger btn-sm" onclick="adminDeleteUser(${reported.id||0})">Ban User</button>
+        <button class="btn btn-ghost btn-sm" onclick="dismissUserReport(${r.id})" style="color:var(--ink-muted);">Dismiss</button>
+      </div>
+    </div>`;
+  }).join("");
+}
+
+async function viewAdminUserProfile(userId, role) {
+  if (!userId) return;
+  const modal = document.getElementById("adminUserProfileModal");
+  const body  = document.getElementById("adminUserProfileBody");
+  const acts  = document.getElementById("adminUserProfileActions");
+  body.innerHTML = `<div class="empty-msg">Loading...</div>`;
+  acts.innerHTML = "";
+  modal.classList.add("open");
+
+  try {
+    const u = await api(`/admin/users/${userId}`);
+    const av = u.profile_pic
+      ? `<img src="${u.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`
+      : (u.name||"?")[0].toUpperCase();
+    body.innerHTML = `
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div style="width:56px;height:56px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:20px;font-weight:700;overflow:hidden;flex-shrink:0;">${av}</div>
+        <div>
+          <div style="font-size:16px;font-weight:700;margin-bottom:2px;">${u.name}</div>
+          <div style="font-size:12px;color:var(--ink-muted);">${u.email}</div>
+          <span class="pill pill-${u.role}" style="margin-top:4px;">${u.role}</span>
+        </div>
+      </div>
+      ${u.about_me ? `<div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:10px 12px;font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:12px;">${u.about_me}</div>` : ""}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:12px;">
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:3px;">Joined</div>
+          <div style="font-size:12px;font-family:var(--mono);">${u.created_at ? u.created_at.split("T")[0] : "—"}</div>
+        </div>
+        <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:8px 10px;">
+          <div style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:3px;">Role</div>
+          <div style="font-size:12px;font-family:var(--mono);">${u.role}</div>
+        </div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap;">
+        ${u.instagram ? `<a href="https://instagram.com/${u.instagram}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);padding:5px 10px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border);">IG @${u.instagram}</a>` : ""}
+        ${u.facebook  ? `<a href="https://facebook.com/${u.facebook}"  target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);padding:5px 10px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border);">FB ${u.facebook}</a>` : ""}
+        ${u.phone     ? `<span style="font-size:11px;color:var(--ink-muted);padding:5px 10px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border);">📞 ${u.phone}</span>` : ""}
+        ${u.website   ? `<a href="${u.website}" target="_blank" style="font-size:11px;color:var(--ink-muted);padding:5px 10px;background:var(--surface2);border-radius:var(--radius);border:1px solid var(--border);">🌐 Website</a>` : ""}
+      </div>`;
+
+    if (u.id !== user.id) {
+      acts.innerHTML = `<button class="btn btn-danger btn-sm" onclick="adminDeleteUser(${u.id});document.getElementById('adminUserProfileModal').classList.remove('open');">Delete User</button>`;
+    }
+  } catch(e) {
+    body.innerHTML = `<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+}
+
+function openUserReportAction(reportId, currentStatus, currentNotes) {
+  // Reuse existing ramReportId modal but target user_reports endpoint
+  document.getElementById("ramReportId").value  = reportId;
+  document.getElementById("ramStatus").value    = currentStatus;
+  document.getElementById("ramNotes").value     = currentNotes || "";
+  document.getElementById("ramAlert").className = "alert";
+  document.getElementById("ramAlert").innerHTML = "";
+  // Temporarily hijack save button
+  const saveBtn = document.querySelector("#reportActionModal .btn-primary");
+  saveBtn.onclick = () => saveUserReportAction();
+  document.getElementById("reportActionModal").classList.add("open");
+}
+
+async function saveUserReportAction() {
+  const id     = document.getElementById("ramReportId").value;
+  const status = document.getElementById("ramStatus").value;
+  const notes  = document.getElementById("ramNotes").value.trim() || null;
+  try {
+    await api(`/admin/user-reports/${id}`, "PATCH", { status, admin_notes: notes });
+    showAlert("ramAlert", "✓ Report updated.", "success");
+    setTimeout(() => {
+      document.getElementById("reportActionModal").classList.remove("open");
+      // Restore original save button
+      document.querySelector("#reportActionModal .btn-primary").onclick = saveReportAction;
+      loadUserReports();
+    }, 1000);
+  } catch(e) { showAlert("ramAlert", e.message, "error"); }
+}
+
+async function dismissUserReport(id) {
+  if (!await showConfirm("Dismiss Report", "Mark this user report as handled?")) return;
+  try { await api(`/admin/user-reports/${id}`, "DELETE"); loadUserReports(); }
+  catch(e) { alert(e.message); }
+}
+
+document.getElementById("adminUserProfileModal").addEventListener("click", function(e) {
+  if (e.target === document.getElementById("adminUserProfileModal"))
+    document.getElementById("adminUserProfileModal").classList.remove("open");
+});
+
+</script>
+
+<!-- Admin User Profile Modal -->
+<div class="modal-overlay" id="adminUserProfileModal">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent3);font-family:var(--mono);margin-bottom:4px;">User Profile</div>
+        <h3>Account Details</h3>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('adminUserProfileModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="adminUserProfileBody">
+      <div class="empty-msg">Loading...</div>
+    </div>
+    <div class="modal-footer" id="adminUserProfileActions"></div>
+  </div>
+</div>
+
+</body>
+</html>
