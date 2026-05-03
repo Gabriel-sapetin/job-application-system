@@ -26,6 +26,9 @@
     <button class="btn btn-primary" onclick="handleLogin()" style="width:100%;justify-content:center;padding:10px;margin-top:4px;">
       Sign In →
     </button>
+    <div class="auth-footer" style="margin-top:10px;">
+      <a href="reset-password.html" style="color:var(--ink-muted);font-size:12px;">Forgot your password?</a>
+    </div>
     <div class="auth-footer">
       Don't have an account? <a href="register.html">Create one</a>
     </div>
@@ -33,6 +36,7 @@
       <a href="../index.html" style="color:var(--ink-muted);">← Back to home</a>
     </div>
   </div>
+  <script src="../js/config.js"></script>
   <script src="../js/main.js"></script>
   <script>
     async function handleLogin() {
@@ -41,7 +45,6 @@
           email: document.getElementById("email").value,
           password: document.getElementById("password").value,
         });
-        localStorage.setItem("token", data.access_token);
         localStorage.setItem("user", JSON.stringify(data.user));
         window.location.href = "dashboard.html";
       } catch (e) { showAlert("loginAlert", e.message, "error"); }

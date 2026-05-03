@@ -1,15 +1,27 @@
-const API_BASE = "http://localhost:8000";
+// API_BASE is set by config.js — do not hardcode here
+const API_BASE = (window.JT_CONFIG && window.JT_CONFIG.API_BASE) || "http://localhost:8000";
+
+// Ensure auth cookies are sent cross-origin for API requests.
+const _nativeFetch = window.fetch.bind(window);
+window.fetch = (input, init = {}) => _nativeFetch(input, { credentials: "include", ...init });
 
 async function api(endpoint, method = "GET", body = null) {
-  const token = localStorage.getItem("token");
   const headers = { "Content-Type": "application/json" };
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  const options = { method, headers };
+  const options = { method, headers, credentials: "include" };
   if (body) options.body = JSON.stringify(body);
   const res = await fetch(`${API_BASE}${endpoint}`, options);
   const data = await res.json();
   if (!res.ok) {
-    // FastAPI validation errors return {detail: [...array...]}
+    // #10 — Auto-logout on expired/invalid token
+    if (res.status === 401) {
+      localStorage.removeItem("token");
+      localStorage.removeItem("user");
+      const isAuthPage = window.location.pathname.includes("login") || window.location.pathname.includes("register");
+      if (!isAuthPage) {
+        window.location.href = ((window.JT_CONFIG && window.JT_CONFIG.FRONTEND_BASE) || "") + "/pages/login.html?expired=1";
+        return;
+      }
+    }
     let msg = "Something went wrong";
     if (data.detail) {
       if (typeof data.detail === "string") msg = data.detail;
@@ -27,7 +39,7 @@ function getUser() {
 function logout() {
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  window.location.href = "/job-application-system/frontend/index.html";
+  window.location.href = ((window.JT_CONFIG && window.JT_CONFIG.FRONTEND_BASE) || "") + "/index.html";
 }
 
 function showAlert(id, message, type = "success") {
@@ -66,8 +78,51 @@ function showConfirm(title, message) {
   });
 }
 
+/* ══════════════════════════════════
+   MOBILE SIDEBAR — hamburger drawer
+══════════════════════════════════ */
+function initMobileSidebar() {
+  const sidebar   = document.querySelector(".sidebar");
+  const hamburger = document.getElementById("hamburgerBtn");
+  const overlay   = document.getElementById("sidebarOverlay");
+  if (!sidebar || !hamburger) return;
+
+  function openSidebar() {
+    sidebar.classList.add("open");
+    hamburger.classList.add("open");
+    if (overlay) overlay.classList.add("open");
+    document.body.style.overflow = "hidden";
+  }
+  function closeSidebar() {
+    sidebar.classList.remove("open");
+    hamburger.classList.remove("open");
+    if (overlay) overlay.classList.remove("open");
+    document.body.style.overflow = "";
+  }
+
+  hamburger.addEventListener("click", () => {
+    sidebar.classList.contains("open") ? closeSidebar() : openSidebar();
+  });
+  if (overlay) overlay.addEventListener("click", closeSidebar);
+
+  sidebar.querySelectorAll("a, button.sidebar-link").forEach(el => {
+    el.addEventListener("click", () => {
+      if (window.innerWidth <= 900) closeSidebar();
+    });
+  });
+}
+
 document.addEventListener("DOMContentLoaded", () => {
+  // #10 — Show session-expired message on login page if redirected
+  if (window.location.search.includes("expired=1")) {
+    const alertEl = document.getElementById("loginAlert");
+    if (alertEl) {
+      alertEl.innerHTML = `<span class="alert-icon">✕</span><span>Your session has expired. Please sign in again.</span>`;
+      alertEl.className = "alert error";
+    }
+  }
   document.body.style.opacity = "0";
   document.body.style.transition = "opacity 0.3s";
   requestAnimationFrame(() => document.body.style.opacity = "1");
+  initMobileSidebar();
 });

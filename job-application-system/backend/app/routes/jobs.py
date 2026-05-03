@@ -6,11 +6,9 @@ from typing import Optional
 router = APIRouter()
 
 def get_user_from_request(request: Request) -> dict:
-    from app.routes.auth import verify_token
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated.")
-    return verify_token(auth_header[7:])
+    from app.routes.auth import get_token_from_request, verify_token
+    token = get_token_from_request(request)
+    return verify_token(token)
 
 
 @router.get("/")
@@ -52,6 +50,14 @@ def get_jobs(
                 if row["id"] not in seen_ids:
                     seen_ids.add(row["id"])
                     merged.append(row)
+            # Attach applicant_count to merged search results
+            if merged:
+                from collections import Counter
+                s_ids = [j["id"] for j in merged]
+                s_counts = supabase.table("applications").select("job_id", count="exact").in_("job_id", s_ids).execute()
+                s_map = Counter(row["job_id"] for row in (s_counts.data or []))
+                for j in merged:
+                    j["applicant_count"] = s_map.get(j["id"], 0)
             return merged
         except Exception:
             # Graceful fallback to ilike
@@ -59,7 +65,18 @@ def get_jobs(
 
     offset = (page - 1) * limit
     query  = query.range(offset, offset + limit - 1)
-    return query.execute().data
+    jobs = query.execute().data
+
+    # Attach applicant_count to each job
+    if jobs:
+        job_ids = [j["id"] for j in jobs]
+        counts_result = supabase.table("applications").select("job_id", count="exact").in_("job_id", job_ids).execute()
+        # count per job_id
+        from collections import Counter
+        count_map = Counter(row["job_id"] for row in (counts_result.data or []))
+        for j in jobs:
+            j["applicant_count"] = count_map.get(j["id"], 0)
+    return jobs
 
 
 @router.get("/stats")

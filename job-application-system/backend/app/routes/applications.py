@@ -6,11 +6,9 @@ import asyncio
 router = APIRouter()
 
 def get_user_from_request(request: Request) -> dict:
-    from app.routes.auth import verify_token
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated.")
-    return verify_token(auth_header[7:])
+    from app.routes.auth import get_token_from_request, verify_token
+    token = get_token_from_request(request)
+    return verify_token(token)
 
 
 @router.get("/public")
@@ -83,6 +81,18 @@ def submit_application(app: ApplicationCreate, request: Request):
     if job_data.get("status") != "open":
         raise HTTPException(status_code=400, detail="This job is no longer accepting applications.")
 
+    # ── Deadline enforcement ──────────────────────────
+    import datetime
+    if job_data.get("deadline"):
+        try:
+            dl = datetime.date.fromisoformat(str(job_data["deadline"]))
+            if datetime.date.today() > dl:
+                raise HTTPException(status_code=400, detail="The application deadline for this job has passed.")
+        except HTTPException:
+            raise
+        except Exception:
+            pass  # malformed deadline — don't block
+
     if job_data.get("max_applicants"):
         count = supabase.table("applications").select("id", count="exact").eq("job_id", app.job_id).execute()
         if (count.count or 0) >= job_data["max_applicants"]:
@@ -102,12 +112,27 @@ def submit_application(app: ApplicationCreate, request: Request):
         if (count.count or 0) >= job_data["max_applicants"]:
             supabase.table("jobs").update({"status": "full"}).eq("id", app.job_id).execute()
 
+    # ── Notify employer of new application ──────────────
+    try:
+        from app.routes.notifications import create_notification
+        employer_id = job_data.get("employer_id")
+        if employer_id:
+            create_notification(
+                user_id=employer_id,
+                notif_type="application",
+                title=f"New application: {job_data['title']}",
+                body=f"{app.name} applied for your listing.",
+                link="/pages/dashboard.html",
+            )
+    except Exception as e:
+        print(f"[Notif] Non-critical: {e}")
+
     return result.data[0]
 
 
 @router.patch("/{app_id}")
 async def update_status(app_id: int, update: ApplicationStatusUpdate, request: Request):
-    """Update status + send email notification."""
+    """Update status + send email notification + in-app notification."""
     payload = get_user_from_request(request)
     if payload.get("role") != "employer":
         raise HTTPException(status_code=403, detail="Only employers can update application status.")
@@ -125,10 +150,10 @@ async def update_status(app_id: int, update: ApplicationStatusUpdate, request: R
 
     result = supabase.table("applications").update({"status": update.status}).eq("id", app_id).execute()
 
-    # Non-blocking email notification
+    # Email notification
     if update.status in ("accepted", "rejected", "reviewed"):
         try:
-            from app.utils.email import send_status_email
+            from app.email import send_status_email
             job_info = job_result.data[0]
             asyncio.create_task(send_status_email(
                 to_email       = app_data.get("email", ""),
@@ -139,6 +164,26 @@ async def update_status(app_id: int, update: ApplicationStatusUpdate, request: R
             ))
         except Exception as e:
             print(f"[Email] Non-critical: {e}")
+
+        # ── In-app notification for applicant ────────────
+        try:
+            from app.routes.notifications import create_notification
+            job_info = job_result.data[0]
+            status_msgs = {
+                "accepted": ("🎉 Application Accepted!", f"You've been accepted for {job_info['title']} at {job_info['company']}."),
+                "rejected": ("Application Update", f"Your application for {job_info['title']} was not successful."),
+                "reviewed": ("Application Under Review", f"Your application for {job_info['title']} is being reviewed."),
+            }
+            title, body = status_msgs.get(update.status, ("Application Update", ""))
+            create_notification(
+                user_id=app_data["user_id"],
+                notif_type="status_change",
+                title=title,
+                body=body,
+                link="/pages/dashboard.html",
+            )
+        except Exception as e:
+            print(f"[Notif] Non-critical: {e}")
 
     return result.data[0]
 

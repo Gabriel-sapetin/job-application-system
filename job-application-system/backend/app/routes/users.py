@@ -5,11 +5,9 @@ from app.database import supabase
 router = APIRouter()
 
 def get_user_from_request(request: Request) -> dict:
-    from app.routes.auth import verify_token
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated.")
-    return verify_token(auth_header[7:])
+    from app.routes.auth import get_token_from_request, verify_token
+    token = get_token_from_request(request)
+    return verify_token(token)
 
 
 @router.get("/{user_id}")
@@ -23,7 +21,7 @@ def get_user(user_id: int, request: Request):
 
     result = supabase.table("users").select(
         "id, name, email, role, profile_pic, banner_url, about_me, "
-        "instagram, facebook, phone, website, created_at"
+        "instagram, facebook, phone, website, is_verified, created_at"
     ).eq("id", user_id).execute()
 
     if not result.data:

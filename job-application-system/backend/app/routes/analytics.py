@@ -11,11 +11,9 @@ router = APIRouter()
 
 
 def get_user_from_request(request: Request) -> dict:
-    from app.routes.auth import verify_token
-    auth_header = request.headers.get("Authorization", "")
-    if not auth_header.startswith("Bearer "):
-        raise HTTPException(status_code=401, detail="Not authenticated.")
-    return verify_token(auth_header[7:])
+    from app.routes.auth import get_token_from_request, verify_token
+    token = get_token_from_request(request)
+    return verify_token(token)
 
 
 @router.get("/jobs/{job_id}")
