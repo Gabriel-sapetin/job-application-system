@@ -57,20 +57,29 @@ setTimeout(updateScrollBtns,100);
 /* ── Auth ── */
 const user=getUser();
 if(user){
-  document.getElementById("authBtn").textContent="Dashboard";
-  document.getElementById("authBtn").href="dashboard.html";
-  document.getElementById("sidebarBottom").innerHTML=`
+  document.querySelectorAll("#authBtn").forEach((el)=>{
+    el.textContent="Dashboard";
+    el.href="dashboard.html";
+  });
+  const sidebarUserHtml = `
     <div class="sidebar-user">
       <div class="sidebar-avatar">${user.profile_pic?`<img src="${user.profile_pic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;"/>`:user.name[0].toUpperCase()}</div>
       <div class="sidebar-user-info"><div class="sidebar-user-name">${user.name}</div><div class="sidebar-user-role">${user.role}</div></div>
     </div>
     <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;">Sign Out</button>`;
+  document.querySelectorAll("#sidebarBottom").forEach((el)=>{ el.innerHTML = sidebarUserHtml; });
 }
 
 function setFilter(key,val,btn,navId){
   activeFilters[key]=val;
-  document.getElementById(navId).querySelectorAll(".sidebar-link").forEach(b=>b.classList.remove("active"));
-  btn.classList.add("active"); filterJobs();
+  const selector = `#${navId} .sidebar-link`;
+  const matchSnippet = `setFilter('${key}','${val}'`;
+  document.querySelectorAll(selector).forEach((b)=>{
+    const onclick = b.getAttribute("onclick") || "";
+    b.classList.toggle("active", onclick.includes(matchSnippet));
+  });
+  if (btn && btn.classList) btn.classList.add("active");
+  filterJobs();
 }
 function toggleCategory(id,pill){
   if(activeFilters.category===id){ activeFilters.category=""; pill.classList.remove("active"); document.getElementById("clearCatBtn").style.display="none"; }
