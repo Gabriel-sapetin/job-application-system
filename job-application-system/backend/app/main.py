@@ -20,7 +20,15 @@ logger = logging.getLogger("jobtrack")
 app = FastAPI(title="JobTrack API", version="2.2.0",
     description="Job application system — Information Management Final Project")
 
-ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000").split(",")
+ALLOWED_ORIGINS = os.getenv(
+    "ALLOWED_ORIGINS",
+    "http://localhost:5500,http://127.0.0.1:5500,http://localhost:3000,"
+    "http://127.0.0.1:3000,http://localhost:8000,http://127.0.0.1:8000,"
+    "http://localhost:8080,http://127.0.0.1:8080"
+).split(",")
+
+# Strip whitespace from each origin
+ALLOWED_ORIGINS = [o.strip() for o in ALLOWED_ORIGINS if o.strip()]
 
 app.add_middleware(
     CORSMiddleware,
