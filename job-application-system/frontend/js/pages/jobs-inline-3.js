@@ -262,8 +262,14 @@ async function submitApplication(){
       cover_letter:document.getElementById("applyCover").value,
       resume_url:document.getElementById("applyResume").value,
     });
-    showAlert("applyAlert","Application submitted successfully!","success");
-    setTimeout(()=>{ closeModal(); loadJobs(); },1600);
+    closeModal();
+    showActionPopup({
+      title: "Application sent",
+      message: "Your application was submitted successfully.",
+      type: "success",
+      duration: 1300,
+    });
+    setTimeout(()=>{ loadJobs(); },1200);
   } catch(e){ showAlert("applyAlert",e.message,"error"); }
 }
 

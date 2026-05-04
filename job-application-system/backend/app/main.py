@@ -13,6 +13,25 @@ from app.middleware.security import security_headers_middleware
 import time
 import os
 import logging
+import threading
+import requests as _requests
+
+def _keep_alive():
+    """Ping self every 14 minutes to prevent Render free-tier spin-down."""
+    import time as _time
+    _time.sleep(30)  # wait for server to fully start first
+    self_url = os.getenv("RENDER_EXTERNAL_URL", "").rstrip("/")
+    if not self_url:
+        return  # not on Render, skip
+    while True:
+        try:
+            _requests.get(f"{self_url}/health", timeout=10)
+            logger.info("[KeepAlive] Pinged self.")
+        except Exception as e:
+            logger.warning(f"[KeepAlive] Ping failed: {e}")
+        _time.sleep(13 * 60)  # 14 minutes
+
+threading.Thread(target=_keep_alive, daemon=True).start()
 
 logging.basicConfig(level=logging.INFO, format="%(asctime)s  %(levelname)s  %(message)s", datefmt="%Y-%m-%d %H:%M:%S")
 logger = logging.getLogger("jobtrack")

@@ -930,7 +930,20 @@ async function postJob(){
 }
 
 async function toggleStatus(id,status){try{await api(`/jobs/${id}`,"PATCH",{status});loadDashboard();}catch(e){alert(e.message);}}
-async function updateStatus(id,status){try{await api(`/applications/${id}`,"PATCH",{status});loadDashboard();}catch(e){alert(e.message);}}
+async function updateStatus(id,status){
+  try{
+    await api(`/applications/${id}`,"PATCH",{status});
+    if (status === "accepted" || status === "rejected") {
+      showActionPopup({
+        title: status === "accepted" ? "Application accepted" : "Application rejected",
+        message: status === "accepted" ? "The applicant has been marked as accepted." : "The applicant has been marked as rejected.",
+        type: status === "accepted" ? "success" : "info",
+        duration: 1200,
+      });
+    }
+    loadDashboard();
+  }catch(e){alert(e.message);}
+}
 async function deleteJob(id){const ok=await showConfirm("Delete Posting","Permanently remove this listing?");if(!ok)return;try{await api(`/jobs/${id}`,"DELETE");loadDashboard();}catch(e){alert(e.message);}}
 async function withdrawApp(id){const ok=await showConfirm("Withdraw","Withdraw this application?");if(!ok)return;try{await api(`/applications/${id}`,"DELETE");loadApplicantApps();}catch(e){alert(e.message);}}
 
@@ -1103,6 +1116,12 @@ async function submitUserReport() {
       details: details || null,
     });
     showAlert("reportUserAlert", "✓ Report submitted.", "success");
+    showActionPopup({
+      title: "User reported",
+      message: "Your report has been submitted for review.",
+      type: "success",
+      duration: 1300,
+    });
     setTimeout(closeReportUserModal, 1500);
   } catch(e) { showAlert("reportUserAlert", e.message, "error"); }
 }

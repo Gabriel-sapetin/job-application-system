@@ -35,9 +35,16 @@ function getUser() {
   try { return JSON.parse(localStorage.getItem("user")); } catch { return null; }
 }
 function logout() {
+  const target = ((window.JT_CONFIG && window.JT_CONFIG.FRONTEND_BASE) || "") + "/index.html";
   localStorage.removeItem("token");
   localStorage.removeItem("user");
-  window.location.href = ((window.JT_CONFIG && window.JT_CONFIG.FRONTEND_BASE) || "") + "/index.html";
+  showActionPopup({
+    title: "Signed out",
+    message: "You have been logged out successfully.",
+    type: "success",
+    duration: 900,
+    redirectUrl: target,
+  });
 }
 
 function showAlert(id, message, type = "success") {
@@ -45,6 +52,44 @@ function showAlert(id, message, type = "success") {
   if (!el) return;
   el.innerHTML = `<span class="alert-icon">${type === "success" ? "✓" : "✕"}</span><span>${message}</span>`;
   el.className = `alert ${type}`;
+}
+
+function showActionPopup({ title = "Done", message = "", type = "success", duration = 1400, redirectUrl = null } = {}) {
+  let overlay = document.getElementById("actionPopupOverlay");
+  if (!overlay) {
+    overlay = document.createElement("div");
+    overlay.id = "actionPopupOverlay";
+    overlay.className = "action-popup-overlay";
+    overlay.innerHTML = `<div class="action-popup-box">
+      <div class="action-popup-icon" id="actionPopupIcon">✓</div>
+      <h4 id="actionPopupTitle"></h4>
+      <p id="actionPopupMsg"></p>
+      <div class="action-popup-bar"><div id="actionPopupBarFill"></div></div>
+    </div>`;
+    document.body.appendChild(overlay);
+  }
+  const iconMap = { success: "✓", error: "✕", info: "i", warning: "!" };
+  const iconEl = document.getElementById("actionPopupIcon");
+  iconEl.textContent = iconMap[type] || "✓";
+  iconEl.className = `action-popup-icon ${type}`;
+  document.getElementById("actionPopupTitle").textContent = title;
+  document.getElementById("actionPopupMsg").textContent = message;
+  overlay.classList.add("open");
+  const bar = document.getElementById("actionPopupBarFill");
+  if (bar) {
+    bar.style.transition = "none";
+    bar.style.width = "0%";
+    requestAnimationFrame(() => {
+      bar.style.transition = `width ${Math.max(duration, 300)}ms linear`;
+      bar.style.width = "100%";
+    });
+  }
+  clearTimeout(overlay._timer);
+  const close = () => {
+    overlay.classList.remove("open");
+    if (redirectUrl) window.location.href = redirectUrl;
+  };
+  overlay._timer = setTimeout(close, duration);
 }
 
 function showConfirm(title, message) {

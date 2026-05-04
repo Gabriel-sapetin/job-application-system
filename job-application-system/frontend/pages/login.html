@@ -47,7 +47,13 @@
         });
         localStorage.setItem("user", JSON.stringify(data.user));
         if (data.access_token) localStorage.setItem("token", data.access_token);
-        window.location.href = "dashboard.html";
+        showActionPopup({
+          title: "Signed in",
+          message: "Welcome back to JobTrack.",
+          type: "success",
+          duration: 900,
+          redirectUrl: "dashboard.html",
+        });
       } catch (e) { showAlert("loginAlert", e.message, "error"); }
     }
     document.addEventListener("keydown", e => { if (e.key === "Enter") handleLogin(); });
