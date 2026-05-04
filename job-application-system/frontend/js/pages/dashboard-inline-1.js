@@ -216,6 +216,7 @@ function renderAppPage() {
   const start = (_appPage - 1) * APP_PAGE_SIZE;
   const slice = _allApps.slice(start, start + APP_PAGE_SIZE);
   const tbody = document.getElementById("appTableBody");
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
 
   document.getElementById("appPageInfo").textContent =
     _allApps.length > 0 ? `Page ${_appPage} of ${totalPages} · ${_allApps.length} total` : "";
@@ -224,6 +225,29 @@ function renderAppPage() {
 
   if (!_allApps.length) {
     tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No applications yet. <a href="jobs.html" style="color:var(--accent);">Browse jobs →</a></td></tr>`;
+    return;
+  }
+
+  if (isMobile) {
+    tbody.innerHTML = slice.map(a => {
+      const date = a.created_at ? a.created_at.split("T")[0] : "—";
+      const appStCls = {pending:"gc-gold",accepted:"",rejected:"gc-red",reviewed:"gc-blue"}[a.status]||"";
+      return `<tr data-status="${a.status}">
+        <td colspan="7">
+          <div class="mobile-app-card">
+            <div class="mobile-app-title">${a.jobs?.title||"—"}</div>
+            <div class="mobile-app-sub">${a.jobs?.company||"—"} · ${date}</div>
+            <div class="mobile-app-status"><span class="g-chip ${appStCls}">${a.status}</span></div>
+            <div class="mobile-app-actions">
+              <button class="btn btn-ghost btn-sm" onclick="viewMyApp(${a.id})" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);">View</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
+                onclick="openChatModal(${a.id},'${(a.jobs?.company||'Employer').replace(/'/g,"\\'")}','','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
+              <button class="btn btn-danger btn-sm" onclick="withdrawApp(${a.id})">Withdraw</button>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }).join("");
     return;
   }
 
@@ -553,9 +577,35 @@ const _appStore = {};
 
 function renderEmployerApps(apps){
   const tbody=document.getElementById("empAppTableBody");
+  const isMobile = window.matchMedia("(max-width: 768px)").matches;
   if(!apps.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No applications received yet.</td></tr>`;return;}
   // Populate store
   apps.forEach(a => { _appStore[a.id] = a; });
+  if (isMobile) {
+    tbody.innerHTML = apps.map(a=>{
+      const date=a.created_at?a.created_at.split("T")[0]:"—";
+      const hasProfile=(a.users?.about_me||a.users?.instagram||a.users?.facebook||a.users?.profile_pic);
+      return `<tr data-status="${a.status}">
+        <td colspan="6">
+          <div class="mobile-app-card">
+            <div class="mobile-app-title" style="${hasProfile?"cursor:pointer;color:var(--accent3);":""}" onclick="${hasProfile?`viewApplicantProfile(${a.id})`:""}">${a.name||"Applicant"}</div>
+            <div class="mobile-app-sub">${a.jobs?.title||"—"} · ${date}</div>
+            <div class="mobile-app-status"><span class="g-chip ${{pending:"gc-gold",accepted:"",rejected:"gc-red",reviewed:"gc-blue"}[a.status]||""}">${a.status}</span></div>
+            <div class="mobile-app-actions">
+              <button class="btn btn-success btn-sm" onclick="updateStatus(${a.id},'accepted',this)">Accept</button>
+              <button class="btn btn-danger btn-sm"  onclick="updateStatus(${a.id},'rejected',this)">Reject</button>
+              <button class="btn btn-ghost btn-sm"   onclick="updateStatus(${a.id},'reviewed',this)">Review</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
+                onclick="openChatModal(${a.id},'${(a.name||'Applicant').replace(/'/g,"\\'")}','${(a.users?.profile_pic||'')}','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
+              <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(255,68,68,0.3);"
+                onclick="openReportUserModal(${a.users?.id||a.user_id},'${(a.name||'').replace(/'/g,"\\'")}','${a.email||''}','${a.users?.profile_pic||''}')">Report</button>
+            </div>
+          </div>
+        </td>
+      </tr>`;
+    }).join("");
+    return;
+  }
   tbody.innerHTML=apps.map(a=>{
     const date=a.created_at?a.created_at.split("T")[0]:"—";
     const profile=a.users||{};
@@ -921,6 +971,7 @@ function populateAnalyticsSelect(jobs) {
 async function loadAnalytics(jobId) {
   var content = document.getElementById("analyticsContent");
   var empty   = document.getElementById("analyticsEmpty");
+  var isMobile = window.matchMedia("(max-width: 768px)").matches;
   if (!jobId) {
     content.style.display = "none";
     empty.style.display = "block";
@@ -955,7 +1006,8 @@ async function loadAnalytics(jobId) {
         '<div class="analytics-bar" style="height:' + h + 'px;background:' + bg + ';"></div>' +
       '</div>';
     }).join("");
-    var labels = timeline.filter(function(_, i){ return i % 7 === 0 || i === timeline.length - 1; });
+    var labelStep = isMobile ? 10 : 7;
+    var labels = timeline.filter(function(_, i){ return i % labelStep === 0 || i === timeline.length - 1; });
     document.getElementById("analyticsChartLabels").innerHTML = labels.map(function(t) {
       var dt = new Date(t.date);
       return "<span>" + (dt.getMonth()+1) + "/" + dt.getDate() + "</span>";
