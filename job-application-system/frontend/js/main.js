@@ -7,20 +7,18 @@ window.fetch = (input, init = {}) => _nativeFetch(input, { credentials: "include
 
 async function api(endpoint, method = "GET", body = null) {
   const headers = { "Content-Type": "application/json" };
+  const token = localStorage.getItem("token");
+  if (token && token !== "null" && token !== "undefined") {
+    headers["Authorization"] = `Bearer ${token}`;
+  }
   const options = { method, headers, credentials: "include" };
   if (body) options.body = JSON.stringify(body);
   const res = await fetch(`${API_BASE}${endpoint}`, options);
   const data = await res.json();
   if (!res.ok) {
-    // #10 — Auto-logout on expired/invalid token
     if (res.status === 401) {
       localStorage.removeItem("token");
       localStorage.removeItem("user");
-      const isAuthPage = window.location.pathname.includes("login") || window.location.pathname.includes("register");
-      if (!isAuthPage) {
-        window.location.href = ((window.JT_CONFIG && window.JT_CONFIG.FRONTEND_BASE) || "") + "/pages/login.html?expired=1";
-        return;
-      }
     }
     let msg = "Something went wrong";
     if (data.detail) {
@@ -113,14 +111,6 @@ function initMobileSidebar() {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  // #10 — Show session-expired message on login page if redirected
-  if (window.location.search.includes("expired=1")) {
-    const alertEl = document.getElementById("loginAlert");
-    if (alertEl) {
-      alertEl.innerHTML = `<span class="alert-icon">✕</span><span>Your session has expired. Please sign in again.</span>`;
-      alertEl.className = "alert error";
-    }
-  }
   document.body.style.opacity = "0";
   document.body.style.transition = "opacity 0.3s";
   requestAnimationFrame(() => document.body.style.opacity = "1");

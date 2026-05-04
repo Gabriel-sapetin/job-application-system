@@ -81,10 +81,8 @@ function showEmpTab(id, btn) {
 async function loadDashboard() {
   if (user.role==="employer") {
     await loadEmployerData();
-    loadEmpConversations();
   } else {
     await Promise.all([loadProfile(), loadApplicantApps()]);
-    loadAppConversations();
   }
 }
 
@@ -633,7 +631,12 @@ function openCoverModal(appId){
   document.getElementById("coverModal").classList.add("open");
 }
 function closeCoverModal(){ document.getElementById("coverModal").classList.remove("open"); }
-document.getElementById("coverModal").addEventListener("click",e=>{ if(e.target===document.getElementById("coverModal")) closeCoverModal(); });
+(function () {
+  var cm = document.getElementById("coverModal");
+  if (cm) cm.addEventListener("click", function (e) {
+    if (e.target === cm) closeCoverModal();
+  });
+})();
 
 /* #3 Save employer notes */
 async function saveNotes() {
@@ -1045,8 +1048,11 @@ async function submitUserReport() {
   } catch(e) { showAlert("reportUserAlert", e.message, "error"); }
 }
  
-document.getElementById("reportUserModal").addEventListener("click", function(e) {
-  if (e.target === document.getElementById("reportUserModal")) closeReportUserModal();
+document.addEventListener("DOMContentLoaded", function() {
+  var rum = document.getElementById("reportUserModal");
+  if (rum) rum.addEventListener("click", function(e) {
+    if (e.target === rum) closeReportUserModal();
+  });
 });
 
 // ══════════════════════════════════════════════

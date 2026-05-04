@@ -145,24 +145,28 @@ def login(credentials: UserLogin, request: Request, response: Response):
     clear_failures(client_ip)
     token = create_token(db_user["id"], db_user["role"])
 
+    # Use secure=False in development (http), secure=True in production (https)
+    is_production = os.getenv("ENV", "development") == "production"
+
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
-        secure=True,
+        secure=is_production,
         samesite="lax",
         max_age=TOKEN_TTL,
         path="/",
     )
 
     return {
+        "access_token": token,
         "user": {
             "id":          db_user["id"],
             "name":        db_user["name"],
             "email":       db_user["email"],
             "role":        db_user["role"],
             "profile_pic": db_user.get("profile_pic"),
-        }
+        },
     }
 
 
@@ -197,13 +201,11 @@ async def forgot_password(body: ForgotPasswordRequest):
         base_url   = os.getenv("FRONTEND_URL", "http://127.0.0.1:5500/job-application-system/frontend")
         reset_link = f"{base_url}/pages/reset-password.html?token={token}"
 
-        # Always print to console as fallback for dev/testing
         print(f"\n{'='*60}")
         print(f"[Auth] Password reset requested for: {body.email}")
         print(f"[Auth] Reset link: {reset_link}")
         print(f"{'='*60}\n")
 
-        # ── Attempt to send email ──────────────────────────────
         mail_user = os.getenv("MAIL_USERNAME", "")
         mail_pass = os.getenv("MAIL_PASSWORD", "")
         mail_from = os.getenv("MAIL_FROM", mail_user)
@@ -262,7 +264,6 @@ async def forgot_password(body: ForgotPasswordRequest):
                 print(f"[Auth] ✓ Reset email sent to {body.email}")
 
             except Exception as e:
-                # Log the FULL error so we can debug
                 import traceback
                 print(f"[Auth] ✗ Email send failed: {type(e).__name__}: {e}")
                 print(traceback.format_exc())
