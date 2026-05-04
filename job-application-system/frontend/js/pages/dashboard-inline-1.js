@@ -216,7 +216,9 @@ function renderAppPage() {
   const start = (_appPage - 1) * APP_PAGE_SIZE;
   const slice = _allApps.slice(start, start + APP_PAGE_SIZE);
   const tbody = document.getElementById("appTableBody");
+  const table = tbody ? tbody.closest("table") : null;
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  if (table) table.classList.toggle("mobile-cards", isMobile);
 
   document.getElementById("appPageInfo").textContent =
     _allApps.length > 0 ? `Page ${_appPage} of ${totalPages} · ${_allApps.length} total` : "";
@@ -577,7 +579,9 @@ const _appStore = {};
 
 function renderEmployerApps(apps){
   const tbody=document.getElementById("empAppTableBody");
+  const table = tbody ? tbody.closest("table") : null;
   const isMobile = window.matchMedia("(max-width: 768px)").matches;
+  if (table) table.classList.toggle("mobile-cards", isMobile);
   if(!apps.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No applications received yet.</td></tr>`;return;}
   // Populate store
   apps.forEach(a => { _appStore[a.id] = a; });
