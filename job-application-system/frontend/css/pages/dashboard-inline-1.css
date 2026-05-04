@@ -391,6 +391,50 @@
       .cover-modal-box     { width:96%; max-height:90vh; border-radius:16px 16px 0 0; align-self:flex-end; }
     }
     @media (max-width:600px) {
+      .emp-profile-body {
+        grid-template-columns:1fr;
+        align-items:flex-start;
+        gap:10px;
+      }
+      .emp-avatar-wrap {
+        margin-top:-22px;
+      }
+      .emp-profile-info {
+        padding-top:0;
+      }
+      .emp-profile-name {
+        font-size:16px;
+      }
+      .emp-profile-bio {
+        font-size:12px;
+        line-height:1.5;
+      }
+      .emp-profile-contact {
+        gap:6px;
+      }
+      .emp-contact-tag {
+        font-size:10px;
+        padding:4px 8px;
+      }
+      .social-links-grid {
+        grid-template-columns:1fr;
+      }
+      .slc-icon-wrap {
+        width:44px;
+        height:44px;
+      }
+      .slc-label {
+        font-size:8px;
+      }
+      .slc-input {
+        font-size:12px;
+      }
+      .panel-body {
+        padding:12px;
+      }
+      .data-table {
+        min-width:760px;
+      }
       .post-form-grid      { grid-template-columns:1fr; }
       .post-form-full      { grid-column:1; }
       .emp-profile-body    { padding:0 12px 14px; }

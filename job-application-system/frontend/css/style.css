@@ -981,6 +981,9 @@ a { text-decoration: none; color: inherit; }
 }
 
 @media (max-width: 768px) {
+  html, body {
+    overflow-x: hidden;
+  }
   .mobile-topbar { display: flex !important; height: 54px; padding: 0 14px; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 60; }
   .mobile-topbar-logo { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; flex-shrink: 0; color: #fff; }
   .mobile-topbar-logo .logo-box { width: 28px; height: 28px; flex-shrink: 0; background: rgba(255,255,255,0.25); }
@@ -989,9 +992,58 @@ a { text-decoration: none; color: inherit; }
   .sidebar.open { transform: translateX(0); }
   .main-content { margin-left: 0; }
   .dash-topbar { display: none !important; }
+  .landing-nav {
+    padding: 10px 12px;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .landing-nav-logo {
+    font-size: 13px;
+  }
+  .landing-nav-links {
+    width: 100%;
+    justify-content: space-between;
+    gap: 6px;
+  }
+  .landing-nav-links a,
+  .landing-nav-links button {
+    padding: 7px 9px;
+    font-size: 11px;
+    min-height: 34px;
+    white-space: nowrap;
+  }
+  .hero-section {
+    padding: 64px 14px 28px;
+  }
+  .hero-title {
+    font-size: clamp(30px, 8vw, 42px);
+    line-height: 1.12;
+  }
+  .hero-sub {
+    font-size: 13px;
+    line-height: 1.6;
+    margin-bottom: 20px;
+  }
+  .hero-cta {
+    width: 100%;
+    gap: 8px;
+  }
+  .hero-cta .btn {
+    width: 100%;
+    justify-content: center;
+  }
+  .features-section {
+    padding: 24px 12px 18px;
+  }
   .topbar { position: sticky; top: 54px; z-index: 39; height: auto; min-height: 48px; padding: 8px 13px; flex-wrap: wrap; gap: 6px; background: rgba(240,247,241,0.96); }
   .topbar-title { font-size: 11px; flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .topbar-actions { flex-shrink: 0; gap: 6px; }
+  .topbar-actions {
+    flex-shrink: 0;
+    gap: 6px;
+    width: 100%;
+    justify-content: flex-end;
+    flex-wrap: wrap;
+  }
   .topbar-actions .btn { min-height: 36px; padding: 6px 10px; font-size: 11px; }
   .content-area { padding: 11px; }
   .stat-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
@@ -1006,6 +1058,12 @@ a { text-decoration: none; color: inherit; }
   .jobs-topbar > div:last-child { display: flex; justify-content: flex-end; }
   .view-toggle .view-btn { min-width: 44px; min-height: 36px; }
   .live-count-badge { display: none; }
+  .data-table {
+    min-width: 720px;
+  }
+  .panel > div[style*="overflow-x:auto"] {
+    -webkit-overflow-scrolling: touch;
+  }
   .jobs-grid { grid-template-columns: 1fr !important; gap: 10px; }
   .panel-header { padding: 10px 13px; flex-wrap: wrap; gap: 6px; min-height: 44px; }
   .panel-header h3 { font-size: 13px; }
@@ -1034,6 +1092,17 @@ a { text-decoration: none; color: inherit; }
 }
 
 @media (max-width: 430px) {
+  .landing-nav-links a,
+  .landing-nav-links button {
+    font-size: 10px;
+    padding: 6px 7px;
+  }
+  .hero-title {
+    font-size: 34px;
+  }
+  .hero-sub {
+    font-size: 12px;
+  }
   .stat-card-num { font-size: 26px; }
   .stat-card { padding: 11px 11px 13px; min-height: 76px; }
   .stat-card-label { font-size: 8.5px; }

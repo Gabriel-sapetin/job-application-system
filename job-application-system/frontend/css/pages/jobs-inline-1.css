@@ -170,6 +170,61 @@
       .cat-pill { font-size:11px; padding:6px 10px; }
       .panel-header { flex-wrap:wrap; gap:6px; }
       .panel-header h3 { font-size:12px; }
+      .jobs-topbar {
+        margin-bottom:10px;
+      }
+      .jobs-topbar > div:first-child {
+        width:100%;
+      }
+      .search-input-wrap input {
+        min-height:38px;
+      }
+      .job-card-body {
+        padding:12px;
+      }
+      .jc-title {
+        font-size:13px;
+      }
+      .jc-company {
+        font-size:11px;
+      }
+      .jc-meta-item {
+        font-size:9px;
+        padding:3px 7px;
+      }
+      .jc-footer {
+        flex-direction:column;
+        align-items:stretch;
+        gap:8px;
+      }
+      .jc-footer > div:last-child {
+        width:100%;
+        display:grid;
+        grid-template-columns:1fr 1fr 1fr;
+        gap:6px;
+      }
+      .jc-footer .btn {
+        width:100%;
+        justify-content:center;
+      }
+      .job-list-row {
+        flex-direction:column;
+        align-items:flex-start;
+        gap:10px;
+        padding:12px;
+      }
+      .jlr-main, .jlr-right {
+        width:100%;
+      }
+      .jlr-right {
+        display:grid;
+        grid-template-columns:1fr 1fr 1fr;
+        gap:6px;
+      }
+      .jlr-right .btn {
+        width:100%;
+        justify-content:center;
+      }
       #applyModal .modal-box { width:100%; max-height:100vh; border-radius:0; margin:0; max-width:100%; }
       .panpan-corner { width:80px; right:6px; }
     }
