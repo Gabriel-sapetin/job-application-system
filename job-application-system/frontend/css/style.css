@@ -936,6 +936,10 @@ a { text-decoration: none; color: inherit; }
    RESPONSIVE
 ══════════════════════════════════════ */
 @media (max-width: 900px) {
+  .app-layout {
+    display: block;
+    min-height: 100vh;
+  }
   .mobile-topbar { display: flex; }
   .sidebar { transform: translateX(-100%); transition: transform 0.26s cubic-bezier(0.22,1,0.36,1); top: 0; z-index: 60; }
   .sidebar.open { transform: translateX(0); }
@@ -984,7 +988,23 @@ a { text-decoration: none; color: inherit; }
   html, body {
     overflow-x: hidden;
   }
-  .mobile-topbar { display: flex !important; height: 54px; padding: 0 14px; align-items: center; justify-content: space-between; position: sticky; top: 0; z-index: 60; }
+  .app-layout {
+    display: block;
+    min-height: 100vh;
+  }
+  .mobile-topbar {
+    display: flex !important;
+    width: 100%;
+    height: 54px;
+    padding: 0 14px;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 60;
+  }
   .mobile-topbar-logo { display: flex; align-items: center; gap: 9px; font-size: 14px; font-weight: 600; flex-shrink: 0; color: #fff; }
   .mobile-topbar-logo .logo-box { width: 28px; height: 28px; flex-shrink: 0; background: rgba(255,255,255,0.25); }
   .hamburger { width: 44px; height: 44px; flex-shrink: 0; }
