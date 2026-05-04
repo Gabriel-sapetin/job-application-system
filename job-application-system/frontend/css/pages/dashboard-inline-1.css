@@ -55,6 +55,74 @@
     .stat-card-num.green { color:var(--green); }
     .stat-card-num.red   { color:var(--red); }
     .stat-card-num.gold  { color:var(--gold); }
+    .analytics-stat-card { box-shadow:0 8px 20px rgba(15,15,18,0.05); }
+    .analytics-tone-total::after,
+    .analytics-tone-accepted::after,
+    .analytics-tone-pending::after,
+    .analytics-tone-rate::after {
+      content:"";
+      position:absolute;
+      left:0;
+      right:0;
+      bottom:0;
+      height:3px;
+      border-radius:0 0 var(--radius-lg) var(--radius-lg);
+    }
+    .analytics-tone-total::after { background:linear-gradient(90deg,#1ea83c,#73d98a); }
+    .analytics-tone-accepted::after { background:linear-gradient(90deg,#159a3b,#43c86e); }
+    .analytics-tone-pending::after { background:linear-gradient(90deg,#a06800,#e6b14a); }
+    .analytics-tone-rate::after { background:linear-gradient(90deg,#4d9fff,#7bb7ff); }
+
+    .analytics-bar-wrap {
+      flex:1;
+      min-width:8px;
+      height:100%;
+      display:flex;
+      flex-direction:column;
+      justify-content:flex-end;
+      align-items:center;
+      gap:4px;
+    }
+    .analytics-bar-count {
+      font-size:9px;
+      color:var(--ink-muted);
+      font-family:var(--mono);
+      opacity:0.85;
+    }
+    .analytics-bar {
+      width:100%;
+      border-radius:4px 4px 0 0;
+      box-shadow:0 4px 10px rgba(30,168,60,0.25);
+      transition:height 0.25s ease;
+    }
+    .analytics-break-row { margin-bottom:8px; }
+    .analytics-break-head {
+      display:flex;
+      justify-content:space-between;
+      margin-bottom:5px;
+      align-items:center;
+    }
+    .analytics-break-label {
+      font-size:12px;
+      color:var(--ink-soft);
+      font-weight:500;
+    }
+    .analytics-break-value {
+      font-size:12px;
+      font-family:var(--mono);
+      color:var(--ink-muted);
+    }
+    .analytics-break-track {
+      height:8px;
+      background:var(--surface3);
+      border-radius:999px;
+      overflow:hidden;
+    }
+    .analytics-break-fill {
+      height:100%;
+      border-radius:999px;
+      box-shadow:0 2px 8px rgba(0,0,0,0.08);
+    }
 
     /* ── Profile strip (applicant) ── */
     .profile-strip { display:grid; grid-template-columns:auto 1fr auto; align-items:center; gap:16px; background:var(--surface); border:1px solid var(--border); border-radius:var(--radius-lg); padding:16px 20px; margin-bottom:16px; }

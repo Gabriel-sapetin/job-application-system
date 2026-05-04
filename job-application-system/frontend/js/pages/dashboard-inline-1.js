@@ -248,7 +248,7 @@ function renderAppPage() {
         <button class="btn btn-ghost btn-sm" onclick="viewMyApp(${a.id})" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);">View</button>
         <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
           onclick="openChatModal(${a.id},'${(a.jobs?.company||'Employer').replace(/'/g,"\\'")}','','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">
-          💬 Chat
+          Chat
         </button>
         <button class="btn btn-danger btn-sm" onclick="withdrawApp(${a.id})">Withdraw</button>
       </td>
@@ -584,11 +584,11 @@ function renderEmployerApps(apps){
         <button class="btn btn-ghost btn-sm"   onclick="updateStatus(${a.id},'reviewed',this)">Review</button>
         <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
           onclick="openChatModal(${a.id},'${(a.name||'Applicant').replace(/'/g,"\\'")}','${(a.users?.profile_pic||'')}','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">
-          💬 Chat
+          Chat
         </button>
         <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(255,68,68,0.3);"
         onclick="openReportUserModal(${a.users?.id||a.user_id},'${(a.name||'').replace(/'/g,"\\'")}','${a.email||''}','${a.users?.profile_pic||''}')">
-        🚩 Report
+        Report
       </button>
 
       </td>
@@ -675,7 +675,7 @@ function viewApplicantProfile(appId){
     <div style="margin-top:14px;border-top:1px solid var(--border);padding-top:12px;">
       <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(255,68,68,0.3);"
         onclick="document.getElementById('profileModal').classList.remove('open');openReportUserModal(${_rid},'${_rn}','${_re}','${_rp}')">
-        🚩 Report this User
+        Report this User
       </button>
     </div>`;
   document.getElementById("profileModal").classList.add("open");
@@ -935,13 +935,13 @@ async function loadAnalytics(jobId) {
     empty.style.display = "none";
     content.style.display = "block";
     var cards = [
-      { label:"Total Apps",  value: d.total_applications,      color:"" },
-      { label:"Accepted",    value: d.accepted,                 color:"green" },
-      { label:"Pending",     value: d.pending,                  color:"gold" },
-      { label:"Accept Rate", value: (d.acceptance_rate||0)+"%", color:"" },
+      { label:"Total Apps",  value: d.total_applications,      color:"",       tone:"total"    },
+      { label:"Accepted",    value: d.accepted,                 color:"green",  tone:"accepted" },
+      { label:"Pending",     value: d.pending,                  color:"gold",   tone:"pending"  },
+      { label:"Accept Rate", value: (d.acceptance_rate||0)+"%", color:"",       tone:"rate"     },
     ];
     document.getElementById("analyticsCards").innerHTML = cards.map(function(card) {
-      return '<div class="stat-card"><div class="stat-card-label">' + card.label + '</div>' +
+      return '<div class="stat-card analytics-stat-card analytics-tone-' + card.tone + '"><div class="stat-card-label">' + card.label + '</div>' +
              '<div class="stat-card-num ' + card.color + '">' + card.value + '</div></div>';
     }).join("");
     var timeline = d.timeline || [];
@@ -949,8 +949,11 @@ async function loadAnalytics(jobId) {
     var safeMax = maxVal > 0 ? maxVal : 1;
     document.getElementById("analyticsChart").innerHTML = timeline.map(function(t) {
       var h  = Math.max(Math.round((t.applications / safeMax) * 120), t.applications > 0 ? 4 : 1);
-      var bg = t.applications > 0 ? "var(--accent)" : "var(--surface3)";
-      return '<div title="' + t.date + ': ' + t.applications + ' apps" style="flex:1;height:' + h + 'px;background:' + bg + ';border-radius:2px 2px 0 0;min-width:4px;"></div>';
+      var bg = t.applications > 0 ? "linear-gradient(180deg, rgba(30,168,60,0.95) 0%, rgba(30,168,60,0.7) 100%)" : "var(--surface3)";
+      return '<div class="analytics-bar-wrap" title="' + t.date + ': ' + t.applications + ' apps">' +
+        '<div class="analytics-bar-count">' + t.applications + '</div>' +
+        '<div class="analytics-bar" style="height:' + h + 'px;background:' + bg + ';"></div>' +
+      '</div>';
     }).join("");
     var labels = timeline.filter(function(_, i){ return i % 7 === 0 || i === timeline.length - 1; });
     document.getElementById("analyticsChartLabels").innerHTML = labels.map(function(t) {
@@ -959,13 +962,13 @@ async function loadAnalytics(jobId) {
     }).join("");
     document.getElementById("analyticsBreakdown").innerHTML = (d.status_breakdown||[]).map(function(s) {
       var pct = d.total_applications > 0 ? Math.round((s.value / d.total_applications) * 100) : 0;
-      return '<div style="margin-bottom:8px;">' +
-        '<div style="display:flex;justify-content:space-between;margin-bottom:5px;">' +
-          '<span style="font-size:12px;color:var(--ink-soft);">' + s.label + '</span>' +
-          '<span style="font-size:12px;font-family:var(--mono);color:var(--ink-muted);">' + s.value + ' (' + pct + '%)</span>' +
+      return '<div class="analytics-break-row">' +
+        '<div class="analytics-break-head">' +
+          '<span class="analytics-break-label">' + s.label + '</span>' +
+          '<span class="analytics-break-value">' + s.value + ' (' + pct + '%)</span>' +
         '</div>' +
-        '<div style="height:6px;background:var(--surface3);border-radius:3px;overflow:hidden;">' +
-          '<div style="height:100%;width:' + pct + '%;background:' + s.color + ';border-radius:3px;"></div>' +
+        '<div class="analytics-break-track">' +
+          '<div class="analytics-break-fill" style="width:' + pct + '%;background:' + s.color + ';"></div>' +
         '</div></div>';
     }).join("");
   } catch(e) {
