@@ -23,12 +23,12 @@
     // Backend API base URL — no trailing slash
     API_BASE: isDev
       ? "http://localhost:8000"
-      : (window.JT_API_BASE || "https://jobtrack-api-hsxd.onrender.com/"),   // override in prod
+      : (window.JT_API_BASE || "https://jobtrack-api-hsxd.onrender.com"),   // override in prod
 
     // Frontend base URL — no trailing slash
     FRONTEND_BASE: isDev
       ? ("http://" + window.location.host + "/job-application-system/frontend")
-      : (window.JT_FRONTEND_BASE || "https://yoursite.com"),
+      : (window.JT_FRONTEND_BASE || "https://job-track-blush.vercel.app"),
 
     // App name shown in emails / notifications
     APP_NAME: "JobTrack",
