@@ -46,7 +46,8 @@ if (user.role==="employer") {
   document.getElementById("tabProfile").classList.add("active");
   const grid=document.getElementById("interestGrid");
   let addedIndivHeader = false;
-  CATEGORIES.forEach((c,i)=>{
+  // Sequential alphabet: A-O corporate, P-U individual — simple index guarantees correct mapping
+  CATEGORIES.forEach((c, idx)=>{
     if (c.individual && !addedIndivHeader) {
       const sep = document.createElement("div");
       sep.style.cssText = "grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:6px;margin-bottom:2px;";
@@ -57,7 +58,7 @@ if (user.role==="employer") {
     const chip=document.createElement("div");
     chip.className="int-chip" + (c.individual?" individual-chip":"");
     if (c.individual) chip.style.cssText = "border-color:rgba(167,139,250,0.25);";
-    chip.innerHTML=`<span class="int-chip-letter">${String.fromCharCode(65+i)}</span><span class="int-chip-label">${c.label}</span>`;
+    chip.innerHTML=`<span class="int-chip-letter">${String.fromCharCode(65+idx)}</span><span class="int-chip-label">${c.label}</span>`;
     chip.onclick=()=>searchByInterest(c.id,c.label,c.icon,chip);
     grid.appendChild(chip);
   });

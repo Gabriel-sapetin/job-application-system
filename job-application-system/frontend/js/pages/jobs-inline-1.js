@@ -364,6 +364,33 @@ function openDetailModal(jobId) {
   }
 
   document.getElementById("jobDetailModal").classList.add("open");
+
+  // Increment view count — fire-and-forget, then update local state + UI
+  api("/analytics/jobs/" + j.id + "/view", "POST").then(function(res) {
+    // Update local job object with new count returned from server (if any)
+    const newCount = (res && res.view_count != null) ? res.view_count : (j.view_count || 0) + 1;
+    const localJob = allJobs.find(x => x.id === j.id);
+    if (localJob) localJob.view_count = newCount;
+    selectedJob.view_count = newCount;
+    // Patch the visible tags and trust row with live count
+    const tagsEl = document.getElementById("jdTags");
+    const existingView = tagsEl.querySelector(".jd-tag-views");
+    const viewTag = '<span class="jd-tag jd-tag-views">👁 ' + newCount + ' views</span>';
+    if (existingView) existingView.outerHTML = viewTag;
+    else tagsEl.insertAdjacentHTML("beforeend", viewTag);
+    const trustRows = document.querySelectorAll(".trust-row");
+    trustRows.forEach(function(row) {
+      if (row.textContent.includes("Views")) {
+        row.querySelector(".tr-val").textContent = newCount;
+      }
+    });
+  }).catch(function() {
+    // Silently fail — view count is non-critical; optimistically increment locally
+    const localJob = allJobs.find(x => x.id === j.id);
+    const newCount = (localJob ? (localJob.view_count || 0) : (j.view_count || 0)) + 1;
+    if (localJob) localJob.view_count = newCount;
+    selectedJob.view_count = newCount;
+  });
 }
 
 function closeDetailModal() {

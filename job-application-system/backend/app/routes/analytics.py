@@ -129,7 +129,12 @@ def get_job_analytics(job_id: int, request: Request):
 @router.post("/jobs/{job_id}/view")
 def record_job_view(job_id: int):
     """Increment view counter for a job. No auth required."""
-    supabase.table("jobs").update(
-        {"view_count": supabase.raw("view_count + 1")}
-    ).eq("id", job_id).execute()
+    try:
+        cur = supabase.table("jobs").select("view_count").eq("id", job_id).execute()
+        if cur.data:
+            new_count = (cur.data[0].get("view_count") or 0) + 1
+            supabase.table("jobs").update({"view_count": new_count}).eq("id", job_id).execute()
+            return {"message": "View recorded.", "view_count": new_count}
+    except Exception:
+        pass
     return {"message": "View recorded."}
