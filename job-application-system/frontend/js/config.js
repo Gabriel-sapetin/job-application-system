@@ -23,7 +23,7 @@
     // Backend API base URL — no trailing slash
     API_BASE: isDev
       ? "http://localhost:8000"
-      : (window.JT_API_BASE || "https://api.yoursite.com"),   // override in prod
+      : (window.JT_API_BASE || "https://jobtrack-api-hsxd.onrender.com/"),   // override in prod
 
     // Frontend base URL — no trailing slash
     FRONTEND_BASE: isDev
