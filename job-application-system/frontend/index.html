@@ -211,6 +211,9 @@
       <div class="logo-box">JT</div>
       <span>JobTrack</span>
     </div>
+    <button class="landing-hamburger" id="landingHamburger" aria-label="Menu">
+      <span></span><span></span><span></span>
+    </button>
     <div class="landing-nav-links" id="navLinks"></div>
   </nav>
 
@@ -549,6 +552,32 @@
     }
     fetchLiveStats();
     setInterval(fetchLiveStats, 30000);
+
+    // Landing hamburger toggle for mobile
+    (function() {
+      var hamburger = document.getElementById('landingHamburger');
+      var navLinks = document.getElementById('navLinks');
+      if (hamburger && navLinks) {
+        hamburger.addEventListener('click', function() {
+          hamburger.classList.toggle('open');
+          navLinks.classList.toggle('open');
+        });
+        // Close menu when clicking a link
+        navLinks.addEventListener('click', function(e) {
+          if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
+            hamburger.classList.remove('open');
+            navLinks.classList.remove('open');
+          }
+        });
+        // Close menu when clicking outside
+        document.addEventListener('click', function(e) {
+          if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
+            hamburger.classList.remove('open');
+            navLinks.classList.remove('open');
+          }
+        });
+      }
+    })();
   </script>
 </body>
 </html>

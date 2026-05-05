@@ -64,7 +64,11 @@
       <div class="topbar-title">JobTrack / <strong>Browse Jobs</strong></div>
       <div class="topbar-actions">
         <div class="live-count-badge"><div class="live-dot"></div><span id="liveCount">—</span> live</div>
-        <!-- Notifications -->
+        <!-- Dashboard / Login button (moved to left) -->
+        <a href="login.html" class="btn btn-ghost btn-sm" id="authBtn">Login</a>
+        <!-- Saved jobs chip -->
+        <a id="savedJobsChip" href="dashboard.html" style="display:none;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:100px;font-family:var(--mono);text-decoration:none;" title="Saved jobs">🔖 <span id="savedCountChip">0</span></a>
+        <!-- Notifications (moved to right) -->
         <div id="notifBellWrap" style="position:relative;display:none;">
           <button id="notifBell" onclick="toggleNotifPanel()" style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;cursor:pointer;color:var(--ink-muted);font-size:14px;transition:all 0.15s;" title="Notifications">
             Notifications<span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:var(--mono);min-width:16px;text-align:center;"></span>
@@ -77,9 +81,6 @@
             <div id="notifList" style="max-height:320px;overflow-y:auto;"></div>
           </div>
         </div>
-        <!-- Saved jobs chip -->
-        <a id="savedJobsChip" href="dashboard.html" style="display:none;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:100px;font-family:var(--mono);text-decoration:none;" title="Saved jobs">🔖 <span id="savedCountChip">0</span></a>
-        <a href="login.html" class="btn btn-ghost btn-sm" id="authBtn">Login</a>
       </div>
     </div>
 
