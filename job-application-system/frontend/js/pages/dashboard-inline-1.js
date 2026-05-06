@@ -28,6 +28,16 @@ const LOGO_WEB = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
 
 document.getElementById("sidebarRoleLabel").textContent = `/ ${user.role}`;
 document.getElementById("topbarTitle").textContent = user.role==="employer"?"Employer Dashboard":"Dashboard";
+
+// Welcome greeting
+const _hour = new Date().getHours();
+const _greet = _hour < 12 ? "Good morning" : _hour < 17 ? "Good afternoon" : "Good evening";
+const _firstName = user.name.split(" ")[0];
+const _welcomeEl = document.getElementById("welcomeGreeting");
+if (_welcomeEl) _welcomeEl.textContent = `${_greet}, ${_firstName}`;
+const _dateEl = document.getElementById("welcomeDate");
+if (_dateEl) _dateEl.textContent = new Date().toLocaleDateString("en-US", { weekday:"long", month:"long", day:"numeric", year:"numeric" });
+
 const _cachedPic = user.profile_pic && user.profile_pic.startsWith("http") ? user.profile_pic : null;
 document.getElementById("sidebarUser").innerHTML = `
   <div class="sidebar-avatar" id="sidebarAvatar">${_cachedPic ? `<img src="${_cachedPic}" style="width:100%;height:100%;border-radius:50%;object-fit:cover;" onerror="this.parentElement.textContent='${user.name[0].toUpperCase()}'"/>` : user.name[0].toUpperCase()}</div>
