@@ -1,222 +1,713 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>JobTrack — Job Application System</title>
-  <link rel="stylesheet" href="css/style.css"/>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/style.css" />
   <style>
-    @keyframes pulse  { 0%,100%{opacity:1}50%{opacity:0.5} }
-    @keyframes floatY { 0%,100%{transform:translateY(0px) rotate(-2deg)} 50%{transform:translateY(-14px) rotate(2deg)} }
-    @keyframes fadeUp { from{opacity:0;transform:translateY(16px)} to{opacity:1;transform:translateY(0)} }
+    @keyframes pulse {
+
+      0%,
+      100% {
+        opacity: 1
+      }
+
+      50% {
+        opacity: 0.5
+      }
+    }
+
+    @keyframes floatY {
+
+      0%,
+      100% {
+        transform: translateY(0px) rotate(-2deg)
+      }
+
+      50% {
+        transform: translateY(-14px) rotate(2deg)
+      }
+    }
+
+    @keyframes fadeUp {
+      from {
+        opacity: 0;
+        transform: translateY(16px)
+      }
+
+      to {
+        opacity: 1;
+        transform: translateY(0)
+      }
+    }
 
     /* ── Nav ── */
-    .nav-user-chip { display:flex;align-items:center;gap:8px;padding:5px 12px 5px 6px;background:var(--surface);border:1px solid var(--border);border-radius:100px;cursor:pointer;transition:all 0.15s;text-decoration:none; }
-    .nav-user-chip:hover { border-color:rgba(255,255,255,0.15);background:var(--surface2); }
-    .nav-user-avatar { width:24px;height:24px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:10px;font-weight:700;color:var(--ink);overflow:hidden;flex-shrink:0; }
-    .nav-user-avatar img { width:100%;height:100%;object-fit:cover;border-radius:50%; }
-    .nav-user-name { font-size:12px;font-weight:500;color:var(--ink); }
-    .nav-user-role { font-size:10px;color:var(--ink-muted);font-family:var(--mono); }
+    .nav-user-chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 5px 12px 5px 6px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 100px;
+      cursor: pointer;
+      transition: all 0.15s;
+      text-decoration: none;
+    }
+
+    .nav-user-chip:hover {
+      border-color: rgba(255, 255, 255, 0.15);
+      background: var(--surface2);
+    }
+
+    .nav-user-avatar {
+      width: 24px;
+      height: 24px;
+      border-radius: 50%;
+      background: var(--surface3);
+      display: grid;
+      place-items: center;
+      font-size: 10px;
+      font-weight: 700;
+      color: var(--ink);
+      overflow: hidden;
+      flex-shrink: 0;
+    }
+
+    .nav-user-avatar img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      border-radius: 50%;
+    }
+
+    .nav-user-name {
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--ink);
+    }
+
+    .nav-user-role {
+      font-size: 10px;
+      color: var(--ink-muted);
+      font-family: var(--mono);
+    }
 
     /* ── HERO ── */
+    /* ── Pixel font ── */
+    .pixel-font {
+      font-family: 'Press Start 2P', monospace !important;
+      image-rendering: pixelated;
+    }
+
     .hero-section {
-      padding:100px 32px 80px;
-      text-align:center;
-      position:relative;
-      overflow:hidden;
-      border-bottom:1px solid var(--border);
+      padding: 100px 32px 80px;
+      text-align: center;
+      position: relative;
+      overflow: hidden;
+      border-bottom: none;
+      background: url('images/pixel-bg.png') center center / cover no-repeat;
+      background-attachment: scroll;
+      min-height: 520px;
+      image-rendering: pixelated;
     }
+
     .hero-grid-bg {
-      position:absolute;inset:0;
-      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
-      background-size:48px 48px;opacity:0.35;
-      mask-image:radial-gradient(ellipse 80% 80% at 50% 50%,black 30%,transparent 80%);
-      pointer-events:none;
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(180deg, rgba(0, 0, 0, 0.10) 0%, rgba(0, 0, 0, 0.35) 100%);
+      pointer-events: none;
     }
+
     .hero-left {
-      position:relative; z-index:2;
-      animation:fadeUp 0.6s ease forwards;
+      position: relative;
+      z-index: 2;
+      animation: fadeUp 0.6s ease forwards;
     }
+
     .hero-eyebrow {
-      display:inline-flex;align-items:center;gap:8px;
-      font-size:11px;font-weight:600;font-family:var(--mono);
-      text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-muted);
-      margin-bottom:24px;
-      background:var(--surface);border:1px solid var(--border);
-      padding:5px 12px;border-radius:100px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 9px;
+      font-weight: 600;
+      font-family: 'Press Start 2P', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: #fff;
+      margin-bottom: 24px;
+      background: rgba(0, 0, 0, 0.55);
+      border: 2px solid rgba(255, 255, 255, 0.25);
+      padding: 7px 14px;
+      border-radius: 4px;
+      box-shadow: 3px 3px 0px rgba(0, 0, 0, 0.3);
     }
-    .hero-eyebrow::before { content:"";width:5px;height:5px;border-radius:50%;background:var(--accent); }
+
+    .hero-eyebrow::before {
+      content: "";
+      width: 6px;
+      height: 6px;
+      border-radius: 0;
+      background: #44ff66;
+    }
+
     .hero-title {
-      font-size:clamp(36px,5vw,64px);font-weight:700;line-height:1.06;
-      letter-spacing:-2px;margin-bottom:18px;color:var(--ink);
+      font-family: 'Press Start 2P', monospace;
+      font-size: clamp(18px, 3.5vw, 36px);
+      font-weight: 700;
+      line-height: 1.5;
+      letter-spacing: 0px;
+      margin-bottom: 18px;
+      color: #fff;
+      text-shadow: 3px 3px 0px rgba(0, 0, 0, 0.5), 0 0 20px rgba(0, 0, 0, 0.3);
     }
+
     .hero-title .hl {
-      background:linear-gradient(135deg,var(--accent),#44ffaa);
-      -webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text;
+      color: #44ff66;
+      -webkit-text-fill-color: #44ff66;
+      background: none;
+      -webkit-background-clip: unset;
+      background-clip: unset;
+      text-shadow: 3px 3px 0px rgba(0, 80, 0, 0.6), 0 0 16px rgba(68, 255, 102, 0.3);
     }
-    .hero-sub { font-size:15px;color:var(--ink-soft);line-height:1.75;max-width:460px;margin:0 auto 36px; }
-    .hero-cta { display:flex;gap:10px;justify-content:center;flex-wrap:wrap; }
+
+    .hero-sub {
+      font-size: 11px;
+      color: rgba(255, 255, 255, 0.9);
+      line-height: 2;
+      max-width: 500px;
+      margin: 0 auto 36px;
+      text-shadow: 1px 1px 0px rgba(0, 0, 0, 0.5);
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .hero-cta {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
 
     /* ── Pan-Pan section (below features, above CTA) ── */
     .panpan-section {
-      border-top:1px solid var(--border);
-      border-bottom:1px solid var(--border);
-      background:var(--surface);
-      overflow:hidden;
-      position:relative;
+      border-top: 1px solid var(--border);
+      border-bottom: 1px solid var(--border);
+      background: var(--surface);
+      overflow: hidden;
+      position: relative;
     }
+
     /* dark grid bg same style as hero */
     .panpan-section::before {
-      content:"";
-      position:absolute;inset:0;
-      background-image:linear-gradient(var(--border) 1px,transparent 1px),linear-gradient(90deg,var(--border) 1px,transparent 1px);
-      background-size:48px 48px;opacity:0.35;
-      pointer-events:none;
+      content: "";
+      position: absolute;
+      inset: 0;
+      background-image: linear-gradient(var(--border) 1px, transparent 1px), linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 48px 48px;
+      opacity: 0.35;
+      pointer-events: none;
     }
+
     /* 3D floor grid at bottom */
     .panpan-section::after {
-      content:"";
-      position:absolute;bottom:0;left:0;right:0;height:180px;
+      content: "";
+      position: absolute;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      height: 180px;
       background:
-        linear-gradient(rgba(232,149,109,0.04) 1px,transparent 1px),
-        linear-gradient(90deg,rgba(232,149,109,0.04) 1px,transparent 1px);
-      background-size:40px 40px;
-      transform:perspective(400px) rotateX(55deg);
-      transform-origin:bottom center;
-      pointer-events:none;
+        linear-gradient(rgba(232, 149, 109, 0.04) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(232, 149, 109, 0.04) 1px, transparent 1px);
+      background-size: 40px 40px;
+      transform: perspective(400px) rotateX(55deg);
+      transform-origin: bottom center;
+      pointer-events: none;
     }
+
     .panpan-inner {
-      max-width:1100px;margin:0 auto;
-      display:grid;grid-template-columns:1fr 420px;
-      align-items:center;gap:0;
-      position:relative;z-index:2;
+      max-width: 1100px;
+      margin: 0 auto;
+      display: grid;
+      grid-template-columns: 1fr 420px;
+      align-items: center;
+      gap: 0;
+      position: relative;
+      z-index: 2;
     }
+
     .panpan-text {
-      padding:64px 48px 64px 32px;
+      padding: 64px 48px 64px 32px;
     }
+
     .panpan-eyebrow {
-      font-size:11px;font-weight:600;font-family:var(--mono);
-      text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-muted);
-      margin-bottom:14px;
+      font-size: 11px;
+      font-weight: 600;
+      font-family: var(--mono);
+      text-transform: uppercase;
+      letter-spacing: 0.12em;
+      color: var(--ink-muted);
+      margin-bottom: 14px;
     }
+
     .panpan-title {
-      font-size:clamp(26px,3.5vw,40px);font-weight:700;
-      letter-spacing:-1.2px;line-height:1.1;margin-bottom:16px;color:var(--ink);
+      font-size: clamp(26px, 3.5vw, 40px);
+      font-weight: 700;
+      letter-spacing: -1.2px;
+      line-height: 1.1;
+      margin-bottom: 16px;
+      color: var(--ink);
     }
-    .panpan-name { color:var(--accent); }
+
+    .panpan-name {
+      color: var(--accent);
+    }
+
     .panpan-sub {
-      font-size:14px;color:var(--ink-muted);line-height:1.7;
-      max-width:380px;margin-bottom:28px;
+      font-size: 14px;
+      color: var(--ink-muted);
+      line-height: 1.7;
+      max-width: 380px;
+      margin-bottom: 28px;
     }
+
     .panpan-svg-col {
-      border-left:1px solid var(--border);
-      display:flex;align-items:flex-end;justify-content:center;
-      padding:32px 0 0;
-      overflow:hidden;
-      min-height:340px;
-      position:relative;
+      border-left: 1px solid var(--border);
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 32px 0 0;
+      overflow: hidden;
+      min-height: 340px;
+      position: relative;
     }
+
     /* green glow behind Pan-Pan */
     .panpan-glow {
-      position:absolute;
-      width:300px;height:300px;border-radius:50%;
-      background:radial-gradient(circle,rgba(232,149,109,0.07) 0%,transparent 70%);
-      top:50%;left:50%;transform:translate(-50%,-50%);
-      pointer-events:none;
+      position: absolute;
+      width: 300px;
+      height: 300px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(232, 149, 109, 0.07) 0%, transparent 70%);
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      pointer-events: none;
     }
+
     .panpan-float-wrap {
-      position:relative;z-index:3;
-      animation:floatY 4s ease-in-out infinite;
-      filter:drop-shadow(0 20px 36px rgba(0,0,0,0.55)) drop-shadow(0 6px 14px rgba(232,149,109,0.08));
-      width:100%;max-width:400px;
-      display:flex;align-items:flex-end;justify-content:center;
+      position: relative;
+      z-index: 3;
+      animation: floatY 4s ease-in-out infinite;
+      filter: drop-shadow(0 20px 36px rgba(0, 0, 0, 0.55)) drop-shadow(0 6px 14px rgba(232, 149, 109, 0.08));
+      width: 100%;
+      max-width: 400px;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
     }
+
     .panpan-mascot-img {
-      width:100%;max-width:300px;height:auto;
-      object-fit:contain;
-      pointer-events:none;
-      user-select:none;
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
     }
+
     .panpan-floor-shadow {
-      position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
-      width:160px;height:16px;
-      background:radial-gradient(ellipse,rgba(0,0,0,0.4) 0%,transparent 70%);
-      border-radius:50%;z-index:2;
-      animation:floatY 4s ease-in-out infinite reverse;
+      position: absolute;
+      bottom: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 160px;
+      height: 16px;
+      background: radial-gradient(ellipse, rgba(0, 0, 0, 0.4) 0%, transparent 70%);
+      border-radius: 50%;
+      z-index: 2;
+      animation: floatY 4s ease-in-out infinite reverse;
     }
+
     .panpan-name-tag {
-      position:absolute;bottom:16px;right:16px;z-index:4;
-      font-size:10px;font-family:var(--mono);color:var(--ink-muted);
-      display:flex;align-items:center;gap:5px;
+      position: absolute;
+      bottom: 16px;
+      right: 16px;
+      z-index: 4;
+      font-size: 10px;
+      font-family: var(--mono);
+      color: var(--ink-muted);
+      display: flex;
+      align-items: center;
+      gap: 5px;
     }
-    .panpan-name-tag::before { content:"";width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite; }
+
+    .panpan-name-tag::before {
+      content: "";
+      width: 5px;
+      height: 5px;
+      border-radius: 50%;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
 
     /* ── Stats ── */
-    .stats-bar { display:flex;justify-content:center;border-bottom:1px solid var(--border);background:var(--surface); }
-    .stats-bar-item { flex:1;max-width:220px;padding:20px 24px;text-align:center;border-right:1px solid var(--border); }
-    .stats-bar-item:last-child { border-right:none; }
-    .stats-bar-num { font-size:24px;font-weight:700;color:var(--ink);font-family:var(--mono);letter-spacing:-1px;margin-bottom:3px; }
-    .stats-bar-label { font-size:11px;color:var(--ink-muted);text-transform:uppercase;letter-spacing:0.1em;font-weight:500; }
-    .stats-live-badge { display:flex;align-items:center;justify-content:center;gap:5px;font-size:10px;font-family:var(--mono);color:var(--ink-muted);margin-top:3px; }
-    .stats-live-badge .dot { width:5px;height:5px;border-radius:50%;background:var(--green);animation:pulse 2s infinite; }
-    .stat-updating { color:var(--ink) !important; }
+    .stats-bar {
+      display: flex;
+      justify-content: center;
+      border-bottom: 2px solid var(--border);
+      background: var(--surface);
+    }
+
+    .stats-bar-item {
+      flex: 1;
+      max-width: 220px;
+      padding: 20px 24px;
+      text-align: center;
+      border-right: 2px solid var(--border);
+    }
+
+    .stats-bar-item:last-child {
+      border-right: none;
+    }
+
+    .stats-bar-num {
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--accent);
+      font-family: 'Press Start 2P', monospace;
+      letter-spacing: 0px;
+      margin-bottom: 3px;
+    }
+
+    .stats-bar-label {
+      font-size: 8px;
+      color: var(--ink-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      font-weight: 500;
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .stats-live-badge {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 5px;
+      font-size: 8px;
+      font-family: 'Press Start 2P', monospace;
+      color: var(--ink-muted);
+      margin-top: 3px;
+    }
+
+    .stats-live-badge .dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 0;
+      background: var(--green);
+      animation: pulse 2s infinite;
+    }
+
+    .stat-updating {
+      color: var(--ink) !important;
+    }
 
     /* ── Features ── */
-    .features-section { max-width:1100px;margin:0 auto;padding:64px 32px 80px; }
-    .features-label { font-size:11px;font-weight:600;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.12em;color:var(--ink-muted);margin-bottom:12px; }
-    .features-heading { font-size:24px;font-weight:700;letter-spacing:-0.5px;margin-bottom:8px;color:var(--ink); }
-    .features-sub { font-size:13px;color:var(--ink-muted);line-height:1.65;max-width:480px;margin-bottom:40px; }
-    .feat-grid { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-radius:12px 12px 0 0;overflow:hidden; }
-    .feat-grid-bottom { display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--border);border:1px solid var(--border);border-top:none;border-radius:0 0 12px 12px;overflow:hidden; }
-    .feat-card { background:var(--surface);padding:28px 26px;transition:background 0.15s; }
-    .feat-card:hover { background:var(--surface2); }
-    .feat-card-label { font-size:10px;font-weight:700;font-family:var(--mono);text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:10px; }
-    .feat-card h3 { font-size:15px;font-weight:600;color:var(--ink);letter-spacing:-0.2px;margin-bottom:8px;line-height:1.3; }
-    .feat-card p { font-size:13px;color:var(--ink-muted);line-height:1.65; }
-    .feat-tags { display:flex;flex-wrap:wrap;gap:5px;margin-top:14px; }
-    .feat-tag { font-size:10px;font-family:var(--mono);padding:3px 8px;background:var(--surface2);border:1px solid var(--border);border-radius:4px;color:var(--ink-muted); }
+    .features-section {
+      max-width: 1100px;
+      margin: 0 auto;
+      padding: 64px 32px 80px;
+    }
+
+    .features-label {
+      font-size: 8px;
+      font-weight: 600;
+      font-family: 'Press Start 2P', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--ink-muted);
+      margin-bottom: 12px;
+    }
+
+    .features-heading {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0px;
+      margin-bottom: 8px;
+      color: var(--ink);
+      font-family: 'Press Start 2P', monospace;
+    }
+
+    .features-sub {
+      font-size: 13px;
+      color: var(--ink-muted);
+      line-height: 1.65;
+      max-width: 480px;
+      margin-bottom: 40px;
+    }
+
+    .feat-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 2px solid var(--border);
+      border-radius: 4px 4px 0 0;
+      overflow: hidden;
+    }
+
+    .feat-grid-bottom {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 2px;
+      background: var(--border);
+      border: 2px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 4px 4px;
+      overflow: hidden;
+    }
+
+    .feat-card {
+      background: var(--surface);
+      padding: 28px 26px;
+      transition: background 0.15s;
+    }
+
+    .feat-card:hover {
+      background: var(--surface2);
+    }
+
+    .feat-card-label {
+      font-size: 8px;
+      font-weight: 700;
+      font-family: 'Press Start 2P', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      color: var(--ink-muted);
+      margin-bottom: 10px;
+    }
+
+    .feat-card h3 {
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--ink);
+      letter-spacing: -0.2px;
+      margin-bottom: 8px;
+      line-height: 1.5;
+    }
+
+    .feat-card p {
+      font-size: 12px;
+      color: var(--ink-muted);
+      line-height: 1.65;
+    }
+
+    .feat-tags {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 5px;
+      margin-top: 14px;
+    }
+
+    .feat-tag {
+      font-size: 8px;
+      font-family: 'Press Start 2P', monospace;
+      padding: 4px 8px;
+      background: var(--surface2);
+      border: 2px solid var(--border);
+      border-radius: 2px;
+      color: var(--ink-muted);
+    }
 
     /* ── CTA ── */
-    .cta-section { border-top:1px solid var(--border);padding:64px 32px;text-align:center; }
-    .cta-section h2 { font-size:28px;font-weight:700;letter-spacing:-1px;margin-bottom:10px;color:var(--ink); }
-    .cta-section p { font-size:14px;color:var(--ink-muted);margin-bottom:28px;line-height:1.7; }
-    .cta-btns { display:flex;gap:10px;justify-content:center; }
+    .cta-section {
+      border-top: 2px solid var(--border);
+      padding: 64px 32px;
+      text-align: center;
+      background: url('images/pixel-bg.png') center bottom / cover no-repeat;
+      position: relative;
+      image-rendering: pixelated;
+    }
+
+    .cta-section::before {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.55);
+      pointer-events: none;
+    }
+
+    .cta-section>* {
+      position: relative;
+      z-index: 2;
+    }
+
+    .cta-section h2 {
+      font-size: 16px;
+      font-weight: 700;
+      letter-spacing: 0px;
+      margin-bottom: 10px;
+      color: #fff;
+      font-family: 'Press Start 2P', monospace;
+      text-shadow: 2px 2px 0px rgba(0, 0, 0, 0.5);
+    }
+
+    .cta-section p {
+      font-size: 12px;
+      color: rgba(255, 255, 255, 0.85);
+      margin-bottom: 28px;
+      line-height: 1.7;
+    }
+
+    .cta-btns {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+    }
 
     /* ── Footer ── */
-    .landing-footer { border-top:1px solid var(--border);padding:16px 28px;display:flex;justify-content:space-between;align-items:center; }
-    .landing-footer p { font-size:12px;color:var(--ink-muted);font-family:var(--mono); }
+    .landing-footer {
+      border-top: 2px solid var(--border);
+      padding: 16px 28px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: var(--surface);
+    }
+
+    .landing-footer p {
+      font-size: 8px;
+      color: var(--ink-muted);
+      font-family: 'Press Start 2P', monospace;
+    }
 
     /* ── Responsive ── */
     @media (max-width:900px) {
-      .hero-section { grid-template-columns:1fr; min-height:auto; padding:48px 20px 36px; }
-      .hero-left { padding:0; }
-      .hero-right { min-height:60vw; border-left:none; border-top:1px solid var(--border); }
-      .panpan-pointer { display:none; }
-      .hero-sub { font-size:14px; }
-      /* panpan section stack */
-      .panpan-inner { grid-template-columns:1fr; }
-      .panpan-svg-col { border-left:none; border-top:1px solid var(--border); min-height:260px; }
-      .panpan-text { padding:36px 24px 28px; }
+      .hero-section {
+        grid-template-columns: 1fr;
+        min-height: auto;
+        padding: 60px 20px 36px;
+      }
+
+      .hero-left {
+        padding: 0;
+      }
+
+      .hero-right {
+        min-height: 60vw;
+        border-left: none;
+        border-top: 1px solid var(--border);
+      }
+
+      .panpan-pointer {
+        display: none;
+      }
+
+      .hero-sub {
+        font-size: 9px;
+      }
+
+      .hero-title {
+        font-size: clamp(14px, 4vw, 24px);
+      }
+
+      .panpan-inner {
+        grid-template-columns: 1fr;
+      }
+
+      .panpan-svg-col {
+        border-left: none;
+        border-top: 1px solid var(--border);
+        min-height: 260px;
+      }
+
+      .panpan-text {
+        padding: 36px 24px 28px;
+      }
     }
+
     @media (max-width:600px) {
-      .feat-grid,.feat-grid-bottom { grid-template-columns:1fr; }
-      .hero-cta,.cta-btns { flex-direction:column; align-items:stretch; }
-      .hero-cta .btn, .cta-btns .btn { justify-content:center; }
-      .cta-btns { align-items:center; }
-      .hero-section { padding:36px 16px 28px; }
-      .stats-bar-num { font-size:20px; }
-      .stats-bar-item { padding:14px 12px; }
-      .cta-section { padding:36px 16px; }
-      .features-section { padding:36px 16px 48px; }
+
+      .feat-grid,
+      .feat-grid-bottom {
+        grid-template-columns: 1fr;
+      }
+
+      .hero-cta,
+      .cta-btns {
+        flex-direction: column;
+        align-items: stretch;
+      }
+
+      .hero-cta .btn,
+      .cta-btns .btn {
+        justify-content: center;
+      }
+
+      .cta-btns {
+        align-items: center;
+      }
+
+      .hero-section {
+        padding: 36px 16px 28px;
+        min-height: 400px;
+      }
+
+      .stats-bar-num {
+        font-size: 14px;
+      }
+
+      .stats-bar-label {
+        font-size: 7px;
+      }
+
+      .stats-bar-item {
+        padding: 14px 12px;
+      }
+
+      .cta-section {
+        padding: 36px 16px;
+      }
+
+      .cta-section h2 {
+        font-size: 12px;
+      }
+
+      .features-section {
+        padding: 36px 16px 48px;
+      }
+
+      .features-heading {
+        font-size: 12px;
+      }
+
+      .hero-sub {
+        font-size: 8px;
+        line-height: 2.2;
+      }
+
+      .landing-footer {
+        flex-direction: column;
+        gap: 8px;
+        text-align: center;
+      }
+
+      .landing-footer p {
+        font-size: 7px;
+      }
     }
   </style>
 </head>
+
 <body class="landing-body">
 
-  <nav class="landing-nav">
+  <nav class="landing-nav" style="background:rgba(240,247,241,0.96);border-bottom:2px solid var(--border);">
     <div class="landing-nav-logo">
-      <div class="logo-box">JT</div>
-      <span>JobTrack</span>
+      <div class="logo-box" style="border-radius:4px;box-shadow:2px 2px 0px rgba(0,0,0,0.2);">JT</div>
+      <span style="font-family:'Press Start 2P', monospace;font-size:11px;">JobTrack</span>
     </div>
     <button class="landing-hamburger" id="landingHamburger" aria-label="Menu">
       <span></span><span></span><span></span>
@@ -229,8 +720,9 @@
     <div class="hero-grid-bg"></div>
     <div class="hero-left">
       <div class="hero-eyebrow">JobTrack</div>
-      <h1 class="hero-title">Job Platform<br/><span class="hl">Built For Results</span></h1>
-      <p class="hero-sub">A streamlined job application system connecting applicants with employers — built for clarity, speed, and transparency.</p>
+      <h1 class="hero-title">Job Platform<br /><span class="hl">Built For Results</span></h1>
+      <p class="hero-sub">A streamlined job application system connecting applicants with employers — built for clarity,
+        speed, and transparency.</p>
       <div class="hero-cta">
         <a href="pages/jobs.html" class="btn btn-primary btn-lg">Browse Jobs</a>
         <a href="pages/register.html" class="btn btn-ghost btn-lg" id="ctaSecondary">Get Started</a>
@@ -243,17 +735,23 @@
     <div class="stats-bar-item">
       <div class="stats-bar-num" id="statJobs">--</div>
       <div class="stats-bar-label">Jobs Listed</div>
-      <div class="stats-live-badge"><div class="dot"></div>live</div>
+      <div class="stats-live-badge">
+        <div class="dot"></div>live
+      </div>
     </div>
     <div class="stats-bar-item">
       <div class="stats-bar-num" id="statApplicants">--</div>
       <div class="stats-bar-label">Applications</div>
-      <div class="stats-live-badge"><div class="dot"></div>live</div>
+      <div class="stats-live-badge">
+        <div class="dot"></div>live
+      </div>
     </div>
     <div class="stats-bar-item">
       <div class="stats-bar-num" id="statPlacement">--</div>
       <div class="stats-bar-label">Placement Rate</div>
-      <div class="stats-live-badge"><div class="dot"></div>live</div>
+      <div class="stats-live-badge">
+        <div class="dot"></div>live
+      </div>
     </div>
   </div>
 
@@ -261,7 +759,8 @@
   <section class="features-section animate-in">
     <div class="features-label">Platform Features</div>
     <h2 class="features-heading">Everything you need, nothing you don't.</h2>
-    <p class="features-sub">Built on Supabase and FastAPI — a full-stack job platform with real-time data, messaging, admin tools, and individual hire support.</p>
+    <p class="features-sub">Built on Supabase and FastAPI — a full-stack job platform with real-time data, messaging,
+      admin tools, and individual hire support.</p>
     <div class="feat-grid">
       <div class="feat-card">
         <div class="feat-card-label">For Applicants</div>
@@ -271,12 +770,14 @@
       <div class="feat-card">
         <div class="feat-card-label">Real-Time</div>
         <h3>Application Tracking</h3>
-        <p>Monitor every application status live. Dashboard auto-refreshes every 30 seconds with accept / reject updates.</p>
+        <p>Monitor every application status live. Dashboard auto-refreshes every 30 seconds with accept / reject
+          updates.</p>
       </div>
       <div class="feat-card">
         <div class="feat-card-label">Messaging</div>
         <h3>Built-In Chat</h3>
-        <p>Applicants and employers chat directly per application. Supports image attachments, reply threads, and unread badges.</p>
+        <p>Applicants and employers chat directly per application. Supports image attachments, reply threads, and unread
+          badges.</p>
         <div class="feat-tags">
           <span class="feat-tag">Reply</span>
           <span class="feat-tag">Images</span>
@@ -288,7 +789,8 @@
       <div class="feat-card">
         <div class="feat-card-label">For Employers</div>
         <h3>Hiring Pipeline</h3>
-        <p>Post jobs with slot limits, deadlines, and banner images. Review applicants, add private notes, and accept or reject in one click.</p>
+        <p>Post jobs with slot limits, deadlines, and banner images. Review applicants, add private notes, and accept or
+          reject in one click.</p>
         <div class="feat-tags">
           <span class="feat-tag">Analytics</span>
           <span class="feat-tag">Notes</span>
@@ -298,7 +800,8 @@
       <div class="feat-card">
         <div class="feat-card-label">Safety &amp; Trust</div>
         <h3>Report &amp; Admin Panel</h3>
-        <p>Flag suspicious listings or users. Admins review reports, close or delete jobs, and manage all users from a dedicated control panel.</p>
+        <p>Flag suspicious listings or users. Admins review reports, close or delete jobs, and manage all users from a
+          dedicated control panel.</p>
         <div class="feat-tags">
           <span class="feat-tag">Job Reports</span>
           <span class="feat-tag">User Reports</span>
@@ -308,7 +811,8 @@
       <div class="feat-card">
         <div class="feat-card-label">Individual Hire</div>
         <h3>Personal &amp; Odd Jobs</h3>
-        <p>Post errands, home services, caregiving, repairs, and events. Built-in safety reminders for meeting in public and verifying identity.</p>
+        <p>Post errands, home services, caregiving, repairs, and events. Built-in safety reminders for meeting in public
+          and verifying identity.</p>
         <div class="feat-tags">
           <span class="feat-tag">Freelance</span>
           <span class="feat-tag">Errands</span>
@@ -324,14 +828,15 @@
     <div class="panpan-inner">
       <div class="panpan-text">
         <div class="panpan-eyebrow">Meet Our Mascot</div>
-        <h2 class="panpan-title">Say hello to<br/><span class="panpan-name">Pan-Pan</span> 🐼</h2>
-        <p class="panpan-sub">Pan-Pan is JobTrack's friendly panda — always at the desk, reviewing applications, and making sure every applicant finds their perfect match.</p>
+        <h2 class="panpan-title">Say hello to<br /><span class="panpan-name">Pan-Pan</span> 🐼</h2>
+        <p class="panpan-sub">Pan-Pan is JobTrack's friendly panda — always at the desk, reviewing applications, and
+          making sure every applicant finds their perfect match.</p>
         <a href="pages/register.html" class="btn btn-primary">Start Your Journey →</a>
       </div>
       <div class="panpan-svg-col">
         <div class="panpan-glow"></div>
         <div class="panpan-float-wrap">
-          <img src="images/panpan.png" alt="Pan-Pan the JobTrack mascot" class="panpan-mascot-img"/>
+          <img src="images/panpan.png" alt="Pan-Pan the JobTrack mascot" class="panpan-mascot-img" />
         </div>
         <div class="panpan-floor-shadow"></div>
         <div class="panpan-name-tag">Pan-Pan · JobTrack mascot</div>
@@ -350,8 +855,8 @@
   </section>
 
   <footer class="landing-footer">
-    <p>Gabriel Laag Sapetin &copy; 2026 &mdash; Job Application Webpage</p>
-    <p>ongoing startup...</p>
+    <p>Gabriel Laag Sapetin &copy; 2026 &mdash; Job Application WebpApp</p>
+    <p>System</p>
   </footer>
 
   <script src="js/config.js"></script>
@@ -363,8 +868,8 @@
       navLinks.innerHTML =
         '<a href="pages/jobs.html" style="font-size:13px;color:var(--ink-soft);padding:6px 12px;border-radius:var(--radius);transition:all 0.15s;">Browse Jobs</a>' +
         '<a href="pages/dashboard.html" class="nav-user-chip">' +
-          '<div class="nav-user-avatar">' + (user.profile_pic ? '<img src="' + user.profile_pic + '" onerror="this.parentElement.textContent=\'\'"/>' : user.name[0].toUpperCase()) + '</div>' +
-          '<div><div class="nav-user-name">' + user.name + '</div><div class="nav-user-role">' + user.role + '</div></div>' +
+        '<div class="nav-user-avatar">' + (user.profile_pic ? '<img src="' + user.profile_pic + '" onerror="this.parentElement.textContent=\'\'"/>' : user.name[0].toUpperCase()) + '</div>' +
+        '<div><div class="nav-user-name">' + user.name + '</div><div class="nav-user-role">' + user.role + '</div></div>' +
         '</a>' +
         '<button onclick="logout()" class="btn btn-ghost btn-sm" style="font-size:12px;">Sign Out</button>';
       const cta = document.getElementById("ctaSecondary");
@@ -380,54 +885,54 @@
     function countUp(el, target, suffix) {
       suffix = suffix || "";
       if (!el) return;
-      var duration=1200, start=performance.now(), from=parseInt(el.textContent.replace(/[^0-9]/g,""))||0;
+      var duration = 1200, start = performance.now(), from = parseInt(el.textContent.replace(/[^0-9]/g, "")) || 0;
       el.classList.add("stat-updating");
       function step(now) {
-        var p=Math.min((now-start)/duration,1), e=1-Math.pow(1-p,3);
-        el.textContent=Math.round(from+(target-from)*e)+suffix;
-        if(p<1) requestAnimationFrame(step); else el.classList.remove("stat-updating");
+        var p = Math.min((now - start) / duration, 1), e = 1 - Math.pow(1 - p, 3);
+        el.textContent = Math.round(from + (target - from) * e) + suffix;
+        if (p < 1) requestAnimationFrame(step); else el.classList.remove("stat-updating");
       }
       requestAnimationFrame(step);
     }
 
     async function fetchLiveStats() {
       try {
-        var jobRes = await fetch(((window.JT_CONFIG && window.JT_CONFIG.API_BASE)||"http://localhost:8000") + "/jobs/stats").then(function(r){return r.json();}).catch(function(){return null;});
-        var appRes = await fetch(((window.JT_CONFIG && window.JT_CONFIG.API_BASE)||"http://localhost:8000") + "/applications/public").then(function(r){return r.json();}).catch(function(){return null;});
+        var jobRes = await fetch(((window.JT_CONFIG && window.JT_CONFIG.API_BASE) || "http://localhost:8000") + "/jobs/stats").then(function (r) { return r.json(); }).catch(function () { return null; });
+        var appRes = await fetch(((window.JT_CONFIG && window.JT_CONFIG.API_BASE) || "http://localhost:8000") + "/applications/public").then(function (r) { return r.json(); }).catch(function () { return null; });
         var jobs = (jobRes && jobRes.job_count) ? jobRes.job_count : 0;
         var total = (appRes && appRes.total) ? appRes.total : 0;
         var accepted = (appRes && appRes.accepted) ? appRes.accepted : 0;
-        var placement = total > 0 ? Math.round((accepted/total)*100) : 85;
-        countUp(document.getElementById("statJobs"),      jobs||120,  "+");
-        countUp(document.getElementById("statApplicants"),total||400, "+");
-        countUp(document.getElementById("statPlacement"), placement,  "%");
-      } catch(e) {
-        countUp(document.getElementById("statJobs"),      120, "+");
-        countUp(document.getElementById("statApplicants"),400, "+");
-        countUp(document.getElementById("statPlacement"), 85,  "%");
+        var placement = total > 0 ? Math.round((accepted / total) * 100) : 85;
+        countUp(document.getElementById("statJobs"), jobs || 120, "+");
+        countUp(document.getElementById("statApplicants"), total || 400, "+");
+        countUp(document.getElementById("statPlacement"), placement, "%");
+      } catch (e) {
+        countUp(document.getElementById("statJobs"), 120, "+");
+        countUp(document.getElementById("statApplicants"), 400, "+");
+        countUp(document.getElementById("statPlacement"), 85, "%");
       }
     }
     fetchLiveStats();
     setInterval(fetchLiveStats, 30000);
 
     // Landing hamburger toggle for mobile
-    (function() {
+    (function () {
       var hamburger = document.getElementById('landingHamburger');
       var navLinks = document.getElementById('navLinks');
       if (hamburger && navLinks) {
-        hamburger.addEventListener('click', function() {
+        hamburger.addEventListener('click', function () {
           hamburger.classList.toggle('open');
           navLinks.classList.toggle('open');
         });
         // Close menu when clicking a link
-        navLinks.addEventListener('click', function(e) {
+        navLinks.addEventListener('click', function (e) {
           if (e.target.tagName === 'A' || e.target.tagName === 'BUTTON') {
             hamburger.classList.remove('open');
             navLinks.classList.remove('open');
           }
         });
         // Close menu when clicking outside
-        document.addEventListener('click', function(e) {
+        document.addEventListener('click', function (e) {
           if (!hamburger.contains(e.target) && !navLinks.contains(e.target)) {
             hamburger.classList.remove('open');
             navLinks.classList.remove('open');
@@ -437,4 +942,5 @@
     })();
   </script>
 </body>
+
 </html>

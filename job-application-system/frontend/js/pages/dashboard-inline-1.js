@@ -1372,17 +1372,21 @@ async function loadAppConversations() {
       const unread   = _unreadCounts[a.id] || 0;
       const company  = a.jobs?.company || "Employer";
       const jobTitle = a.jobs?.title   || "Position";
-      return `<div class="conv-item" onclick="openChatModal(${a.id},'${escHtml(company)}','','${escHtml(jobTitle)}')">
-        <div class="conv-item-avatar">
-          ${company[0].toUpperCase()}
-          ${unread>0?`<div class="conv-unread-dot"></div>`:""}
+      const empId    = a.jobs?.employer_id || null;
+      return `<div class="conv-item" style="position:relative;">
+        <div style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openChatModal(${a.id},'${escHtml(company)}','','${escHtml(jobTitle)}')">
+          <div class="conv-item-avatar">
+            ${company[0].toUpperCase()}
+            ${unread>0?`<div class="conv-unread-dot"></div>`:""}
+          </div>
+          <div class="conv-item-info">
+            <div class="conv-item-name">${escapeHtml(company)}</div>
+            <div class="conv-item-sub">${escapeHtml(jobTitle)}</div>
+          </div>
         </div>
-        <div class="conv-item-info">
-          <div class="conv-item-name">${escapeHtml(company)}</div>
-          <div class="conv-item-sub">${escapeHtml(jobTitle)}</div>
-        </div>
-        <div class="conv-item-meta">
+        <div class="conv-item-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
           ${unread>0?`<span class="g-chip" style="animation:pulse 2s infinite;">${unread} new</span>`:`<span class="g-chip gc-muted">read</span>`}
+          ${empId?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;min-height:auto;" onclick="event.stopPropagation();viewEmployerFromDashboard(${empId},'${escHtml(company)}')">View Profile</button>`:""}
         </div>
       </div>`;
     }).join("");
@@ -1428,3 +1432,49 @@ showEmpTab = function(id, btn) { _origShowEmpTab(id, btn); if (id==="tabEmpMessa
 // Poll unread every 30s
 loadUnreadCounts();
 setInterval(loadUnreadCounts, 30000);
+
+/* ── Employer / Company Profile Viewer (Dashboard) ── */
+async function viewEmployerFromDashboard(employerId, companyName) {
+  const modal = document.getElementById("employerProfileModal");
+  const body = document.getElementById("epModalBody");
+  const nameEl = document.getElementById("epModalName");
+  if (!modal || !body) return;
+  nameEl.textContent = companyName || "—";
+  body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading profile...</div>';
+  modal.classList.add("open");
+  try {
+    const p = await api("/users/" + employerId);
+    nameEl.textContent = p.name || companyName || "—";
+    var socialHtml = "";
+    if (p.instagram) socialHtml += '<a href="https://instagram.com/' + p.instagram + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);">' + LOGO_IG + ' @' + p.instagram + '</a>';
+    if (p.facebook) socialHtml += '<a href="https://facebook.com/' + p.facebook + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);">' + LOGO_FB + ' ' + p.facebook + '</a>';
+    var _ph = p.phone || ""; var _tgM = _ph.match(/\| tg:@(\S+)/);
+    var _phoneDisplay = _tgM ? _ph.split(" | tg:")[0].trim() : _ph;
+    var _tgHandle = _tgM ? _tgM[1] : null;
+    if (_phoneDisplay) socialHtml += '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);">' + LOGO_PHONE + ' ' + _phoneDisplay + '</span>';
+    if (_tgHandle) socialHtml += '<a href="https://t.me/' + _tgHandle + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);">' + LOGO_TG + ' @' + _tgHandle + '</a>';
+    if (p.website) socialHtml += '<a href="' + p.website + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);">' + LOGO_WEB + ' Website</a>';
+    var verifiedHtml = p.is_verified ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:var(--mono);margin-left:6px;">✓ VERIFIED</span>' : '';
+    body.innerHTML =
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">' +
+        '<div style="width:56px;height:56px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-size:22px;font-weight:700;color:var(--ink-muted);overflow:hidden;flex-shrink:0;border:2px solid var(--border);">' +
+        (p.profile_pic && p.profile_pic.startsWith("http") ? '<img src="' + p.profile_pic + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent=\'' + (p.name||"?")[0].toUpperCase() + '\'"/>' : (p.name||"?")[0].toUpperCase()) +
+        '</div>' +
+        '<div><div style="font-size:15px;font-weight:600;color:var(--ink);">' + (p.name||"—") + verifiedHtml + '</div>' +
+        '<div style="font-size:11px;color:var(--accent);text-transform:uppercase;font-weight:600;letter-spacing:0.06em;">Employer / Recruiter</div>' +
+        '<div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">' + (p.email||"") + '</div></div>' +
+      '</div>' +
+      (p.banner_url && p.banner_url.startsWith("http") ? '<img src="' + p.banner_url + '" style="width:100%;height:120px;object-fit:cover;border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--border);" onerror="this.style.display=\'none\'"/>' : '') +
+      '<div style="padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:14px;">' +
+      (p.about_me || '<span style="color:var(--ink-muted);font-style:italic;">No company description provided.</span>') +
+      '</div>' +
+      (socialHtml ? '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + socialHtml + '</div>' : '<div style="font-size:12px;color:var(--ink-muted);">No contact information provided.</div>');
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--red);font-size:12px;">Could not load profile: ' + e.message + '</div>';
+  }
+}
+// Close employer profile modal on overlay click
+document.addEventListener("DOMContentLoaded", function() {
+  var epm = document.getElementById("employerProfileModal");
+  if (epm) epm.addEventListener("click", function(e) { if (e.target === epm) epm.classList.remove("open"); });
+});

@@ -173,7 +173,7 @@
     <div class="jd-header">
       <div class="jd-header-left">
         <div class="jd-title" id="jdTitle">—</div>
-        <div class="jd-company" id="jdCompany">—</div>
+        <div class="jd-company" id="jdCompany" style="cursor:pointer;" onclick="viewEmployerProfile()">—  <span style="font-size:10px;color:var(--accent);margin-left:4px;">View Profile →</span></div>
         <div class="jd-tags" id="jdTags"></div>
       </div>
       <button class="jd-close" onclick="closeDetailModal()">✕</button>
@@ -315,6 +315,17 @@
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="submitApplication()">Submit Application →</button>
     </div>
+  </div>
+</div>
+
+<!-- Employer Profile Modal -->
+<div class="modal-overlay" id="employerProfileModal">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header">
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Company / Recruiter</div><h3 id="epModalName">—</h3></div>
+      <button class="modal-close" onclick="document.getElementById('employerProfileModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="epModalBody">Loading...</div>
   </div>
 </div>
 

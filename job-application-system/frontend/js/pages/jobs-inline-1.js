@@ -490,4 +490,56 @@ if (getUser()) {
   setInterval(loadNotifCount, 30000);
 }
 
+/* ── Employer / Company Profile Viewer ── */
+async function viewEmployerProfile() {
+  if (!selectedJob || !selectedJob.employer_id) return;
+  const modal = document.getElementById("employerProfileModal");
+  const body = document.getElementById("epModalBody");
+  const nameEl = document.getElementById("epModalName");
+  if (!modal || !body) return;
+  nameEl.textContent = selectedJob.company || "—";
+  body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading profile...</div>';
+  modal.classList.add("open");
+  try {
+    const p = await api("/users/" + selectedJob.employer_id);
+    nameEl.textContent = p.name || selectedJob.company || "—";
+    const LOGO_IG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/></svg>';
+    const LOGO_FB = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>';
+    const LOGO_TG = '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M21.8 2.15L2.05 9.84c-1.3.52-1.29 1.25-.24 1.57l5.1 1.59 11.83-7.47c.56-.34 1.07-.16.65.21L8.1 16.17l-.39 5.27c.57 0 .82-.26 1.14-.57l2.73-2.65 5.68 4.19c1.05.58 1.8.28 2.06-.97l3.73-17.57c.38-1.52-.58-2.21-1.25-1.72z"/></svg>';
+    const LOGO_PH = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.86a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.78 16z"/></svg>';
+    const LOGO_WEB = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>';
+    var socialHtml = "";
+    if (p.instagram) socialHtml += '<a href="https://instagram.com/' + p.instagram + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);transition:all 0.15s;">' + LOGO_IG + ' @' + p.instagram + '</a>';
+    if (p.facebook) socialHtml += '<a href="https://facebook.com/' + p.facebook + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);transition:all 0.15s;">' + LOGO_FB + ' ' + p.facebook + '</a>';
+    var _ph = p.phone || ""; var _tgM = _ph.match(/\| tg:@(\S+)/);
+    var _phoneDisplay = _tgM ? _ph.split(" | tg:")[0].trim() : _ph;
+    var _tgHandle = _tgM ? _tgM[1] : null;
+    if (_phoneDisplay) socialHtml += '<span style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);">' + LOGO_PH + ' ' + _phoneDisplay + '</span>';
+    if (_tgHandle) socialHtml += '<a href="https://t.me/' + _tgHandle + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);transition:all 0.15s;">' + LOGO_TG + ' @' + _tgHandle + '</a>';
+    if (p.website) socialHtml += '<a href="' + p.website + '" target="_blank" style="display:inline-flex;align-items:center;gap:6px;padding:6px 10px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:12px;color:var(--ink-soft);transition:all 0.15s;">' + LOGO_WEB + ' Website</a>';
+    var verifiedHtml = p.is_verified ? '<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:var(--mono);margin-left:6px;">✓ VERIFIED</span>' : '';
+    body.innerHTML =
+      '<div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">' +
+        '<div style="width:56px;height:56px;border-radius:50%;background:var(--surface2);display:grid;place-items:center;font-size:22px;font-weight:700;color:var(--ink-muted);overflow:hidden;flex-shrink:0;border:2px solid var(--border);">' +
+        (p.profile_pic && p.profile_pic.startsWith("http") ? '<img src="' + p.profile_pic + '" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent=\'' + (p.name||"?")[0].toUpperCase() + '\'"/>' : (p.name||"?")[0].toUpperCase()) +
+        '</div>' +
+        '<div><div style="font-size:15px;font-weight:600;color:var(--ink);">' + (p.name||"—") + verifiedHtml + '</div>' +
+        '<div style="font-size:11px;color:var(--accent);text-transform:uppercase;font-weight:600;letter-spacing:0.06em;">Employer / Recruiter</div>' +
+        '<div style="font-size:11px;color:var(--ink-muted);margin-top:2px;">' + (p.email||"") + '</div></div>' +
+      '</div>' +
+      (p.banner_url && p.banner_url.startsWith("http") ? '<img src="' + p.banner_url + '" style="width:100%;height:120px;object-fit:cover;border-radius:var(--radius);margin-bottom:12px;border:1px solid var(--border);" onerror="this.style.display=\'none\'"/>' : '') +
+      '<div style="padding:12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);font-size:13px;color:var(--ink-soft);line-height:1.6;margin-bottom:14px;">' +
+      (p.about_me || '<span style="color:var(--ink-muted);font-style:italic;">No company description provided.</span>') +
+      '</div>' +
+      (socialHtml ? '<div style="display:flex;flex-wrap:wrap;gap:6px;">' + socialHtml + '</div>' : '<div style="font-size:12px;color:var(--ink-muted);">No contact information provided.</div>');
+  } catch(e) {
+    body.innerHTML = '<div style="text-align:center;padding:24px;color:var(--red);font-size:12px;">Could not load profile: ' + e.message + '</div>';
+  }
+}
+// Close employer profile modal on overlay click
+document.addEventListener("DOMContentLoaded", function() {
+  var epm = document.getElementById("employerProfileModal");
+  if (epm) epm.addEventListener("click", function(e) { if (e.target === epm) epm.classList.remove("open"); });
+});
+
 loadJobs();

@@ -713,6 +713,18 @@
 <script src="../js/main.js"></script>
 <script src="../js/shell/notifications.js"></script>
 <script src="../js/shell/savedJobs.js"></script>
+
+<!-- Employer Profile Modal (for viewing from messages) -->
+<div class="modal-overlay" id="employerProfileModal">
+  <div class="modal-box" style="max-width:480px;">
+    <div class="modal-header">
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Company / Recruiter</div><h3 id="epModalName">—</h3></div>
+      <button class="modal-close" onclick="document.getElementById('employerProfileModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="epModalBody">Loading...</div>
+  </div>
+</div>
+
 <!-- ══ CHAT MODAL ══ -->
   <link rel="stylesheet" href="../css/pages/dashboard-inline-2.css"/>
 
