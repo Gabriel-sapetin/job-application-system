@@ -1406,17 +1406,21 @@ async function loadEmpConversations() {
       const name     = a.name || profile.name || "Applicant";
       const pic      = profile.profile_pic || "";
       const jobTitle = a.jobs?.title || "Position";
-      return `<div class="conv-item" onclick="openChatModal(${a.id},'${escHtml(name)}','${pic}','${escHtml(jobTitle)}')">
-        <div class="conv-item-avatar">
-          ${pic?`<img src="${pic}" onerror="this.parentElement.textContent='${name[0].toUpperCase()}'"/>`:name[0].toUpperCase()}
-          ${unread>0?`<div class="conv-unread-dot"></div>`:""}
+      const hasProfile = profile.about_me || profile.instagram || profile.facebook || profile.profile_pic;
+      return `<div class="conv-item" style="position:relative;">
+        <div style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openChatModal(${a.id},'${escHtml(name)}','${pic}','${escHtml(jobTitle)}')">
+          <div class="conv-item-avatar">
+            ${pic?`<img src="${pic}" onerror="this.parentElement.textContent='${name[0].toUpperCase()}'"/>`:name[0].toUpperCase()}
+            ${unread>0?`<div class="conv-unread-dot"></div>`:""}
+          </div>
+          <div class="conv-item-info">
+            <div class="conv-item-name">${escapeHtml(name)}</div>
+            <div class="conv-item-sub">${escapeHtml(jobTitle)}</div>
+          </div>
         </div>
-        <div class="conv-item-info">
-          <div class="conv-item-name">${escapeHtml(name)}</div>
-          <div class="conv-item-sub">${escapeHtml(jobTitle)}</div>
-        </div>
-        <div class="conv-item-meta">
+        <div class="conv-item-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
           ${unread>0?`<span class="g-chip" style="animation:pulse 2s infinite;">${unread} new</span>`:`<span class="g-chip gc-muted">read</span>`}
+          ${hasProfile?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;min-height:auto;color:var(--accent3);border-color:rgba(77,159,255,0.3);" onclick="event.stopPropagation();viewApplicantProfile(${a.id})">View Profile</button>`:""}
         </div>
       </div>`;
     }).join("");
