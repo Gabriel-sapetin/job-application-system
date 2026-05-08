@@ -1243,7 +1243,7 @@ a { text-decoration: none; color: inherit; }
   .int-chip-icon { display: none !important; }
   .int-chip-label { font-size: 10px !important; line-height: 1.25 !important; }
   .empty-state-panpan { padding: 36px 16px 52px; }
-  .empty-state-panpan svg { width: 140px; }
+  .empty-state-panpan img { width: 140px; }
   .empty-state-panpan .esp-text { font-size: 13px; margin-top: 9px; }
 }
 

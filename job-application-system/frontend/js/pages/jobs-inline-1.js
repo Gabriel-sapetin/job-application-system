@@ -118,13 +118,10 @@ function renderJobs(jobs){
   const c=document.getElementById("jobsContainer");
   if(!jobs.length){
     c.innerHTML=`<div class="empty-state-panpan">
-      <div id="espSvgWrap"></div>
+      <img src="../images/panpan.png" alt="Pan-Pan" style="width:140px;"/>
       <div class="esp-text">No positions match your filters.</div>
       <div class="esp-sub">Try clearing your category or type filter.</div>
     </div>`;
-    // inject Pan-Pan SVG into empty state
-    const wrap = document.getElementById("espSvgWrap");
-    if(wrap && window._panpanSVG) wrap.innerHTML = window._panpanSVG;
     return;
   }
   if(currentView==="grid") renderGrid(jobs,c);
