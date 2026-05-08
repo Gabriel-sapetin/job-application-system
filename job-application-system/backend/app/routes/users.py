@@ -10,21 +10,6 @@ def get_user_from_request(request: Request) -> dict:
     return verify_token(token)
 
 
-@router.get("/{user_id}/public")
-def get_user_public(user_id: int, request: Request):
-    """Public profile — any logged-in user can view basic info."""
-    get_user_from_request(request)  # just verify they're logged in
-
-    result = supabase.table("users").select(
-        "id, name, role, profile_pic, banner_url, about_me, "
-        "instagram, facebook, phone, website, is_verified, created_at"
-    ).eq("id", user_id).execute()
-
-    if not result.data:
-        raise HTTPException(status_code=404, detail="User not found.")
-    return result.data[0]
-
-
 @router.get("/{user_id}")
 def get_user(user_id: int, request: Request):
     payload = get_user_from_request(request)

@@ -29,30 +29,24 @@ def get_jobs(
     if category:    query = query.eq("category", category)
     if status:      query = query.eq("status", status)
 
-    # ── Improvement 2: Search across title + company + description ──
+    # ── Improvement 2: Full-text search across title + company + description ──
     if search:
         search_clean = search.strip()
+        # Supabase textSearch uses PostgreSQL tsvector — searches title, company, description
         try:
-            # Search title with ilike
-            title_result = (
+            result = (
                 supabase.table("jobs")
                 .select("*")
-                .ilike("title", f"%{search_clean}%")
+                .text_search("title", search_clean, config="english")
                 .order("created_at", desc=True)
                 .execute()
             )
-            # Search company with ilike
-            company_result = (
-                supabase.table("jobs")
-                .select("*")
-                .ilike("company", f"%{search_clean}%")
-                .order("created_at", desc=True)
-                .execute()
-            )
+            # Fallback: also ilike search company
+            ilike_result = supabase.table("jobs").select("*").ilike("company", f"%{search_clean}%").execute()
             # Merge + deduplicate
             seen_ids = set()
             merged   = []
-            for row in (title_result.data or []) + (company_result.data or []):
+            for row in (result.data or []) + (ilike_result.data or []):
                 if row["id"] not in seen_ids:
                     seen_ids.add(row["id"])
                     merged.append(row)
@@ -66,7 +60,7 @@ def get_jobs(
                     j["applicant_count"] = s_map.get(j["id"], 0)
             return merged
         except Exception:
-            # Graceful fallback to ilike on title only
+            # Graceful fallback to ilike
             query = supabase.table("jobs").select("*").ilike("title", f"%{search}%").order("created_at", desc=True)
 
     offset = (page - 1) * limit

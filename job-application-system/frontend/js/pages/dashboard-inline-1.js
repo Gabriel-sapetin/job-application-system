@@ -1368,22 +1368,13 @@ async function loadAppConversations() {
     await loadUnreadCounts();
     const apps = _allApps.length ? _allApps : await api(`/applications/me`);
     if (!apps.length) { container.innerHTML = `<div class="empty-msg">No applications yet.</div>`; return; }
-    // Fetch employer profiles for profile pics
-    const employerIds = [...new Set(apps.map(a => a.jobs?.employer_id).filter(Boolean))];
-    const empProfiles = {};
-    await Promise.all(employerIds.map(async id => {
-      try { empProfiles[id] = await api(`/users/${id}/public`); } catch(e) { /* silent */ }
-    }));
     container.innerHTML = apps.map(a => {
       const unread   = _unreadCounts[a.id] || 0;
       const company  = a.jobs?.company || "Employer";
       const jobTitle = a.jobs?.title   || "Position";
-      const empId    = a.jobs?.employer_id;
-      const empProfile = empProfiles[empId] || {};
-      const pic = empProfile.profile_pic || "";
-      return `<div class="conv-item" onclick="openChatModal(${a.id},'${escHtml(company)}','${pic}','${escHtml(jobTitle)}')">
+      return `<div class="conv-item" onclick="openChatModal(${a.id},'${escHtml(company)}','','${escHtml(jobTitle)}')">
         <div class="conv-item-avatar">
-          ${pic?`<img src="${pic}" onerror="this.parentElement.textContent='${company[0].toUpperCase()}'"/>`:company[0].toUpperCase()}
+          ${company[0].toUpperCase()}
           ${unread>0?`<div class="conv-unread-dot"></div>`:""}
         </div>
         <div class="conv-item-info">
