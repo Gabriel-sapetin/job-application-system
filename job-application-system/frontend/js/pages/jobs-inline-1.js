@@ -17,7 +17,7 @@ const CATEGORIES = [
 ];
 const CAT_MAP  = Object.fromEntries(CATEGORIES.map(c=>[c.id,c]));
 const TYPE_MAP = {"Full-Time":"full-time","Part-Time":"part-time","Internship":"internship","Remote":"remote"};
-const TYPE_ICON = {"Full-Time":"🏢","Part-Time":"⏰","Internship":"🎓","Remote":"🌐"};
+const TYPE_ICON = {"Full-Time":"","Part-Time":"","Internship":"","Remote":""};
 
 let allJobs=[], activeFilters={type:"",status:"",category:""}, selectedJob=null, currentView="grid";
 
@@ -28,7 +28,7 @@ CATEGORIES.forEach(c=>{
   if(c.individual&&!lastWasIndividual){
     const div=document.createElement("div");
     div.style.cssText="display:flex;align-items:center;gap:6px;flex-shrink:0;padding:0 4px;";
-    div.innerHTML='<span style="width:1px;height:28px;background:var(--border);"></span><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a78bfa;white-space:nowrap;">👤 Individual</span>';
+    div.innerHTML='<span style="width:2px;height:28px;background:var(--ink);"></span><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:#a78bfa;white-space:nowrap;">Individual</span>';
     catRow.appendChild(div);
     lastWasIndividual=true;
   }
@@ -72,12 +72,28 @@ if(user){
 
 function setFilter(key,val,btn,navId){
   activeFilters[key]=val;
-  const selector = `#${navId} .sidebar-link`;
   const matchSnippet = `setFilter('${key}','${val}'`;
-  document.querySelectorAll(selector).forEach((b)=>{
-    const onclick = b.getAttribute("onclick") || "";
-    b.classList.toggle("active", onclick.includes(matchSnippet));
+  // Update all matching filter elements across chip bars, drawers, and sidebars
+  const selectors = [
+    `#${navId} .sidebar-link`,
+    `#${navId} .jb-filter-chip`,
+    `#${navId} .jb-drawer-filter`,
+    `#${navId} > .jb-filter-chip`,
+  ];
+  selectors.forEach(sel => {
+    document.querySelectorAll(sel).forEach((b)=>{
+      const onclick = b.getAttribute("onclick") || "";
+      b.classList.toggle("active", onclick.includes(matchSnippet));
+    });
   });
+  // Also sync the main navId container children directly
+  const nav = document.getElementById(navId);
+  if(nav){
+    nav.querySelectorAll('button').forEach(b => {
+      const onclick = b.getAttribute("onclick") || "";
+      b.classList.toggle("active", onclick.includes(matchSnippet));
+    });
+  }
   if (btn && btn.classList) btn.classList.add("active");
   filterJobs();
 }
@@ -142,7 +158,7 @@ function dlHtml(j){
   const d=new Date(j.deadline), diff=Math.ceil((d-Date.now())/(86400000));
   const label=diff<0?"Expired":diff===0?"Today":diff<=3?`${diff}d left`:d.toLocaleDateString("en-PH",{month:"short",day:"numeric"});
   const color=diff<0?"var(--red)":diff<=3?"var(--gold)":"var(--ink-muted)";
-  return `<span style="font-size:10px;color:${color};font-family:var(--mono);">⏰ ${label}</span>`;
+  return `<span style="font-size:10px;color:${color};font-family:var(--mono);">${label}</span>`;
 }
 
 function renderGrid(jobs,c){
@@ -161,15 +177,15 @@ function renderGrid(jobs,c){
         <div class="jc-header">
           <div>
             <div class="jc-title">${j.title}</div>
-            <div class="jc-company">${j.company} &nbsp;·&nbsp; 📍 ${j.location}${j.employer_is_verified?'<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:1px 6px;border-radius:100px;margin-left:6px;font-family:var(--mono);">✓ VERIFIED</span>':''}</div>
+            <div class="jc-company">${j.company} &nbsp;·&nbsp; ${j.location}${j.employer_is_verified?'<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:2px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px;font-family:var(--mono);">VERIFIED</span>':''}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
             <span class="pill pill-${j.status}">${j.status}</span>
-            ${isIndiv?`<span class="pill-individual">👤 Individual</span>`:""}
+            ${isIndiv?`<span class="pill-individual">Individual</span>`:""}
           </div>
         </div>
         <div class="jc-meta">
-          <span class="jc-meta-item">${TYPE_ICON[j.type]||""} ${j.type}</span>
+          <span class="jc-meta-item">${j.type}</span>
           ${cat?`<span class="jc-meta-item">${cat.label}</span>`:""}
           ${j.deadline?`<span class="jc-meta-item">${dlHtml(j)}</span>`:""}
         </div>
@@ -177,7 +193,7 @@ function renderGrid(jobs,c){
         <div class="jc-footer">
           <div class="jc-salary">${j.salary||"Negotiable"}</div>
           <div style="display:flex;gap:6px;align-items:center;">
-            ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">🔖</button>`:""}
+            ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">Save</button>`:""}
             <button class="btn btn-ghost btn-sm" onclick="openDetailModal(${j.id})">Details</button>
             <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
               onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
@@ -206,7 +222,7 @@ function renderList(jobs,c){
           <span class="type-tag ${TYPE_MAP[j.type]||""}">${j.type}</span>
         </div>
         <div class="jlr-meta">
-          <span>${j.company}</span><span>📍 ${j.location}</span>
+          <span>${j.company}</span><span>${j.location}</span>
           ${cat?`<span>${cat.label}</span>`:""}
           ${j.salary?`<span style="color:var(--ink);font-weight:600;font-family:var(--mono);">${j.salary}</span>`:""}
           ${j.deadline?dlHtml(j):""}
@@ -214,7 +230,7 @@ function renderList(jobs,c){
         </div>
       </div>
       <div class="jlr-right">
-        ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">🔖</button>`:""}
+        ${getUser()?`<button class="btn btn-ghost btn-sm bm-btn" data-jid="${j.id}" onclick="toggleBookmark(${j.id},this)" title="Save job" style="${savedIds.has(j.id)?"color:var(--gold);border-color:rgba(255,204,68,0.4);":""}">Save</button>`:""}
         <button class="btn btn-ghost btn-sm" onclick="openDetailModal(${j.id})">Details</button>
         <button class="btn btn-${closed?"ghost":"primary"} btn-sm"
           onclick="openModal(${JSON.stringify(j).replace(/"/g,'&quot;')})"
@@ -284,7 +300,7 @@ function openDetailModal(jobId) {
 
   // Header
   document.getElementById("jdTitle").textContent = j.title;
-  document.getElementById("jdCompany").textContent = j.company + "  ·  📍 " + j.location;
+  document.getElementById("jdCompany").textContent = j.company + "  ·  " + j.location;
 
   const cat = CAT_MAP[j.category];
   const closed = j.status === "closed" || j.status === "full";
@@ -292,7 +308,7 @@ function openDetailModal(jobId) {
     '<span class="jd-tag">' + (TYPE_ICON[j.type]||"") + " " + j.type + '</span>',
     '<span class="pill pill-' + j.status + '" style="margin:0;">' + j.status + '</span>',
     cat ? '<span class="jd-tag">' + cat.label + '</span>' : "",
-    j.view_count ? '<span class="jd-tag">👁 ' + j.view_count + ' views</span>' : "",
+    j.view_count ? '<span class="jd-tag">' + j.view_count + ' views</span>' : "",
   ];
   document.getElementById("jdTags").innerHTML = tagParts.join("");
 
@@ -347,9 +363,9 @@ function openDetailModal(jobId) {
   const postedDays = j.created_at ? Math.floor((Date.now()-new Date(j.created_at))/86400000) : null;
   const postedLabel = postedDays===null?"—":postedDays===0?"Today":postedDays===1?"Yesterday":postedDays+" days ago";
   document.getElementById("jdTrustBox").innerHTML =
-    '<div class="trust-row"><span>👥</span><span style="flex:1;">Applicants</span><span class="tr-val">'+(j.applicant_count||0)+(j.max_applicants?" / "+j.max_applicants+" slots":"")+'</span></div>'+
-    '<div class="trust-row"><span>👁</span><span style="flex:1;">Views</span><span class="tr-val">'+(j.view_count||0)+'</span></div>'+
-    (postedDays!==null?'<div class="trust-row"><span>🕐</span><span style="flex:1;">Posted</span><span class="tr-val">'+postedLabel+'</span></div>':"");
+    '<div class="trust-row"><span style="flex:1;">Applicants</span><span class="tr-val">'+(j.applicant_count||0)+(j.max_applicants?" / "+j.max_applicants+" slots":"")+'</span></div>'+
+    '<div class="trust-row"><span style="flex:1;">Views</span><span class="tr-val">'+(j.view_count||0)+'</span></div>'+
+    (postedDays!==null?'<div class="trust-row"><span style="flex:1;">Posted</span><span class="tr-val">'+postedLabel+'</span></div>':"");
 
   var applyBtn = document.getElementById("jdApplyBtn");
   if (closed) {
@@ -372,7 +388,7 @@ function openDetailModal(jobId) {
     // Patch the visible tags and trust row with live count
     const tagsEl = document.getElementById("jdTags");
     const existingView = tagsEl.querySelector(".jd-tag-views");
-    const viewTag = '<span class="jd-tag jd-tag-views">👁 ' + newCount + ' views</span>';
+    const viewTag = '<span class="jd-tag jd-tag-views">' + newCount + ' views</span>';
     if (existingView) existingView.outerHTML = viewTag;
     else tagsEl.insertAdjacentHTML("beforeend", viewTag);
     const trustRows = document.querySelectorAll(".trust-row");

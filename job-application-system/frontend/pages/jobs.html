@@ -5,144 +5,171 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Browse Jobs — JobTrack</title>
   <link rel="stylesheet" href="../css/style.css"/>
-    <link rel="stylesheet" href="../css/pages/jobs-inline-1.css"/>
+  <link rel="stylesheet" href="../css/pages/jobs-inline-1.css"/>
+  <link rel="stylesheet" href="../css/pages/jobs-browse.css"/>
 </head>
-<body>
-<div class="app-layout">
-  <!-- MOBILE TOPBAR -->
-  <div class="mobile-topbar">
-    <div class="mobile-topbar-logo">
-      <div class="logo-box" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
+<body class="jobs-browse-body">
+
+<!-- ═══ TOP NAVBAR ═══ -->
+<header class="jb-navbar" id="jbNavbar">
+  <div class="jb-navbar-inner">
+    <a href="../index.html" class="jb-nav-logo">
+      <div class="jb-nav-logo-icon">JT</div>
+      <span>JobTrack</span>
+    </a>
+    <nav class="jb-nav-links" id="jbNavLinks">
+      <a href="../index.html" class="jb-nav-link">Home</a>
+      <a href="jobs.html" class="jb-nav-link active">Browse Jobs</a>
+      <a href="dashboard.html" class="jb-nav-link" id="dashLink">Dashboard</a>
+    </nav>
+    <div class="jb-nav-right">
+      <div class="live-count-badge" id="liveCountDesktop">
+        <div class="live-dot"></div>
+        <span id="liveCount">—</span> live
+      </div>
+      <!-- Saved jobs chip -->
+      <a id="savedJobsChip" href="dashboard.html" style="display:none;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:100px;font-family:var(--mono);text-decoration:none;" title="Saved jobs">Saved <span id="savedCountChip">0</span></a>
+      <a href="login.html" class="btn btn-primary btn-sm jb-nav-auth" id="authBtn">Login</a>
+      <!-- Notifications (after dashboard so it's closer to edge on mobile) -->
+      <div id="notifBellWrap" style="position:relative;display:none;">
+        <button id="notifBell" onclick="toggleNotifPanel()" style="position:relative;background:var(--surface);border:2px solid var(--border);border-radius:4px;padding:6px 10px;cursor:pointer;color:var(--ink-muted);font-size:12px;transition:all 0.15s;font-family:var(--font);box-shadow:2px 2px 0px rgba(0,0,0,0.06);" title="Notifications">
+          Notifications<span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:var(--mono);min-width:16px;text-align:center;"></span>
+        </button>
+        <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:2px solid var(--ink);border-radius:4px;box-shadow:6px 6px 0px rgba(0,0,0,0.12);z-index:200;overflow:hidden;">
+          <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:2px solid var(--border);background:var(--surface2);">
+            <span style="font-size:13px;font-weight:600;">Notifications</span>
+            <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--font);">Mark all read</button>
+          </div>
+          <div id="notifList" style="max-height:320px;overflow-y:auto;"></div>
+        </div>
+      </div>
+      <button class="jb-hamburger" id="jbHamburger" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
+    </div>
+  </div>
+</header>
+
+<!-- ═══ MOBILE DRAWER ═══ -->
+<div class="jb-drawer-overlay" id="jbDrawerOverlay"></div>
+<div class="jb-drawer" id="jbDrawer">
+  <div class="jb-drawer-header">
+    <div class="jb-nav-logo">
+      <div class="jb-nav-logo-icon">JT</div>
       <span>JobTrack</span>
     </div>
-    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
+    <button class="jb-drawer-close" id="jbDrawerClose">✕</button>
   </div>
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
-      <div class="sidebar-logo-text">JobTrack <span>/ Jobs</span></div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Navigation</div>
-      <nav class="sidebar-nav">
-        <a href="../index.html" class="sidebar-link">Home</a>
-        <a href="jobs.html"     class="sidebar-link active">Browse Jobs</a>
-        <a href="dashboard.html" class="sidebar-link" id="dashLink">Dashboard</a>
-      </nav>
-    </div>
-    <div class="sidebar-section" style="margin-top:8px;">
-      <div class="sidebar-section-label">Job Type</div>
-      <nav class="sidebar-nav" id="typeNav">
-        <button class="sidebar-link active" onclick="setFilter('type','',this,'typeNav')">All Types <span class="sidebar-badge" id="countAll">—</span></button>
-        <button class="sidebar-link" onclick="setFilter('type','Full-Time',this,'typeNav')">Full-Time</button>
-        <button class="sidebar-link" onclick="setFilter('type','Part-Time',this,'typeNav')">Part-Time</button>
-        <button class="sidebar-link" onclick="setFilter('type','Internship',this,'typeNav')">Internship</button>
-        <button class="sidebar-link" onclick="setFilter('type','Remote',this,'typeNav')">Remote</button>
-      </nav>
-    </div>
-    <div class="sidebar-section" style="margin-top:4px;">
-      <div class="sidebar-section-label">Status</div>
-      <nav class="sidebar-nav" id="statusNav">
-        <button class="sidebar-link active" onclick="setFilter('status','',this,'statusNav')">All</button>
-        <button class="sidebar-link" onclick="setFilter('status','open',this,'statusNav')">Open</button>
-        <button class="sidebar-link" onclick="setFilter('status','full',this,'statusNav')">Full</button>
-        <button class="sidebar-link" onclick="setFilter('status','closed',this,'statusNav')">Closed</button>
-      </nav>
-    </div>
-    <div class="sidebar-bottom" id="sidebarBottom">
-      <div class="sidebar-link" style="color:var(--ink-muted);font-size:12px;cursor:default;pointer-events:none;">Not signed in</div>
-    </div>
-  </aside>
-
-  <div class="main-content">
-    <div class="topbar">
-      <div class="topbar-title">JobTrack / <strong>Browse Jobs</strong></div>
-      <div class="topbar-actions">
-        <div class="live-count-badge"><div class="live-dot"></div><span id="liveCount">—</span> live</div>
-        <!-- Dashboard / Login button (moved to left) -->
-        <a href="login.html" class="btn btn-ghost btn-sm" id="authBtn">Login</a>
-        <!-- Saved jobs chip -->
-        <a id="savedJobsChip" href="dashboard.html" style="display:none;align-items:center;gap:5px;font-size:11px;color:var(--ink-muted);background:var(--surface);border:1px solid var(--border);padding:5px 10px;border-radius:100px;font-family:var(--mono);text-decoration:none;" title="Saved jobs">🔖 <span id="savedCountChip">0</span></a>
-        <!-- Notifications (moved to right) -->
-        <div id="notifBellWrap" style="position:relative;display:none;">
-          <button id="notifBell" onclick="toggleNotifPanel()" style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 10px;cursor:pointer;color:var(--ink-muted);font-size:14px;transition:all 0.15s;" title="Notifications">
-            Notifications<span id="notifBadge" style="display:none;position:absolute;top:-4px;right:-4px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:var(--mono);min-width:16px;text-align:center;"></span>
-          </button>
-          <div id="notifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,0.15);z-index:200;overflow:hidden;">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
-              <span style="font-size:13px;font-weight:600;">Notifications</span>
-              <button onclick="markAllNotifRead()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--font);">Mark all read</button>
-            </div>
-            <div id="notifList" style="max-height:320px;overflow-y:auto;"></div>
-          </div>
-        </div>
-      </div>
-    </div>
-
-    <div class="content-area">
-
-      <!-- Safety Banner -->
-      <div class="safety-banner animate-in">
-        
-        <div>
-          <strong>Stay Safe on JobTrack.</strong>
-          Legitimate employers and hirers <strong>never ask for payment</strong> before hiring. Never share bank details, send GCash, or pay a "processing fee" to get a job.
-          <button onclick="document.getElementById('safetyModal').classList.add('open')" style="background:none;border:none;color:var(--gold);cursor:pointer;font-size:12px;font-family:var(--font);text-decoration:underline;padding:0;margin-left:4px;">Learn more →</button>
-        </div>
-      </div>
-
-      <!-- Category scroll with arrow buttons -->
-      <div class="panel animate-in" style="margin-bottom:14px;">
-        <div class="panel-header">
-          <h3>Browse by Category</h3>
-          <div style="display:flex;align-items:center;gap:8px;">
-            <span style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);">Use ‹ › to scroll</span>
-            <button class="btn btn-ghost btn-sm" id="clearCatBtn" onclick="clearCategory()" style="display:none;">Clear ✕</button>
-          </div>
-        </div>
-        <div class="panel-body" style="padding-top:10px;padding-bottom:14px;">
-          <div class="cat-scroll-wrap">
-            <button class="cat-scroll-btn left" id="catScrollLeft" onclick="scrollCats(-1)">‹</button>
-            <div class="cat-scroll" id="categoryRow"></div>
-            <button class="cat-scroll-btn right" id="catScrollRight" onclick="scrollCats(1)">›</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Search + view toggle -->
-      <div class="jobs-topbar animate-in delay-1">
-        <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:200px;">
-          <div class="search-input-wrap">
-            
-            <input type="text" id="searchInput" placeholder="Search title or company..." oninput="filterJobs()"/>
-          </div>
-          <span id="jobCount" style="font-family:var(--mono);font-size:12px;color:var(--ink-muted);white-space:nowrap;">Loading...</span>
-        </div>
-        <div style="display:flex;align-items:center;gap:8px;">
-          <div class="view-toggle">
-            <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view">⊞</button>
-            <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="List view">☰</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Listings -->
-      <div id="jobsContainer" class="animate-in delay-2"></div>
-
-    </div>
+  <nav class="jb-drawer-nav">
+    <a href="../index.html" class="jb-drawer-link">Home</a>
+    <a href="jobs.html" class="jb-drawer-link active">Browse Jobs</a>
+    <a href="dashboard.html" class="jb-drawer-link" id="dashLinkMobile">Dashboard</a>
+  </nav>
+  <div class="jb-drawer-section">
+    <div class="jb-drawer-section-label">Job Type</div>
+    <nav id="typeNavMobile" class="jb-drawer-filter-nav">
+      <button class="jb-drawer-filter active" onclick="setFilter('type','',this,'typeNavMobile');setFilter('type','',document.querySelector('#typeNav .sidebar-link'),'typeNav')">All Types <span class="jb-drawer-badge" id="countAllMobile">—</span></button>
+      <button class="jb-drawer-filter" onclick="setFilter('type','Full-Time',this,'typeNavMobile')">Full-Time</button>
+      <button class="jb-drawer-filter" onclick="setFilter('type','Part-Time',this,'typeNavMobile')">Part-Time</button>
+      <button class="jb-drawer-filter" onclick="setFilter('type','Internship',this,'typeNavMobile')">Internship</button>
+      <button class="jb-drawer-filter" onclick="setFilter('type','Remote',this,'typeNavMobile')">Remote</button>
+    </nav>
+  </div>
+  <div class="jb-drawer-section">
+    <div class="jb-drawer-section-label">Status</div>
+    <nav id="statusNavMobile" class="jb-drawer-filter-nav">
+      <button class="jb-drawer-filter active" onclick="setFilter('status','',this,'statusNavMobile')">All</button>
+      <button class="jb-drawer-filter" onclick="setFilter('status','open',this,'statusNavMobile')">Open</button>
+      <button class="jb-drawer-filter" onclick="setFilter('status','full',this,'statusNavMobile')">Full</button>
+      <button class="jb-drawer-filter" onclick="setFilter('status','closed',this,'statusNavMobile')">Closed</button>
+    </nav>
+  </div>
+  <div class="jb-drawer-bottom" id="jbDrawerBottom">
+    <div style="color:var(--ink-muted);font-size:12px;">Not signed in</div>
   </div>
 </div>
+
+<!-- ═══ MAIN CONTENT ═══ -->
+<main class="jb-main">
+  <!-- Safety Popup (shown once on login) -->
+  <div class="jb-safety-popup-overlay" id="safetyPopup" style="display:none;">
+    <div class="jb-safety-popup">
+      <div class="jb-safety-popup-header">
+        <strong>Stay Safe on JobTrack</strong>
+      </div>
+      <div class="jb-safety-popup-body">
+        <p>Legitimate employers and hirers <strong>never ask for payment</strong> before hiring.</p>
+        <p>Never share bank details, send GCash, or pay a "processing fee" to get a job.</p>
+        <button onclick="document.getElementById('safetyModal').classList.add('open')" class="jb-safety-learn-more" style="margin-top:8px;">Learn more</button>
+      </div>
+      <div class="jb-safety-popup-footer">
+        <button class="btn btn-ghost btn-sm" onclick="dismissSafetyPopup()">Close</button>
+        <button class="btn btn-primary btn-sm" onclick="dismissSafetyPopup()">Understood</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Filter Chips Row (inline, Codedex-style) -->
+  <div class="jb-filter-bar animate-in">
+    <div class="jb-filter-bar-left">
+      <div class="jb-filter-chips" id="typeNav">
+        <button class="jb-filter-chip active" onclick="setFilter('type','',this,'typeNav')">All Types <span class="jb-chip-badge" id="countAll">—</span></button>
+        <button class="jb-filter-chip" onclick="setFilter('type','Full-Time',this,'typeNav')">Full-Time</button>
+        <button class="jb-filter-chip" onclick="setFilter('type','Part-Time',this,'typeNav')">Part-Time</button>
+        <button class="jb-filter-chip" onclick="setFilter('type','Internship',this,'typeNav')">Internship</button>
+        <button class="jb-filter-chip" onclick="setFilter('type','Remote',this,'typeNav')">Remote</button>
+        <span class="jb-filter-divider"></span>
+        <div class="jb-status-chips" id="statusNav">
+          <button class="jb-filter-chip active" onclick="setFilter('status','',this,'statusNav')">All Status</button>
+          <button class="jb-filter-chip" onclick="setFilter('status','open',this,'statusNav')">Open</button>
+          <button class="jb-filter-chip" onclick="setFilter('status','full',this,'statusNav')">Full</button>
+          <button class="jb-filter-chip" onclick="setFilter('status','closed',this,'statusNav')">Closed</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Category scroll -->
+  <div class="jb-category-section animate-in">
+    <div class="jb-category-header">
+      <h3>Browse by Category</h3>
+      <div style="display:flex;align-items:center;gap:8px;">
+        <span style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);">Use ‹ › to scroll</span>
+        <button class="btn btn-ghost btn-sm" id="clearCatBtn" onclick="clearCategory()" style="display:none;">Clear ✕</button>
+      </div>
+    </div>
+    <div class="cat-scroll-wrap">
+      <button class="cat-scroll-btn left" id="catScrollLeft" onclick="scrollCats(-1)">‹</button>
+      <div class="cat-scroll" id="categoryRow"></div>
+      <button class="cat-scroll-btn right" id="catScrollRight" onclick="scrollCats(1)">›</button>
+    </div>
+  </div>
+
+  <!-- Search + view toggle -->
+  <div class="jobs-topbar animate-in delay-1">
+    <div style="display:flex;align-items:center;gap:10px;flex:1;min-width:200px;">
+      <div class="search-input-wrap">
+        <input type="text" id="searchInput" placeholder="Search title or company..." oninput="filterJobs()"/>
+      </div>
+      <span id="jobCount" style="font-family:var(--mono);font-size:12px;color:var(--ink-muted);white-space:nowrap;">Loading...</span>
+    </div>
+    <div style="display:flex;align-items:center;gap:8px;">
+      <div class="view-toggle">
+        <button class="view-btn active" id="gridViewBtn" onclick="setView('grid')" title="Grid view">⊞</button>
+        <button class="view-btn" id="listViewBtn" onclick="setView('list')" title="List view">☰</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Listings -->
+  <div id="jobsContainer" class="animate-in delay-2"></div>
+</main>
 
 <!-- Job Detail Modal -->
 <div class="jd-modal-overlay" id="jobDetailModal">
   <div class="jd-modal-box">
     <img id="jdBannerImg" class="jd-banner" src="" alt="" style="display:none;" onerror="this.style.display='none';document.getElementById('jdBannerPlaceholder').style.display='flex'"/>
-    <div id="jdBannerPlaceholder" class="jd-banner-placeholder">📋</div>
+    <div id="jdBannerPlaceholder" class="jd-banner-placeholder"></div>
     <div class="jd-header">
       <div class="jd-header-left">
         <div class="jd-title" id="jdTitle">—</div>
@@ -156,7 +183,7 @@
       <div id="jdTrustBox" style="margin-bottom:10px;"></div>
       <div id="jdSafetyBox" style="display:none;">
         <div class="safety-warning-box">
-          <div class="sw-title">👤 Individual Hirer — Safety Reminders</div>
+          <div class="sw-title">Individual Hirer — Safety Reminders</div>
           <ul>
             <li><strong>Meet in a public place first</strong> — mall, café, or barangay hall</li>
             <li><strong>Verify their identity</strong> — ask for a valid ID before any work begins</li>
@@ -175,8 +202,8 @@
         <span class="jd-salary-display" id="jdSalary">Negotiable</span>
       </div>
       <div class="jd-footer-actions">
-        <button class="report-btn" onclick="openReportModal()">🚩 Report</button>
-        <button class="btn btn-ghost btn-sm" onclick="copyJobLink()" id="jdShareBtn">🔗 Share</button>
+        <button class="report-btn" onclick="openReportModal()">Report</button>
+        <button class="btn btn-ghost btn-sm" onclick="copyJobLink()" id="jdShareBtn">Share</button>
         <button class="btn btn-ghost btn-sm" onclick="closeDetailModal()">Close</button>
         <button class="btn btn-primary btn-sm" id="jdApplyBtn" onclick="applyFromDetail()">Apply Now →</button>
       </div>
@@ -188,12 +215,12 @@
 <div class="modal-overlay" id="safetyModal">
   <div class="modal-box" style="max-width:520px;">
     <div class="modal-header">
-      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--gold);font-family:var(--mono);margin-bottom:4px;">Safety Guide</div><h3>Protecting Yourself on JobTrack</h3></div>
+      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Safety Guide</div><h3>Protecting Yourself on JobTrack</h3></div>
       <button class="modal-close" onclick="document.getElementById('safetyModal').classList.remove('open')">✕</button>
     </div>
     <div class="modal-body" style="display:flex;flex-direction:column;gap:12px;">
       <div class="safety-warning-box">
-        <div class="sw-title">⚠️ Common Scam Warning Signs</div>
+        <div class="sw-title">Common Scam Warning Signs</div>
         <ul>
           <li>Asked to pay a <strong>processing fee, training fee, or deposit</strong> before starting</li>
           <li>Employer asks for your <strong>bank account, GCash, or government ID</strong> upfront</li>
@@ -204,7 +231,7 @@
         </ul>
       </div>
       <div class="safety-warning-box" style="border-color:rgba(77,159,255,0.2);background:rgba(77,159,255,0.05);">
-        <div class="sw-title" style="color:var(--accent3);">👤 For Individual / Odd Job Hirers</div>
+        <div class="sw-title" style="color:var(--accent3);">For Individual / Odd Job Hirers</div>
         <ul>
           <li><strong>Meet in a public place first</strong> — mall, café, or barangay hall</li>
           <li><strong>Verify identity</strong> — ask for a valid ID before work begins</li>
@@ -215,10 +242,10 @@
         </ul>
       </div>
       <div class="safety-warning-box" style="border-color:rgba(68,221,136,0.2);background:rgba(68,221,136,0.04);">
-        <div class="sw-title" style="color:var(--green);">✓ JobTrack Platform Policy</div>
+        <div class="sw-title" style="color:var(--green);">JobTrack Platform Policy</div>
         <ul>
           <li>Employers are <strong>prohibited from charging applicants any fees</strong></li>
-          <li>Use the <strong>🚩 Report</strong> button on any suspicious listing</li>
+          <li>Use the <strong>Report</strong> button on any suspicious listing</li>
           <li>Reported jobs are reviewed and may be removed</li>
           <li>Your personal data is never sold to third parties</li>
         </ul>
@@ -266,7 +293,6 @@
 <div class="modal-overlay" id="applyModal">
   <div class="modal-box" style="max-width:560px;">
     <div class="modal-header">
-      <!-- Job banner inside modal if available -->
       <div style="flex:1;">
         <img id="modalBannerImg" src="" style="width:100%;height:100px;object-fit:cover;border-radius:var(--radius);margin-bottom:10px;display:none;" onerror="this.style.display='none'"/>
         <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Submit Application</div>
@@ -296,12 +322,54 @@
 <script src="../js/main.js"></script>
 <script src="../js/shell/notifications.js"></script>
 <script src="../js/shell/savedJobs.js"></script>
-  <script src="../js/pages/jobs-inline-1.js"></script>
-  <!-- Pan-Pan corner peek — always visible -->
-  <div class="panpan-corner" id="panpanCorner">
-    <img src="../images/panpan.png" alt="Pan-Pan the JobTrack mascot" class="panpan-corner-img"/>
-  </div>
+<script src="../js/pages/jobs-inline-1.js"></script>
 
-    <script src="../js/pages/jobs-inline-2.js"></script>
+<!-- Pan-Pan corner peek — always visible -->
+<div class="panpan-corner" id="panpanCorner">
+  <img src="../images/panpan.png" alt="Pan-Pan the JobTrack mascot" class="panpan-corner-img"/>
+</div>
+
+<script src="../js/pages/jobs-inline-2.js"></script>
+
+<!-- Drawer toggle -->
+<script>
+(function(){
+  const hamburger = document.getElementById('jbHamburger');
+  const drawer = document.getElementById('jbDrawer');
+  const overlay = document.getElementById('jbDrawerOverlay');
+  const closeBtn = document.getElementById('jbDrawerClose');
+  function openDrawer(){ drawer.classList.add('open'); overlay.classList.add('open'); hamburger.classList.add('open'); document.body.style.overflow='hidden'; }
+  function closeDrawer(){ drawer.classList.remove('open'); overlay.classList.remove('open'); hamburger.classList.remove('open'); document.body.style.overflow=''; }
+  hamburger.addEventListener('click', function(){ drawer.classList.contains('open') ? closeDrawer() : openDrawer(); });
+  overlay.addEventListener('click', closeDrawer);
+  closeBtn.addEventListener('click', closeDrawer);
+
+  // Navbar shrink on scroll
+  let lastScroll = 0;
+  window.addEventListener('scroll', function(){
+    const navbar = document.getElementById('jbNavbar');
+    if(window.scrollY > 20) navbar.classList.add('scrolled');
+    else navbar.classList.remove('scrolled');
+    lastScroll = window.scrollY;
+  });
+})();
+
+// Safety popup — show once per session when logged in
+function dismissSafetyPopup(){
+  document.getElementById('safetyPopup').style.display='none';
+  document.body.style.overflow='';
+  try{ sessionStorage.setItem('jt_safety_dismissed','1'); }catch(e){}
+}
+function showSafetyPopupIfNeeded(){
+  try{
+    if(typeof getUser==='function' && getUser()){
+      if(!sessionStorage.getItem('jt_safety_dismissed')){
+        document.getElementById('safetyPopup').style.display='flex';
+      }
+    }
+  }catch(e){}
+}
+setTimeout(showSafetyPopupIfNeeded, 600);
+</script>
 </body>
 </html>
