@@ -106,7 +106,7 @@ function clearCategory(){ activeFilters.category=""; document.querySelectorAll("
 function setView(v){ currentView=v; document.getElementById("gridViewBtn").classList.toggle("active",v==="grid"); document.getElementById("listViewBtn").classList.toggle("active",v==="list"); filterJobs(); }
 
 async function loadJobs(){
-  try{ allJobs=await api("/jobs"); }
+  try{ allJobs=await api("/jobs?limit=200"); }
   catch{
     allJobs=[
       {id:1,title:"Frontend Developer",company:"TechCorp Philippines",location:"Davao City",type:"Full-Time",salary:"₱35k–₱45k",status:"open",category:"software",max_applicants:10,deadline:"2026-05-01",image_url:""},
@@ -123,9 +123,12 @@ async function loadJobs(){
 }
 
 function filterJobs(){
-  const q=document.getElementById("searchInput").value.toLowerCase();
+  const q=document.getElementById("searchInput").value.trim().toLowerCase();
   const {type,status,category}=activeFilters;
-  const jobs=allJobs.filter(j=>(j.title.toLowerCase().includes(q)||j.company.toLowerCase().includes(q))&&(!type||j.type===type)&&(!status||j.status===status)&&(!category||j.category===category));
+  const jobs=allJobs.filter(j=>{
+    const matchQ = !q || j.title.toLowerCase().includes(q) || j.company.toLowerCase().includes(q) || (j.description||'').toLowerCase().includes(q);
+    return matchQ&&(!type||j.type===type)&&(!status||j.status===status)&&(!category||j.category===category);
+  });
   document.getElementById("jobCount").textContent=`${jobs.length} position${jobs.length!==1?"s":""} found`;
   renderJobs(jobs);
 }
@@ -367,6 +370,12 @@ function openDetailModal(jobId) {
     '<div class="trust-row"><span style="flex:1;">Views</span><span class="tr-val">'+(j.view_count||0)+'</span></div>'+
     (postedDays!==null?'<div class="trust-row"><span style="flex:1;">Posted</span><span class="tr-val">'+postedLabel+'</span></div>':"");
 
+  // Show company profile button if logged in and employer_id exists
+  const cpBtn = document.getElementById("jdViewCompanyBtn");
+  if (cpBtn) {
+    cpBtn.style.display = (getUser() && j.employer_id) ? "inline-flex" : "none";
+  }
+
   var applyBtn = document.getElementById("jdApplyBtn");
   if (closed) {
     applyBtn.textContent = j.status === "full" ? "Slots Full" : "Position Closed";
@@ -454,6 +463,51 @@ async function submitReport(){
   }catch(e){showAlert("reportAlert",e.message||"Failed to submit report.","error");}
 }
 
+
+// ══ COMPANY PROFILE ════════════════════════════════════
+async function viewCompanyProfile() {
+  if (!selectedJob || !selectedJob.employer_id) return;
+  const modal = document.getElementById("companyProfileModal");
+  if (!modal) return;
+  document.getElementById("cpName").textContent = selectedJob.company || "Company";
+  document.getElementById("cpBody").innerHTML = '<div style="text-align:center;padding:24px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</div>';
+  modal.classList.add("open");
+  try {
+    const p = await api(`/users/${selectedJob.employer_id}/public`);
+    const LOGO_IG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`;
+    const LOGO_FB = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`;
+    const verifiedBadge = p.is_verified ? `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.12);border:1px solid rgba(30,168,60,0.35);color:var(--green);font-size:10px;font-weight:700;padding:2px 7px;border-radius:100px;font-family:var(--mono);margin-left:6px;">✓ VERIFIED</span>` : '';
+    document.getElementById("cpName").innerHTML = (p.name || selectedJob.company) + verifiedBadge;
+    let socials = '';
+    if (p.instagram) socials += `<a href="https://instagram.com/${p.instagram}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);transition:all 0.15s;">${LOGO_IG} @${p.instagram}</a>`;
+    if (p.facebook) socials += `<a href="https://facebook.com/${p.facebook}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);transition:all 0.15s;">${LOGO_FB} ${p.facebook}</a>`;
+    if (p.website) socials += `<a href="${p.website}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--accent3);padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);transition:all 0.15s;">🌐 Website</a>`;
+    const phoneRaw = p.phone || '';
+    const tgMatch = phoneRaw.match(/\| tg:@(\S+)/);
+    const phoneDisplay = tgMatch ? phoneRaw.split(' | tg:')[0].trim() : phoneRaw;
+    if (phoneDisplay) socials += `<span style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);">📞 ${phoneDisplay}</span>`;
+    if (tgMatch) socials += `<a href="https://t.me/${tgMatch[1]}" target="_blank" style="display:inline-flex;align-items:center;gap:5px;font-size:12px;color:var(--ink-muted);padding:6px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);transition:all 0.15s;">✈ @${tgMatch[1]}</a>`;
+    document.getElementById("cpBody").innerHTML = `
+      ${p.banner_url ? `<img src="${p.banner_url}" style="width:100%;height:120px;object-fit:cover;border-radius:var(--radius);margin-bottom:14px;border:1px solid var(--border);" onerror="this.style.display='none'"/>` : ''}
+      <div style="display:flex;align-items:center;gap:14px;margin-bottom:16px;">
+        <div style="width:60px;height:60px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:22px;font-weight:700;overflow:hidden;flex-shrink:0;border:2px solid var(--border);">${p.profile_pic?`<img src="${p.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${(p.name||'?')[0].toUpperCase()}'"/>`:((p.name||'?')[0].toUpperCase())}</div>
+        <div>
+          <div style="font-size:11px;font-family:var(--mono);color:var(--accent);text-transform:uppercase;letter-spacing:0.1em;font-weight:600;">${p.role || 'Employer'}</div>
+          <div style="font-size:12px;color:var(--ink-muted);margin-top:2px;">Member since ${p.created_at ? new Date(p.created_at).toLocaleDateString('en-PH',{month:'long',year:'numeric'}) : '—'}</div>
+        </div>
+      </div>
+      <div style="background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);padding:12px;font-size:13px;color:var(--ink-soft);line-height:1.65;margin-bottom:14px;">${p.about_me||'<span style="color:var(--ink-muted);font-style:italic;">No company description provided.</span>'}</div>
+      ${socials ? `<div style="display:flex;gap:8px;flex-wrap:wrap;">${socials}</div>` : '<div style="font-size:12px;color:var(--ink-muted);">No contact info shared.</div>'}
+    `;
+  } catch(e) {
+    document.getElementById("cpBody").innerHTML = `<div style="text-align:center;padding:24px;color:var(--red);font-family:var(--mono);font-size:12px;">Could not load profile.</div>`;
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var cpm = document.getElementById('companyProfileModal');
+  if (cpm) cpm.addEventListener('click', function(e) { if (e.target === cpm) cpm.classList.remove('open'); });
+});
 
 // Shared shell modules initialize deduplicated notifications + saved-jobs.
 window.JobTrackShell.notifications.initJobsNotifications();

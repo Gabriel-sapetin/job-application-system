@@ -202,6 +202,7 @@
         <span class="jd-salary-display" id="jdSalary">Negotiable</span>
       </div>
       <div class="jd-footer-actions">
+        <button class="btn btn-ghost btn-sm" id="jdViewCompanyBtn" onclick="viewCompanyProfile()" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);display:none;">Company</button>
         <button class="report-btn" onclick="openReportModal()">Report</button>
         <button class="btn btn-ghost btn-sm" onclick="copyJobLink()" id="jdShareBtn">Share</button>
         <button class="btn btn-ghost btn-sm" onclick="closeDetailModal()">Close</button>
@@ -315,6 +316,20 @@
       <button class="btn btn-ghost btn-sm" onclick="closeModal()">Cancel</button>
       <button class="btn btn-primary btn-sm" onclick="submitApplication()">Submit Application →</button>
     </div>
+  </div>
+</div>
+
+<!-- Company Profile Modal -->
+<div class="modal-overlay" id="companyProfileModal">
+  <div class="modal-box" style="max-width:540px;">
+    <div class="modal-header">
+      <div>
+        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Company Profile</div>
+        <h3 id="cpName">—</h3>
+      </div>
+      <button class="modal-close" onclick="document.getElementById('companyProfileModal').classList.remove('open')">✕</button>
+    </div>
+    <div class="modal-body" id="cpBody">Loading...</div>
   </div>
 </div>
 

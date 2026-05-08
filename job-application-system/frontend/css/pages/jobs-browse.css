@@ -505,6 +505,12 @@
   box-shadow: 4px 4px 0px rgba(0,0,0,0.07) !important;
   overflow: hidden;
 }
+.jobs-browse-body .job-card-banner {
+  image-rendering: auto;
+  image-rendering: -webkit-optimize-contrast;
+  -ms-interpolation-mode: bicubic;
+  border-bottom: 1px solid var(--border);
+}
 .jobs-browse-body .job-card::before {
   border-radius: 0 !important;
   height: 4px;
