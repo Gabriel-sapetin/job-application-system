@@ -145,6 +145,19 @@ def login(credentials: UserLogin, request: Request, response: Response):
     clear_failures(client_ip)
     token = create_token(db_user["id"], db_user["role"])
 
+    # Log login activity
+    try:
+        from app.routes.activity_log import log_activity
+        log_activity(
+            user_id=db_user["id"],
+            action="login",
+            details=f"Logged in as {db_user['role']}",
+            ip_address=client_ip,
+            user_agent=request.headers.get("user-agent", "")[:200],
+        )
+    except Exception:
+        pass
+
     # Use secure=False in development (http), secure=True in production (https)
     is_production = os.getenv("ENV", "development") == "production"
 

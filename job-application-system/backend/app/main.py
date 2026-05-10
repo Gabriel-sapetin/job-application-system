@@ -8,6 +8,13 @@ from app.routes.chat          import router as chat_router
 from app.routes.admin         import router as admin_router
 from app.routes.saved_jobs    import router as saved_jobs_router
 from app.routes.notifications import router as notifications_router
+from app.routes.activity_log  import router as activity_log_router
+from app.routes.reactions      import router as reactions_router
+from app.routes.public_profile import router as public_profile_router
+from app.routes.attachments    import router as attachments_router
+from app.routes.websocket_chat import router as ws_router
+from app.routes.oauth          import router as oauth_router
+from app.routes.dashboard_init  import router as dash_init_router
 from app.rate_limit import extract_client_key, get_rate_limiter
 from app.middleware.security import security_headers_middleware
 import time
@@ -108,6 +115,13 @@ app.include_router(chat_router,             prefix="/chat",           tags=["Cha
 app.include_router(admin_router,            prefix="/admin",          tags=["Admin"])
 app.include_router(saved_jobs_router,       prefix="/saved-jobs",     tags=["Saved Jobs"])
 app.include_router(notifications_router,    prefix="/notifications",  tags=["Notifications"])
+app.include_router(activity_log_router,     prefix="/activity-log",   tags=["Activity Log"])
+app.include_router(reactions_router,        prefix="/reactions",      tags=["Reactions"])
+app.include_router(public_profile_router,   prefix="/profile",        tags=["Public Profile"])
+app.include_router(attachments_router,      prefix="/attachments",    tags=["Attachments"])
+app.include_router(ws_router,               prefix="/ws",             tags=["WebSocket"])
+app.include_router(oauth_router,            prefix="/oauth",          tags=["OAuth"])
+app.include_router(dash_init_router,        prefix="/dashboard-init", tags=["Dashboard Init"])
 
 @app.get("/", tags=["Health"])
 def root():

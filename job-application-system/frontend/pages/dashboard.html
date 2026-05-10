@@ -6,7 +6,8 @@
   <title>Dashboard — JobTrack</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
   <link rel="stylesheet" href="../css/style.css"/>
-    <link rel="stylesheet" href="../css/pages/dashboard-inline-1.css"/>
+  <link rel="stylesheet" href="../css/pages/dashboard-inline-1.css"/>
+  <link rel="stylesheet" href="../css/pages/features.css"/>
 </head>
 <body>
 <div class="app-layout">
@@ -46,6 +47,7 @@
         <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabMessages',this)">Messages <span class="sidebar-badge" id="appMsgBadge" style="display:none;background:var(--accent);color:#000;">0</span></button>
         <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabSaved',this)">Saved Jobs <span class="sidebar-badge" id="savedJobsBadge">0</span></button>
         <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabInterest',this)">Find by Interest</button>
+        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabActivityLog',this)">Activity Log</button>
       </nav>
     </div>
     <!-- Employer nav -->
@@ -84,6 +86,7 @@
             <div id="dashNotifList" style="max-height:340px;overflow-y:auto;"></div>
           </div>
         </div>
+        <div id="themeToggleWrap" style="display:flex;align-items:center;"></div>
         <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
       </div>
     </div>
@@ -99,9 +102,11 @@
             <p style="font-size:12.5px;color:var(--ink-muted);font-weight:400;" id="welcomeDate"></p>
           </div>
           <div style="display:flex;gap:8px;">
+            <button class="btn btn-ghost btn-sm" onclick="shareMyProfile()" title="Share your public profile">📋 Share Profile</button>
             <a href="jobs.html" class="btn btn-primary btn-sm">Browse Jobs →</a>
           </div>
         </div>
+        <div id="profileCompletenessWrap"></div>
         <div class="profile-strip" id="profileStrip">
           <div class="ps-avatar" id="stripAvatar">—</div>
           <div class="ps-info">
@@ -223,6 +228,19 @@
             </div>
             <div id="appConversationList" style="padding:8px;">
               <div class="empty-msg">No conversations yet.</div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Activity Log tab -->
+        <div id="tabActivityLog" class="tab-panel">
+          <div class="panel">
+            <div class="panel-header">
+              <h3>📋 Activity Log</h3>
+              <button class="btn btn-ghost btn-sm" onclick="clearActivityLog('activityLogContent')">Clear History</button>
+            </div>
+            <div id="activityLogContent" style="padding:8px;">
+              <div class="empty-msg">Loading...</div>
             </div>
           </div>
         </div>
@@ -737,11 +755,18 @@
         <div class="chat-modal-name" id="chatModalName">—</div>
         <div class="chat-modal-sub"  id="chatModalSub">—</div>
       </div>
+      <div class="online-dot" id="chatOnlineDot" title="Online"></div>
       <button onclick="closeChatModal()" style="background:none;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;color:var(--ink-muted);font-size:13px;padding:5px 10px;transition:all 0.15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">✕</button>
     </div>
 
     <div class="chat-messages" id="chatMessages">
       <div class="chat-empty"><div class="chat-empty-icon">💬</div>No messages yet.</div>
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="typing-indicator" id="chatTypingIndicator">
+      <div class="typing-dots"><span></span><span></span><span></span></div>
+      <span>typing...</span>
     </div>
 
     <!-- Reply bar -->
@@ -824,6 +849,35 @@
   </div>
 </div>
 
+<script src="../js/features.js"></script>
 <script src="../js/pages/dashboard-inline-1.js"></script>
+<script>
+  // Init new features after dashboard loads
+  renderThemeToggle('themeToggleWrap');
+  const _origLoad = loadDashboard;
+  loadDashboard = async function() {
+    await _origLoad();
+    loadProfileCompleteness('profileCompletenessWrap');
+  };
+  // Patch activity log tab
+  const _origShowAppTab2 = showAppTab;
+  showAppTab = function(id, btn) {
+    _origShowAppTab2(id, btn);
+    if (id === 'tabActivityLog') loadActivityLog('activityLogContent');
+  };
+  // Patch chat open to connect WebSocket & send typing
+  const _origOpenChat = typeof openChatModal === 'function' ? openChatModal : null;
+  if (_origOpenChat) {
+    const _patchedOpen = openChatModal;
+    // Will be patched after dashboard-inline-1.js defines openChatModal
+  }
+  // Add typing event to chat input
+  document.addEventListener('DOMContentLoaded', () => {
+    const chatInput = document.getElementById('chatInput');
+    if (chatInput) {
+      chatInput.addEventListener('input', () => sendWsTyping());
+    }
+  });
+</script>
 </body>
 </html>

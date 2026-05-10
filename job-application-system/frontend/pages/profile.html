@@ -1,0 +1,131 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Profile — JobTrack</title>
+  <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
+  <link rel="stylesheet" href="../css/style.css"/>
+  <link rel="stylesheet" href="../css/pages/features.css"/>
+</head>
+<body class="landing-body">
+  <nav class="landing-nav" style="background:rgba(240,247,241,0.96);border-bottom:2px solid var(--border);">
+    <a href="../index.html" class="landing-nav-logo">
+      <div class="logo-box" style="border-radius:4px;">JT</div>
+      <span>JobTrack</span>
+    </a>
+    <div class="landing-nav-links" style="display:flex;gap:8px;align-items:center;">
+      <a href="jobs.html" class="btn btn-ghost btn-sm">Browse Jobs</a>
+      <div id="profileThemeToggle"></div>
+    </div>
+  </nav>
+
+  <div class="pub-profile-page" id="profilePage">
+    <div style="text-align:center;padding:80px 24px;color:var(--ink-muted);font-family:var(--mono);font-size:13px;" id="profileLoading">
+      Loading profile...
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/features.js"></script>
+  <script>
+    renderThemeToggle('profileThemeToggle');
+
+    const LOGO_IG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/></svg>`;
+    const LOGO_FB = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`;
+    const LOGO_WEB = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`;
+
+    (async function loadPublicProfile() {
+      const params = new URLSearchParams(window.location.search);
+      const userId = params.get("id");
+      if (!userId) {
+        document.getElementById("profilePage").innerHTML = `<div style="text-align:center;padding:80px;color:var(--red);font-size:14px;">No user ID specified. Use ?id=123</div>`;
+        return;
+      }
+      try {
+        const res = await fetch(`${API_BASE}/profile/${userId}`);
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.detail || "Profile not found");
+
+        document.title = `${data.name} — JobTrack`;
+
+        const verifiedBadge = data.is_verified
+          ? `<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:1px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:2px 7px;border-radius:4px;font-family:var(--mono);margin-left:8px;">✓ VERIFIED</span>`
+          : "";
+
+        let socialHtml = "";
+        if (data.instagram) socialHtml += `<a href="https://instagram.com/${data.instagram}" target="_blank" class="pub-social-link">${LOGO_IG} @${data.instagram}</a>`;
+        if (data.facebook) socialHtml += `<a href="https://facebook.com/${data.facebook}" target="_blank" class="pub-social-link">${LOGO_FB} ${data.facebook}</a>`;
+        if (data.website) socialHtml += `<a href="${data.website}" target="_blank" class="pub-social-link">${LOGO_WEB} Website</a>`;
+
+        let jobsHtml = "";
+        if (data.jobs && data.jobs.length > 0) {
+          jobsHtml = `<div class="pub-jobs-section">
+            <div class="pub-jobs-title">Open Positions (${data.jobs.length})</div>
+            ${data.jobs.map(j => `
+              <div class="job-item" style="padding:12px 0;border-radius:0;">
+                <div style="flex:1;">
+                  <div style="display:flex;align-items:center;gap:8px;margin-bottom:3px;">
+                    ${j.image_url ? `<img src="${j.image_url}" style="width:36px;height:36px;object-fit:cover;border-radius:6px;" onerror="this.style.display='none'"/>` : ""}
+                    <span class="job-item-title">${j.title}</span>
+                    <span class="pill pill-${j.status}">${j.status}</span>
+                  </div>
+                  <div class="job-item-meta">
+                    <span>${j.company}</span><span>📍 ${j.location}</span>
+                    <span class="type-tag ${({"Full-Time":"full-time","Part-Time":"part-time","Internship":"internship","Remote":"remote"})[j.type] || ""}">${j.type}</span>
+                    ${j.salary ? `<span>${j.salary}</span>` : ""}
+                  </div>
+                </div>
+                <a href="jobs.html" class="btn btn-ghost btn-sm">View →</a>
+              </div>`).join("")}
+          </div>`;
+        }
+
+        // Completeness bar
+        const comp = data.completeness || {};
+        const pct = comp.percentage || 0;
+        const barClass = pct < 40 ? "low" : pct < 70 ? "mid" : "";
+
+        document.getElementById("profilePage").innerHTML = `
+          <div class="pub-profile-card">
+            <div class="pub-banner">
+              ${data.banner_url ? `<img src="${data.banner_url}" onerror="this.style.display='none'"/>` : ""}
+            </div>
+            <div class="pub-avatar-wrap">
+              ${data.profile_pic ? `<img src="${data.profile_pic}" onerror="this.parentElement.textContent='${(data.name||"?")[0].toUpperCase()}'"/>` : (data.name||"?")[0].toUpperCase()}
+            </div>
+            <div class="pub-info">
+              <div class="pub-name">${data.name || "—"}${verifiedBadge}</div>
+              <div class="pub-role">${data.role || "User"}</div>
+              <div style="margin-bottom:12px;">
+                <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                  <span style="font-size:11px;color:var(--ink-muted);">Profile</span>
+                  <span style="font-size:11px;font-weight:700;color:var(--accent);font-family:var(--font-alt);">${pct}%</span>
+                </div>
+                <div class="pc-bar"><div class="pc-bar-fill ${barClass}" style="width:${pct}%"></div></div>
+              </div>
+              <div class="pub-bio">${data.about_me || '<span style="color:var(--ink-muted);font-style:italic;">No bio provided.</span>'}</div>
+              ${socialHtml ? `<div class="pub-social-links">${socialHtml}</div>` : ""}
+              <div style="margin-top:14px;font-size:11px;color:var(--ink-muted);">
+                Joined ${data.created_at ? new Date(data.created_at).toLocaleDateString("en-US", {month:"long", year:"numeric"}) : "—"}
+              </div>
+            </div>
+            ${jobsHtml}
+          </div>
+          <div style="text-align:center;margin-top:16px;">
+            <button class="btn btn-ghost btn-sm" onclick="copyProfileLink()">📋 Copy Profile Link</button>
+          </div>`;
+      } catch (e) {
+        document.getElementById("profilePage").innerHTML = `<div style="text-align:center;padding:80px;color:var(--red);font-size:14px;">${e.message}</div>`;
+      }
+    })();
+
+    function copyProfileLink() {
+      navigator.clipboard.writeText(window.location.href).then(() => {
+        showActionPopup({ title: "Copied!", message: "Profile link copied to clipboard.", type: "success", duration: 1200 });
+      });
+    }
+  </script>
+</body>
+</html>

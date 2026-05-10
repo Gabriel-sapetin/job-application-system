@@ -1183,6 +1183,8 @@ async function openChatModal(applicationId, otherName, otherPic, jobTitle) {
   await fetchChatMessages();
   clearInterval(_chatPollInterval);
   _chatPollInterval = setInterval(fetchChatMessages, 5000);
+  // Connect WebSocket for real-time
+  if (typeof connectWebSocket === 'function') connectWebSocket(applicationId);
 }
 
 function closeChatModal() {
@@ -1192,6 +1194,8 @@ function closeChatModal() {
   clearReply();
   clearPendingImage();
   loadUnreadCounts();
+  // Disconnect WebSocket
+  if (typeof disconnectWebSocket === 'function') disconnectWebSocket();
 }
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -1253,11 +1257,15 @@ function renderChatMessages(msgs) {
           <span class="chat-msg-time">${_fmtTime(m.created_at)}${m.is_read&&isMine?" · ✓":""}</span>
           <button class="chat-reply-btn" onclick="setReply(${m.id},'${senderNameEsc}','${bodyForReply}')">↩ Reply</button>
         </div>
+        <div class="msg-reactions" id="reactions-${m.id}"></div>
       </div>
     </div>`;
   });
   container.innerHTML = html;
   if (wasAtBottom) container.scrollTop = container.scrollHeight;
+  // Load reactions for visible messages
+  const msgIds = msgs.map(m => m.id).filter(Boolean);
+  if (msgIds.length && typeof loadReactionsForMessages === 'function') loadReactionsForMessages(msgIds);
 }
 
 function scrollToMsg(id) {
