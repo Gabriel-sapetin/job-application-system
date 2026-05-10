@@ -98,6 +98,15 @@
       font-family: var(--mono);
     }
 
+    /* Center the theme toggle between logo and nav links */
+    .landing-nav-center {
+      position: absolute;
+      left: 50%;
+      transform: translateX(-50%);
+      display: flex;
+      align-items: center;
+    }
+
     /* ── HERO ── */
     /* ── Pixel font ── */
     .pixel-font {
@@ -149,11 +158,7 @@
     }
 
     .hero-eyebrow::before {
-      content: "";
-      width: 6px;
-      height: 6px;
-      border-radius: 0;
-      background: #00d4ff;
+      display: none;
     }
 
     .hero-title {
@@ -706,16 +711,16 @@
 
 <body class="landing-body">
 
-  <nav class="landing-nav" style="background:rgba(240,247,241,0.96);border-bottom:2px solid var(--border);">
+  <nav class="landing-nav" style="background:rgba(240,247,241,0.96);border-bottom:2px solid var(--border);position:relative;">
     <div class="landing-nav-logo">
       <div class="logo-box" style="border-radius:4px;box-shadow:2px 2px 0px rgba(0,0,0,0.2);">JT</div>
       <span style="font-family:'Press Start 2P', monospace;font-size:11px;">JobTrack</span>
     </div>
+    <div class="landing-nav-center" id="landingThemeToggle"></div>
     <button class="landing-hamburger" id="landingHamburger" aria-label="Menu">
       <span></span><span></span><span></span>
     </button>
     <div class="landing-nav-links" id="navLinks"></div>
-    <div id="landingThemeToggle" style="margin-left:8px;"></div>
   </nav>
 
   <!-- HERO — centered -->

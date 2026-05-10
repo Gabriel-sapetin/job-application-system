@@ -88,10 +88,43 @@ async function loadProfileCompleteness(containerId) {
 /* ── 3. ACTIVITY LOG ── */
 async function loadActivityLog(containerId) {
   const container = document.getElementById(containerId);
-  if (!container) return;
+  if (!container) { console.warn("[ActivityLog] Container not found:", containerId); return; }
+  container.innerHTML = '<div class="empty-msg">Loading...</div>';
   try {
-    const logs = await api("/activity-log?limit=30");
-    if (!logs.length) {
+    // Use a timeout wrapper to prevent hanging forever
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10s timeout
+
+    const token = localStorage.getItem("token");
+    const headers = { "Content-Type": "application/json" };
+    if (token && token !== "null" && token !== "undefined") {
+      headers["Authorization"] = `Bearer ${token}`;
+    }
+    const res = await fetch(`${_FEAT_API}/activity-log/?limit=30`, {
+      method: "GET",
+      headers,
+      credentials: "include",
+      signal: controller.signal,
+    });
+    clearTimeout(timeoutId);
+
+    if (!res.ok) {
+      const errText = await res.text().catch(() => "Unknown error");
+      console.warn("[ActivityLog] API error:", res.status, errText);
+      container.innerHTML = `<div class="empty-msg">Activity log is not available yet.</div>`;
+      return;
+    }
+
+    let logs;
+    try {
+      logs = await res.json();
+    } catch (parseErr) {
+      console.warn("[ActivityLog] JSON parse error:", parseErr);
+      container.innerHTML = `<div class="empty-msg">Activity log is not available yet.</div>`;
+      return;
+    }
+
+    if (!Array.isArray(logs) || !logs.length) {
       container.innerHTML = `<div class="empty-msg">No activity recorded yet.</div>`;
       return;
     }
@@ -120,14 +153,17 @@ async function loadActivityLog(containerId) {
       </div>`;
     }).join("")}</div>`;
   } catch (e) {
-    container.innerHTML = `<div class="empty-msg" style="color:var(--red)">Error: ${e.message}</div>`;
+    // AbortError = timeout, TypeError = network error, etc.
+    const msg = e.name === "AbortError" ? "Request timed out." : "Activity log is not available yet.";
+    container.innerHTML = `<div class="empty-msg">${msg}</div>`;
+    console.warn("[ActivityLog]", e.name, e.message);
   }
 }
 
 async function clearActivityLog(containerId) {
   if (!confirm("Clear all activity history?")) return;
   try {
-    await api("/activity-log/clear", "DELETE");
+    await api("/activity-log/clear/", "DELETE");
     loadActivityLog(containerId);
   } catch (e) { alert("Error: " + e.message); }
 }
@@ -178,7 +214,7 @@ function renderReactions(messageId) {
       onclick="toggleReaction(${messageId},'${emoji}')"
       title="${data.users.join(', ')}">${emoji} <span class="msg-reaction-count">${data.count}</span></span>`;
   });
-  html += `<span class="msg-reaction-add" onclick="showEmojiPicker(event,${messageId})" title="Add reaction">+</span>`;
+  html += `<span class="msg-reaction-add" onclick="showEmojiPicker(event,${messageId})" title="Add reaction"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" width="14" height="14"><circle cx="12" cy="12" r="10"/><path d="M8 14s1.5 2 4 2 4-2 4-2"/><line x1="9" y1="9" x2="9.01" y2="9"/><line x1="15" y1="9" x2="15.01" y2="9"/></svg></span>`;
   container.innerHTML = html;
 }
 
@@ -226,7 +262,7 @@ function connectWebSocket(applicationId) {
   const token = localStorage.getItem("token");
   if (!token) return;
   // Close existing connection
-  if (_ws) { try { _ws.close(); } catch(e) {} }
+  if (_ws) { try { _ws.close(); } catch (e) { } }
   _wsAppId = applicationId;
 
   const wsBase = (API_BASE || "http://localhost:8000").replace("http", "ws");
@@ -281,7 +317,7 @@ function connectWebSocket(applicationId) {
 }
 
 function disconnectWebSocket() {
-  if (_ws) { try { _ws.close(); } catch(e) {} _ws = null; }
+  if (_ws) { try { _ws.close(); } catch (e) { } _ws = null; }
   _wsAppId = null;
 }
 
@@ -324,7 +360,7 @@ function appendWsMessage(msg) {
       ${!isMine ? `<div class="chat-msg-name">${senderName}</div>` : ""}
       ${msg.image_url ? `<img src="${msg.image_url}" class="chat-msg-img" onclick="document.getElementById('chatLightboxImg').src=this.src;document.getElementById('chatLightbox').classList.add('open')"/>` : ""}
       ${msg.body ? `<div class="chat-msg-text">${msg.body}</div>` : ""}
-      <div class="chat-msg-time">${msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], {hour:"2-digit",minute:"2-digit"}) : "now"}</div>
+      <div class="chat-msg-time">${msg.created_at ? new Date(msg.created_at).toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }) : "now"}</div>
       <div class="msg-reactions" id="reactions-${msg.id}"></div>
     </div>`;
   container.appendChild(div);
@@ -344,12 +380,12 @@ async function loadAttachments(applicationId, containerId) {
     if (!attachments.length) { container.innerHTML = ""; return; }
     container.innerHTML = `<div style="margin-top:8px;"><div style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);margin-bottom:6px;">Attachments</div>
       <div style="display:flex;flex-wrap:wrap;gap:6px;">${attachments.map(a => {
-        const icon = a.file_type?.includes("pdf") ? "📄" : a.file_type?.includes("image") ? "🖼️" : "📎";
-        return `<a href="${a.file_url}" target="_blank" class="attachment-chip">
+      const icon = a.file_type?.includes("pdf") ? "📄" : a.file_type?.includes("image") ? "🖼️" : "📎";
+      return `<a href="${a.file_url}" target="_blank" class="attachment-chip">
           <span class="att-icon">${icon}</span>
           <span>${a.label || a.file_name || "File"}</span>
         </a>`;
-      }).join("")}</div></div>`;
+    }).join("")}</div></div>`;
   } catch (e) { container.innerHTML = ""; }
 }
 

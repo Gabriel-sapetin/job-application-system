@@ -1,883 +1,1186 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
-  <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Dashboard — JobTrack</title>
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
-  <link rel="stylesheet" href="../css/style.css"/>
-  <link rel="stylesheet" href="../css/pages/dashboard-inline-1.css"/>
-  <link rel="stylesheet" href="../css/pages/features.css"/>
+  <link rel="stylesheet" href="../css/style.css" />
+  <link rel="stylesheet" href="../css/pages/dashboard-inline-1.css" />
+  <link rel="stylesheet" href="../css/pages/features.css" />
 </head>
+
 <body>
-<div class="app-layout">
-  <!-- MOBILE TOPBAR -->
-  <div class="mobile-topbar">
-    <div class="mobile-topbar-logo">
-      <div class="logo-box" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
-      <span>JobTrack</span>
-    </div>
-    <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
-      <span></span><span></span><span></span>
-    </button>
-  </div>
-  <div class="sidebar-overlay" id="sidebarOverlay"></div>
-
-
-
-  <aside class="sidebar">
-    <div class="sidebar-logo">
-      <div class="sidebar-logo-icon" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
-      <div class="sidebar-logo-text">JobTrack <span id="sidebarRoleLabel"></span></div>
-    </div>
-    <div class="sidebar-section">
-      <div class="sidebar-section-label">Navigation</div>
-      <nav class="sidebar-nav">
-        <a href="../index.html"   class="sidebar-link"> Home</a>
-        <a href="jobs.html"       class="sidebar-link"> Browse Jobs</a>
-        <a href="dashboard.html"  class="sidebar-link active"> Dashboard</a>
-      </nav>
-    </div>
-    <!-- Applicant nav -->
-    <div class="sidebar-section" id="appSideNav" style="display:none;margin-top:8px;">
-      <div class="sidebar-section-label">My Account</div>
-      <nav class="sidebar-nav">
-        <button class="sidebar-link active app-tab-btn" onclick="showAppTab('tabProfile',this)">My Profile</button>
-        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabApps',this)">Applications <span class="sidebar-badge" id="appCountBadge">0</span></button>
-        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabMessages',this)">Messages <span class="sidebar-badge" id="appMsgBadge" style="display:none;background:var(--accent);color:#000;">0</span></button>
-        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabSaved',this)">Saved Jobs <span class="sidebar-badge" id="savedJobsBadge">0</span></button>
-        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabInterest',this)">Find by Interest</button>
-        <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabActivityLog',this)">Activity Log</button>
-      </nav>
-    </div>
-    <!-- Employer nav -->
-    <div class="sidebar-section" id="empSideNav" style="display:none;margin-top:8px;">
-      <div class="sidebar-section-label">Employer</div>
-      <nav class="sidebar-nav">
-        <button class="sidebar-link active emp-tab-btn" onclick="showEmpTab('tabEmpApps',this)">Applications <span class="sidebar-badge" id="empAppBadge">0</span></button>
-        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabEmpMessages',this)">Messages <span class="sidebar-badge" id="empMsgBadge" style="display:none;background:var(--accent);color:#000;">0</span></button>
-        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabMyJobs',this)">My Postings</button>
-        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabPost',this)">Post a Job</button>
-        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabEmpProfile',this)">Company Profile</button>
-        <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabAnalytics',this)">Analytics</button>
-      </nav>
-    </div>
-    <div class="sidebar-bottom">
-      <div class="sidebar-user" id="sidebarUser"></div>
-      <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;"> Sign Out</button>
-    </div>
-  </aside>
-
-  <div class="main-content">
-    <div class="dash-topbar">
-      <div class="dash-breadcrumb">JobTrack / <strong id="topbarTitle">Dashboard</strong></div>
-      <div style="display:flex;align-items:center;gap:10px;">
-        <div style="display:flex;align-items:center;gap:6px;"><div class="live-dot"></div><span style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);">Live</span></div>
-        <!-- Notifications text button -->
-        <div style="position:relative;">
-          <button id="dashNotifBell" onclick="toggleDashNotif()" style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;cursor:pointer;color:var(--ink-muted);font-size:12px;font-weight:500;font-family:var(--font);transition:all 0.15s;" title="Notifications">
-            Notifications<span id="dashNotifBadge" style="display:none;margin-left:6px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:var(--mono);vertical-align:middle;"></span>
-          </button>
-          <div id="dashNotifPanel" style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,0.2);z-index:200;overflow:hidden;">
-            <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
-              <span style="font-size:13px;font-weight:600;">Notifications</span>
-              <button onclick="dashMarkAllRead()" style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--font);">Mark all read</button>
-            </div>
-            <div id="dashNotifList" style="max-height:340px;overflow-y:auto;"></div>
-          </div>
-        </div>
-        <div id="themeToggleWrap" style="display:flex;align-items:center;"></div>
-        <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
+  <div class="app-layout">
+    <!-- MOBILE TOPBAR -->
+    <div class="mobile-topbar">
+      <div class="mobile-topbar-logo">
+        <div class="logo-box" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
+        <span>JobTrack</span>
       </div>
+      <button class="hamburger" id="hamburgerBtn" aria-label="Menu">
+        <span></span><span></span><span></span>
+      </button>
     </div>
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
-    <div class="content-area">
 
-      <!-- ══ APPLICANT VIEW ══ -->
-      <div id="applicantView" style="display:none;">
-        <!-- Welcome Header -->
-        <div id="applicantWelcome" style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
-          <div>
-            <h1 style="font-family:var(--font-alt);font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--ink);margin-bottom:3px;" id="welcomeGreeting">Welcome back</h1>
-            <p style="font-size:12.5px;color:var(--ink-muted);font-weight:400;" id="welcomeDate"></p>
-          </div>
-          <div style="display:flex;gap:8px;">
-            <button class="btn btn-ghost btn-sm" onclick="shareMyProfile()" title="Share your public profile">📋 Share Profile</button>
-            <a href="jobs.html" class="btn btn-primary btn-sm">Browse Jobs →</a>
-          </div>
-        </div>
-        <div id="profileCompletenessWrap"></div>
-        <div class="profile-strip" id="profileStrip">
-          <div class="ps-avatar" id="stripAvatar">—</div>
-          <div class="ps-info">
-            <h2 id="stripName">—</h2>
-            <p id="stripBio" style="color:var(--ink-muted);font-size:12px;">No bio yet.</p>
-          </div>
-          <div class="ps-social" id="stripSocial"></div>
-        </div>
-        <div class="stat-cards">
-          <div class="stat-card c-total"><div class="stat-card-label">Total Applied</div><div class="stat-card-num" id="statTotal">—</div></div>
-          <div class="stat-card c-pending"><div class="stat-card-label">Pending</div><div class="stat-card-num gold" id="statPending">—</div></div>
-          <div class="stat-card c-accept"><div class="stat-card-label">Accepted</div><div class="stat-card-num green" id="statAccepted">—</div></div>
-          <div class="stat-card c-reject"><div class="stat-card-label">Rejected</div><div class="stat-card-num red" id="statRejected">—</div></div>
-        </div>
 
-        <!-- Profile tab -->
-        <div id="tabProfile" class="tab-panel active">
-          <div class="profile-edit-grid">
-            <div class="profile-preview-card">
-              <div class="pic-upload-wrap" onclick="document.getElementById('picFileInput').click()">
-                <div class="ppc-avatar" id="profileAvatarDisplay">—</div>
-                <div class="pic-upload-overlay"></div>
-              </div>
-              <input type="file" id="picFileInput" accept="image/*" style="display:none;" onchange="handlePicFile(this)"/>
-              <p class="pic-hint">Click to change photo</p>
-              <div class="ppc-name" id="profileName">—</div>
-              <div class="ppc-role">applicant</div>
-              <p class="ppc-about" id="profileAboutDisplay" style="font-style:italic;">No bio yet.</p>
-              <div class="ppc-social" id="profileSocialDisplay">
-                <div style="font-size:12px;color:var(--ink-muted);text-align:center;">No social links yet.</div>
-              </div>
-            </div>
-            <div class="profile-fields-card">
-              <div class="pfc-header"><h3>Edit Profile</h3><button class="btn btn-primary btn-sm" onclick="saveProfile()">Save Changes</button></div>
-              <div class="pfc-body">
-                <div id="profileAlert" class="alert"></div>
-                <div class="form-group"><label>Profile Picture URL</label><input type="url" id="picUrlInput" placeholder="https://i.imgur.com/..." oninput="previewPic()"/></div>
-                <div class="form-group"><label>About Me</label><textarea id="aboutInput" placeholder="Tell employers about yourself..." style="min-height:90px;"></textarea></div>
-                <div class="form-group"><label>Default Resume URL <span style="color:var(--ink-muted);font-weight:400;">(auto-fills apply form)</span></label><input type="url" id="defaultResumeInput" placeholder="https://drive.google.com/your-resume"/></div>
-                <div class="form-group"><label>Default Cover Letter <span style="color:var(--ink-muted);font-weight:400;">(auto-fills apply form)</span></label><textarea id="defaultCoverInput" placeholder="Pre-write your cover letter here..." style="min-height:80px;"></textarea></div>
-                <div class="form-grid-2">
-                  <!-- Applicant social cards -->
-                  <div class="social-link-card slc-ig" style="height:48px;">
-                    <div class="slc-icon-wrap">
-                      <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>
-                    </div>
-                    <div class="slc-body"><div class="slc-label">Instagram</div>
-                      <div style="display:flex;align-items:center;"><span class="slc-prefix">@</span><input class="slc-input" type="text" id="igInput" placeholder="yourhandle"/></div>
-                    </div>
-                  </div>
-                  <div class="social-link-card slc-fb" style="height:48px;">
-                    <div class="slc-icon-wrap">
-                      <svg class="slc-icon" viewBox="0 0 24 24" fill="white"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>
-                    </div>
-                    <div class="slc-body"><div class="slc-label">Facebook</div>
-                      <input class="slc-input" type="text" id="fbInput" placeholder="profile name"/>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
+    <aside class="sidebar">
+      <div class="sidebar-logo">
+        <div class="sidebar-logo-icon" style="background:#fff;color:#0f0f12;box-shadow:none;">JT</div>
+        <div class="sidebar-logo-text">JobTrack <span id="sidebarRoleLabel"></span></div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-section-label">Navigation</div>
+        <nav class="sidebar-nav">
+          <a href="../index.html" class="sidebar-link"> Home</a>
+          <a href="jobs.html" class="sidebar-link"> Browse Jobs</a>
+          <a href="dashboard.html" class="sidebar-link active"> Dashboard</a>
+        </nav>
+      </div>
+      <!-- Applicant nav -->
+      <div class="sidebar-section" id="appSideNav" style="display:none;margin-top:8px;">
+        <div class="sidebar-section-label">My Account</div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link active app-tab-btn" onclick="showAppTab('tabProfile',this)">My Profile</button>
+          <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabApps',this)">Applications <span
+              class="sidebar-badge" id="appCountBadge">0</span></button>
+          <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabMessages',this)">Messages <span
+              class="sidebar-badge" id="appMsgBadge"
+              style="display:none;background:var(--accent);color:#000;">0</span></button>
+          <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabSaved',this)">Saved Jobs <span
+              class="sidebar-badge" id="savedJobsBadge">0</span></button>
+          <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabInterest',this)">Find by Interest</button>
+          <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabActivityLog',this)">Activity Log</button>
+        </nav>
+      </div>
+      <!-- Employer nav -->
+      <div class="sidebar-section" id="empSideNav" style="display:none;margin-top:8px;">
+        <div class="sidebar-section-label">Employer</div>
+        <nav class="sidebar-nav">
+          <button class="sidebar-link active emp-tab-btn" onclick="showEmpTab('tabEmpApps',this)">Applications <span
+              class="sidebar-badge" id="empAppBadge">0</span></button>
+          <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabEmpMessages',this)">Messages <span
+              class="sidebar-badge" id="empMsgBadge"
+              style="display:none;background:var(--accent);color:#000;">0</span></button>
+          <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabMyJobs',this)">My Postings</button>
+          <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabPost',this)">Post a Job</button>
+          <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabEmpProfile',this)">Company Profile</button>
+          <button class="sidebar-link emp-tab-btn" onclick="showEmpTab('tabAnalytics',this)">Analytics</button>
+        </nav>
+      </div>
+      <div class="sidebar-bottom">
+        <div class="sidebar-user" id="sidebarUser"></div>
+        <button class="sidebar-link" onclick="logout()" style="color:var(--red);margin-top:4px;"> Sign Out</button>
+      </div>
+    </aside>
 
-        <!-- Applications tab -->
-        <div id="tabApps" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header"><h3>My Applications</h3><a href="jobs.html" class="btn btn-ghost btn-sm">Browse Jobs →</a></div>
-            <div style="overflow-x:auto;">
-              <table class="data-table">
-                <thead><tr><th>Position</th><th>Company</th><th>Deadline</th><th>Slots</th><th>Date</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="appTableBody"><tr><td colspan="7" style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</td></tr></tbody>
-              </table>
-            </div>
-            <div id="appPagination" style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-muted);font-family:var(--mono);">
-              <span id="appPageInfo"></span>
-              <div style="display:flex;gap:6px;">
-                <button class="btn btn-ghost btn-sm" id="appPrevBtn" onclick="appChangePage(-1)" disabled>← Prev</button>
-                <button class="btn btn-ghost btn-sm" id="appNextBtn" onclick="appChangePage(1)" disabled>Next →</button>
-              </div>
-            </div>
+    <div class="main-content">
+      <div class="dash-topbar">
+        <div class="dash-breadcrumb">JobTrack / <strong id="topbarTitle">Dashboard</strong></div>
+        <div style="display:flex;align-items:center;gap:10px;">
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="live-dot"></div><span
+              style="font-size:11px;color:var(--ink-muted);font-family:var(--mono);">Live</span>
           </div>
-        </div>
-
-        <!-- Saved Jobs tab -->
-        <div id="tabSaved" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header"><h3>🔖 Saved Jobs</h3><a href="jobs.html" class="btn btn-ghost btn-sm">Browse Jobs →</a></div>
-            <div id="savedJobsList" style="padding:8px;">
-              <div class="empty-msg">Loading...</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Interest tab -->
-        <div id="tabInterest" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header"><h3>Browse by Interest</h3><span class="td-muted" style="font-size:12px;">Select a category or search</span></div>
-            <div class="panel-body">
-              <!-- #6 Real API search -->
-              <div style="display:flex;gap:8px;margin-bottom:14px;">
-                <input type="text" id="jobSearchInput" placeholder="🔍  Search jobs by title, company, or keyword..." style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);padding:9px 12px;font-family:var(--font);font-size:13px;outline:none;transition:border-color 0.15s;" oninput="debounceSearch(this.value)" onfocus="this.style.borderColor='rgba(255,255,255,0.2)'" onblur="this.style.borderColor='var(--border)'"/>
-                <button class="btn btn-ghost btn-sm" onclick="clearSearch()" id="clearSearchBtn" style="display:none;">Clear ✕</button>
-              </div>
-              <div class="interest-grid-wrap" id="interestGrid"></div>
-            </div>
-          </div>
-          <div class="panel int-results-panel" id="interestResults">
-            <div class="panel-header"><h3 id="interestResultTitle">Jobs</h3><button class="btn btn-ghost btn-sm" onclick="clearInterest()">Clear ✕</button></div>
-            <div class="job-list" id="interestJobList"></div>
-          </div>
-        </div>
-        <!-- Messages tab -->
-        <div id="tabMessages" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>💬 Messages</h3>
-              <span style="font-size:12px;color:var(--ink-muted);">Conversations with employers</span>
-            </div>
-            <div id="appConversationList" style="padding:8px;">
-              <div class="empty-msg">No conversations yet.</div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Activity Log tab -->
-        <div id="tabActivityLog" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>📋 Activity Log</h3>
-              <button class="btn btn-ghost btn-sm" onclick="clearActivityLog('activityLogContent')">Clear History</button>
-            </div>
-            <div id="activityLogContent" style="padding:8px;">
-              <div class="empty-msg">Loading...</div>
-            </div>
-          </div>
-        </div>
-
-      </div><!-- /applicantView -->
-
-      <!-- ══ EMPLOYER VIEW ══ -->
-      <div id="employerView" style="display:none;">
-
-        <!-- ── Employer Profile Hero (always visible) ── -->
-        <div class="emp-profile-hero" id="empProfileHero">
-          <div class="emp-profile-banner" id="empBanner">
-            <div class="emp-profile-banner-pattern"></div>
-            <img id="empBannerImg" class="emp-profile-banner-img" src="" alt=""/>
-            <button class="emp-banner-edit-btn" onclick="document.getElementById('bannerFileInput').click()">
-              Change Cover Photo
+          <!-- Notifications text button -->
+          <div style="position:relative;">
+            <button id="dashNotifBell" onclick="toggleDashNotif()"
+              style="position:relative;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius);padding:6px 12px;cursor:pointer;color:var(--ink-muted);font-size:12px;font-weight:500;font-family:var(--font);transition:all 0.15s;"
+              title="Notifications">
+              Notifications<span id="dashNotifBadge"
+                style="display:none;margin-left:6px;background:var(--red);color:#fff;font-size:9px;font-weight:700;padding:1px 5px;border-radius:100px;font-family:var(--mono);vertical-align:middle;"></span>
             </button>
-            <input type="file" id="bannerFileInput" accept="image/*" style="display:none;" onchange="handleBannerFile(this)"/>
-          </div>
-          <div class="emp-profile-body">
-            <div class="emp-avatar-wrap" onclick="document.getElementById('empPicFileInput').click()">
-              <div class="emp-avatar" id="empAvatarDisplay">—</div>
-              <div class="emp-avatar-overlay">📷</div>
-            </div>
-            <input type="file" id="empPicFileInput" accept="image/*" style="display:none;" onchange="handleEmpPicFile(this)"/>
-            <div class="emp-profile-info">
-              <div class="emp-profile-name" id="empProfileName">—</div>
-              <div class="emp-profile-role" id="empProfileRole">Employer / Recruiter</div>
-              <div class="emp-profile-bio" id="empProfileBio">No company description yet.</div>
-              <div class="emp-profile-contact" id="empProfileContact"></div>
-            </div>
-            <div class="emp-profile-actions">
-              <button class="btn btn-primary btn-sm" onclick="showEmpTab('tabEmpProfile', document.querySelector('[onclick*=tabEmpProfile]'))">Edit Profile</button>
-              <button class="btn btn-ghost btn-sm" onclick="showEmpTab('tabPost', document.querySelector('[onclick*=tabPost]'))">+ Post a Job</button>
+            <div id="dashNotifPanel"
+              style="display:none;position:absolute;top:calc(100% + 8px);right:0;width:320px;background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);box-shadow:0 12px 40px rgba(0,0,0,0.2);z-index:200;overflow:hidden;">
+              <div
+                style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid var(--border);background:var(--surface2);">
+                <span style="font-size:13px;font-weight:600;">Notifications</span>
+                <button onclick="dashMarkAllRead()"
+                  style="font-size:11px;color:var(--accent);background:none;border:none;cursor:pointer;font-family:var(--font);">Mark
+                  all read</button>
+              </div>
+              <div id="dashNotifList" style="max-height:340px;overflow-y:auto;"></div>
             </div>
           </div>
+          <div id="themeToggleWrap" style="display:flex;align-items:center;"></div>
+          <button class="btn btn-ghost btn-sm" onclick="loadDashboard()">↻ Refresh</button>
         </div>
+      </div>
 
-        <!-- Stats -->
-        <div class="stat-cards">
-          <div class="stat-card c-total"><div class="stat-card-label">Total Applications</div><div class="stat-card-num" id="empStatTotal">—</div></div>
-          <div class="stat-card c-pending"><div class="stat-card-label">Pending</div><div class="stat-card-num gold" id="empStatPending">—</div></div>
-          <div class="stat-card c-accept"><div class="stat-card-label">Accepted</div><div class="stat-card-num green" id="empStatAccepted">—</div></div>
-          <div class="stat-card c-reject"><div class="stat-card-label">Rejected</div><div class="stat-card-num red" id="empStatRejected">—</div></div>
-        </div>
+      <div class="content-area">
 
-        <!-- Applications Received -->
-        <div id="tabEmpApps" class="tab-panel active">
-          <div class="panel">
-            <div class="panel-header"><h3>Applications Received</h3><span class="td-muted" style="font-size:12px;">Click name to view profile · Click Cover to read letter</span></div>
-            <div style="overflow-x:auto;">
-              <table class="data-table">
-                <thead><tr><th>Applicant</th><th>Position</th><th>Date</th><th>Cover Letter</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="empAppTableBody"><tr><td colspan="6" style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</td></tr></tbody>
-              </table>
+        <!-- ══ APPLICANT VIEW ══ -->
+        <div id="applicantView" style="display:none;">
+          <!-- Welcome Header -->
+          <div id="applicantWelcome"
+            style="margin-bottom:20px;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+              <h1
+                style="font-family:var(--font-alt);font-size:22px;font-weight:800;letter-spacing:-0.5px;color:var(--ink);margin-bottom:3px;"
+                id="welcomeGreeting">Welcome back</h1>
+              <p style="font-size:12.5px;color:var(--ink-muted);font-weight:400;" id="welcomeDate"></p>
+            </div>
+            <div style="display:flex;gap:8px;">
+              <button class="btn btn-ghost btn-sm" onclick="shareMyProfile()" title="Share your public profile">📋 Share
+                Profile</button>
+              <a href="jobs.html" class="btn btn-primary btn-sm">Browse Jobs →</a>
             </div>
           </div>
-        </div>
-
-        <!-- My Postings -->
-        <div id="tabMyJobs" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header"><h3>My Job Postings</h3><span class="td-muted" style="font-size:12px;">Open / Close / Delete</span></div>
-            <div style="overflow-x:auto;">
-              <table class="data-table">
-                <thead><tr><th>Title</th><th>Image</th><th>Category</th><th>Type</th><th>Slots</th><th>Deadline</th><th>Status</th><th>Actions</th></tr></thead>
-                <tbody id="myJobsTableBody"><tr><td colspan="8" style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Loading...</td></tr></tbody>
-              </table>
+          <div id="profileCompletenessWrap"></div>
+          <div class="profile-strip" id="profileStrip">
+            <div class="ps-avatar" id="stripAvatar">—</div>
+            <div class="ps-info">
+              <h2 id="stripName">—</h2>
+              <p id="stripBio" style="color:var(--ink-muted);font-size:12px;">No bio yet.</p>
+            </div>
+            <div class="ps-social" id="stripSocial"></div>
+          </div>
+          <div class="stat-cards">
+            <div class="stat-card c-total">
+              <div class="stat-card-label">Total Applied</div>
+              <div class="stat-card-num" id="statTotal">—</div>
+            </div>
+            <div class="stat-card c-pending">
+              <div class="stat-card-label">Pending</div>
+              <div class="stat-card-num gold" id="statPending">—</div>
+            </div>
+            <div class="stat-card c-accept">
+              <div class="stat-card-label">Accepted</div>
+              <div class="stat-card-num green" id="statAccepted">—</div>
+            </div>
+            <div class="stat-card c-reject">
+              <div class="stat-card-label">Rejected</div>
+              <div class="stat-card-num red" id="statRejected">—</div>
             </div>
           </div>
-        </div>
 
-        <!-- Post a Job -->
-        <div id="tabPost" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header"><h3>Post a New Position</h3></div>
-            <div class="panel-body">
-              <div id="postAlert" class="alert"></div>
-              <div class="post-form-grid">
-                <div class="form-group"><label>Job Title *</label><input type="text" id="jobTitle" placeholder="e.g. Frontend Developer"/></div>
-                <div class="form-group"><label>Company *</label><input type="text" id="jobCompany" placeholder="e.g. TechCorp PH"/></div>
-                <div class="form-group"><label>Location *</label><input type="text" id="jobLocation" placeholder="e.g. Davao City"/></div>
-                <div class="form-group"><label>Employment Type</label>
-                  <select id="jobType"><option>Full-Time</option><option>Part-Time</option><option>Internship</option><option>Remote</option></select>
+          <!-- Profile tab -->
+          <div id="tabProfile" class="tab-panel active">
+            <div class="profile-edit-grid">
+              <div class="profile-preview-card">
+                <div class="pic-upload-wrap" onclick="document.getElementById('picFileInput').click()">
+                  <div class="ppc-avatar" id="profileAvatarDisplay">—</div>
+                  <div class="pic-upload-overlay"></div>
                 </div>
-                <div class="form-group"><label>Category / Interest</label>
-                  <select id="jobCategory">
-                    <option value="">— Select —</option>
-                    <optgroup label="Professional">
-                    <option value="arts">🎬 Arts & Media</option><option value="business">💼 Business</option>
-                    <option value="cleaning">🧹 Cleaning</option><option value="construction">🏗️ Construction</option>
-                    <option value="customer">🎧 Customer Service</option><option value="design">🎨 Design</option>
-                    <option value="education">📚 Education</option><option value="engineering">⚙️ Engineering</option>
-                    <option value="finance">💰 Finance</option><option value="government">🏛️ Government / NGO</option>
-                    <option value="healthcare">🏥 Healthcare</option><option value="hospitality">🏨 Hospitality</option>
-                    <option value="marketing">📣 Marketing</option><option value="software">💻 Software & IT</option>
-                    <option value="teaching">🏫 Teaching</option>
-                    </optgroup>
-                    <optgroup label="👤 Individual / Personal Hire">
-                    <option value="freelance">💡 Freelance / Project-Based</option>
-                    <option value="errand">🛵 Errands & Delivery</option>
-                    <option value="homeservice">🏠 Home Services</option>
-                    <option value="repair">🔧 Repair & Maintenance</option>
-                    <option value="caregiving">🤝 Caregiving / Domestic</option>
-                    <option value="event">🎉 Events & Assistance</option>
-                    </optgroup>
-                  </select>
-                </div>
-                <div class="form-group"><label>Salary Range</label><input type="text" id="jobSalary" placeholder="e.g. ₱35,000 – ₱45,000"/></div>
-                <div class="form-group"><label>Max Applicants <span style="color:var(--ink-muted);font-weight:400;">(blank=unlimited)</span></label><input type="number" id="jobMaxApplicants" placeholder="20" min="1"/></div>
-                <div class="form-group"><label>Application Deadline</label><input type="date" id="jobDeadline"/></div>
-                <div class="form-group post-form-full"><label>Job Description</label><textarea id="jobDesc" placeholder="Describe the role, responsibilities, and requirements..." style="min-height:110px;"></textarea></div>
-                <!-- Job Image Upload -->
-                <div class="form-group post-form-full">
-                  <label>Job Banner Image <span style="color:var(--ink-muted);font-weight:400;">(optional — shown on the job card)</span></label>
-                  <div class="job-img-upload" onclick="document.getElementById('jobImgFile').click()">
-                    <input type="file" id="jobImgFile" accept="image/*" style="display:none;" onchange="previewJobImage(this)"/>
-                    <div id="jobImgPlaceholder">
-                      <div style="font-size:28px;margin-bottom:6px;">🖼️</div>
-                      <div style="font-size:13px;color:var(--ink-muted);">Paste an image URL below</div>
-                      <div class="job-img-hint">Use a hosted URL (Imgur, Drive, etc.) — file upload requires storage bucket</div>
-                    </div>
-                    <img id="jobImgPreview" class="job-img-preview" src="" alt=""/>
-                  </div>
-                  <div class="form-group" style="margin-top:8px;margin-bottom:0;">
-                    <label>Or paste image URL</label>
-                    <input type="url" id="jobImgUrl" placeholder="https://example.com/banner.jpg" oninput="previewJobImageUrl(this)"/>
-                  </div>
+                <input type="file" id="picFileInput" accept="image/*" style="display:none;"
+                  onchange="handlePicFile(this)" />
+                <p class="pic-hint">Click to change photo</p>
+                <div class="ppc-name" id="profileName">—</div>
+                <div class="ppc-role">applicant</div>
+                <p class="ppc-about" id="profileAboutDisplay" style="font-style:italic;">No bio yet.</p>
+                <div class="ppc-social" id="profileSocialDisplay">
+                  <div style="font-size:12px;color:var(--ink-muted);text-align:center;">No social links yet.</div>
                 </div>
               </div>
-              <button class="btn btn-primary" style="margin-top:8px;" onclick="postJob()">Post Position →</button>
-              <div style="margin-top:12px;padding:10px 14px;background:rgba(255,204,68,0.06);border:1px solid rgba(255,204,68,0.2);border-radius:var(--radius);font-size:12px;color:var(--ink-muted);line-height:1.6;">
-                <strong style="color:var(--gold);">📋 Platform Policy Reminder:</strong>
-                By posting, you agree that you will <strong>never charge applicants any fee</strong> (processing, training, uniform, or otherwise) as a condition of employment.
-                Listings that violate this policy will be removed. For individual hire postings, applicants are advised to meet in public and verify identity before working.
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Company Profile Edit -->
-        <div id="tabEmpProfile" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header"><h3>Company / Employer Profile</h3><button class="btn btn-primary btn-sm" onclick="saveEmpProfile()">Save Changes</button></div>
-            <div class="panel-body">
-              <div id="empProfileAlert" class="alert"></div>
-              <div class="emp-edit-grid">
-                <div class="form-group">
-                  <label>Profile Picture URL</label>
-                  <input type="url" id="empPicUrl" placeholder="https://i.imgur.com/..." oninput="previewEmpPic()"/>
+              <div class="profile-fields-card">
+                <div class="pfc-header">
+                  <h3>Edit Profile</h3><button class="btn btn-primary btn-sm" onclick="saveProfile()">Save
+                    Changes</button>
                 </div>
-                <div class="form-group">
-                  <label>Banner / Cover Photo URL</label>
-                  <input type="url" id="empBannerUrl" placeholder="https://example.com/banner.jpg" oninput="previewEmpBanner()"/>
-                </div>
-                <div class="form-group emp-edit-full">
-                  <label>Company / Employer Description</label>
-                  <textarea id="empAbout" placeholder="Tell applicants about your company, culture, and what makes you a great employer..." style="min-height:100px;"></textarea>
-                </div>
-                <!-- Social Links — redesigned -->
-                <div class="social-links-section">
-                  <div class="social-section-label">Social &amp; Contact Links</div>
-                  <div class="social-links-grid">
-
-                    <!-- Instagram -->
-                    <div class="social-link-card slc-ig">
+                <div class="pfc-body">
+                  <div id="profileAlert" class="alert"></div>
+                  <div class="form-group"><label>Profile Picture URL</label><input type="url" id="picUrlInput"
+                      placeholder="https://i.imgur.com/..." oninput="previewPic()" /></div>
+                  <div class="form-group"><label>About Me</label><textarea id="aboutInput"
+                      placeholder="Tell employers about yourself..." style="min-height:90px;"></textarea></div>
+                  <div class="form-group"><label>Default Resume URL <span
+                        style="color:var(--ink-muted);font-weight:400;">(auto-fills apply form)</span></label><input
+                      type="url" id="defaultResumeInput" placeholder="https://drive.google.com/your-resume" /></div>
+                  <div class="form-group"><label>Default Cover Letter <span
+                        style="color:var(--ink-muted);font-weight:400;">(auto-fills apply form)</span></label><textarea
+                      id="defaultCoverInput" placeholder="Pre-write your cover letter here..."
+                      style="min-height:80px;"></textarea></div>
+                  <div class="form-grid-2">
+                    <!-- Applicant social cards -->
+                    <div class="social-link-card slc-ig" style="height:48px;">
                       <div class="slc-icon-wrap">
-                        <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5"/>
-                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/>
-                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/>
+                        <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                          stroke-linecap="round" stroke-linejoin="round">
+                          <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                          <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                          <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
                         </svg>
                       </div>
                       <div class="slc-body">
                         <div class="slc-label">Instagram</div>
-                        <div style="display:flex;align-items:center;">
-                          <span class="slc-prefix">@</span>
-                          <input class="slc-input" type="text" id="empIg" placeholder="yourhandle"/>
-                        </div>
+                        <div style="display:flex;align-items:center;"><span class="slc-prefix">@</span><input
+                            class="slc-input" type="text" id="igInput" placeholder="yourhandle" /></div>
                       </div>
                     </div>
-
-                    <!-- Facebook -->
-                    <div class="social-link-card slc-fb">
+                    <div class="social-link-card slc-fb" style="height:48px;">
                       <div class="slc-icon-wrap">
                         <svg class="slc-icon" viewBox="0 0 24 24" fill="white">
-                          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/>
+                          <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
                         </svg>
                       </div>
                       <div class="slc-body">
                         <div class="slc-label">Facebook</div>
-                        <input class="slc-input" type="text" id="empFb" placeholder="page or profile name"/>
+                        <input class="slc-input" type="text" id="fbInput" placeholder="profile name" />
                       </div>
                     </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
 
-                    <!-- Telegram -->
-                    <div class="social-link-card slc-tg">
-                      <div class="slc-icon-wrap">
-                        <svg class="slc-icon" viewBox="0 0 24 24" fill="white">
-                          <path d="M21.8 2.15L2.05 9.84c-1.3.52-1.29 1.25-.24 1.57l5.1 1.59 11.83-7.47c.56-.34 1.07-.16.65.21L8.1 16.17l-.39 5.27c.57 0 .82-.26 1.14-.57l2.73-2.65 5.68 4.19c1.05.58 1.8.28 2.06-.97l3.73-17.57c.38-1.52-.58-2.21-1.25-1.72z"/>
-                        </svg>
+          <!-- Applications tab -->
+          <div id="tabApps" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>My Applications</h3><a href="jobs.html" class="btn btn-ghost btn-sm">Browse Jobs →</a>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Position</th>
+                      <th>Company</th>
+                      <th>Deadline</th>
+                      <th>Slots</th>
+                      <th>Date</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="appTableBody">
+                    <tr>
+                      <td colspan="7"
+                        style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">
+                        Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+              <div id="appPagination"
+                style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-muted);font-family:var(--mono);">
+                <span id="appPageInfo"></span>
+                <div style="display:flex;gap:6px;">
+                  <button class="btn btn-ghost btn-sm" id="appPrevBtn" onclick="appChangePage(-1)" disabled>←
+                    Prev</button>
+                  <button class="btn btn-ghost btn-sm" id="appNextBtn" onclick="appChangePage(1)" disabled>Next
+                    →</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Saved Jobs tab -->
+          <div id="tabSaved" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>🔖 Saved Jobs</h3><a href="jobs.html" class="btn btn-ghost btn-sm">Browse Jobs →</a>
+              </div>
+              <div id="savedJobsList" style="padding:8px;">
+                <div class="empty-msg">Loading...</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Interest tab -->
+          <div id="tabInterest" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Browse by Interest</h3><span class="td-muted" style="font-size:12px;">Select a category or
+                  search</span>
+              </div>
+              <div class="panel-body">
+                <!-- #6 Real API search -->
+                <div style="display:flex;gap:8px;margin-bottom:14px;">
+                  <input type="text" id="jobSearchInput" placeholder="🔍  Search jobs by title, company, or keyword..."
+                    style="flex:1;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);padding:9px 12px;font-family:var(--font);font-size:13px;outline:none;transition:border-color 0.15s;"
+                    oninput="debounceSearch(this.value)" onfocus="this.style.borderColor='rgba(255,255,255,0.2)'"
+                    onblur="this.style.borderColor='var(--border)'" />
+                  <button class="btn btn-ghost btn-sm" onclick="clearSearch()" id="clearSearchBtn"
+                    style="display:none;">Clear ✕</button>
+                </div>
+                <div class="interest-grid-wrap" id="interestGrid"></div>
+              </div>
+            </div>
+            <div class="panel int-results-panel" id="interestResults">
+              <div class="panel-header">
+                <h3 id="interestResultTitle">Jobs</h3><button class="btn btn-ghost btn-sm"
+                  onclick="clearInterest()">Clear ✕</button>
+              </div>
+              <div class="job-list" id="interestJobList"></div>
+            </div>
+          </div>
+          <!-- Messages tab -->
+          <div id="tabMessages" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Messages</h3>
+              </div>
+              <div id="appConversationList" class="conv-list-container">
+                <div class="empty-msg">No conversations yet.</div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Activity Log tab -->
+          <div id="tabActivityLog" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>📋 Activity Log</h3>
+                <button class="btn btn-ghost btn-sm" onclick="clearActivityLog('activityLogContent')">Clear
+                  History</button>
+              </div>
+              <div id="activityLogContent" style="padding:8px;">
+                <div class="empty-msg">Loading...</div>
+              </div>
+            </div>
+          </div>
+
+        </div><!-- /applicantView -->
+
+        <!-- ══ EMPLOYER VIEW ══ -->
+        <div id="employerView" style="display:none;">
+
+          <!-- ── Employer Profile Hero (always visible) ── -->
+          <div class="emp-profile-hero" id="empProfileHero">
+            <div class="emp-profile-banner" id="empBanner">
+              <div class="emp-profile-banner-pattern"></div>
+              <img id="empBannerImg" class="emp-profile-banner-img" src="" alt="" />
+              <button class="emp-banner-edit-btn" onclick="document.getElementById('bannerFileInput').click()">
+                Change Cover Photo
+              </button>
+              <input type="file" id="bannerFileInput" accept="image/*" style="display:none;"
+                onchange="handleBannerFile(this)" />
+            </div>
+            <div class="emp-profile-body">
+              <div class="emp-avatar-wrap" onclick="document.getElementById('empPicFileInput').click()">
+                <div class="emp-avatar" id="empAvatarDisplay">—</div>
+                <div class="emp-avatar-overlay">📷</div>
+              </div>
+              <input type="file" id="empPicFileInput" accept="image/*" style="display:none;"
+                onchange="handleEmpPicFile(this)" />
+              <div class="emp-profile-info">
+                <div class="emp-profile-name" id="empProfileName">—</div>
+                <div class="emp-profile-role" id="empProfileRole">Employer / Recruiter</div>
+                <div class="emp-profile-bio" id="empProfileBio">No company description yet.</div>
+                <div class="emp-profile-contact" id="empProfileContact"></div>
+              </div>
+              <div class="emp-profile-actions">
+                <button class="btn btn-primary btn-sm"
+                  onclick="showEmpTab('tabEmpProfile', document.querySelector('[onclick*=tabEmpProfile]'))">Edit
+                  Profile</button>
+                <button class="btn btn-ghost btn-sm"
+                  onclick="showEmpTab('tabPost', document.querySelector('[onclick*=tabPost]'))">+ Post a Job</button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Stats -->
+          <div class="stat-cards">
+            <div class="stat-card c-total">
+              <div class="stat-card-label">Total Applications</div>
+              <div class="stat-card-num" id="empStatTotal">—</div>
+            </div>
+            <div class="stat-card c-pending">
+              <div class="stat-card-label">Pending</div>
+              <div class="stat-card-num gold" id="empStatPending">—</div>
+            </div>
+            <div class="stat-card c-accept">
+              <div class="stat-card-label">Accepted</div>
+              <div class="stat-card-num green" id="empStatAccepted">—</div>
+            </div>
+            <div class="stat-card c-reject">
+              <div class="stat-card-label">Rejected</div>
+              <div class="stat-card-num red" id="empStatRejected">—</div>
+            </div>
+          </div>
+
+          <!-- Applications Received -->
+          <div id="tabEmpApps" class="tab-panel active">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Applications Received</h3><span class="td-muted" style="font-size:12px;">Click name to view profile
+                  · Click Cover to read letter</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Applicant</th>
+                      <th>Position</th>
+                      <th>Date</th>
+                      <th>Cover Letter</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="empAppTableBody">
+                    <tr>
+                      <td colspan="6"
+                        style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">
+                        Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- My Postings -->
+          <div id="tabMyJobs" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>My Job Postings</h3><span class="td-muted" style="font-size:12px;">Open / Close / Delete</span>
+              </div>
+              <div style="overflow-x:auto;">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Image</th>
+                      <th>Category</th>
+                      <th>Type</th>
+                      <th>Slots</th>
+                      <th>Deadline</th>
+                      <th>Status</th>
+                      <th>Actions</th>
+                    </tr>
+                  </thead>
+                  <tbody id="myJobsTableBody">
+                    <tr>
+                      <td colspan="8"
+                        style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">
+                        Loading...</td>
+                    </tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <!-- Post a Job -->
+          <div id="tabPost" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Post a New Position</h3>
+              </div>
+              <div class="panel-body">
+                <div id="postAlert" class="alert"></div>
+                <div class="post-form-grid">
+                  <div class="form-group"><label>Job Title *</label><input type="text" id="jobTitle"
+                      placeholder="e.g. Frontend Developer" /></div>
+                  <div class="form-group"><label>Company *</label><input type="text" id="jobCompany"
+                      placeholder="e.g. TechCorp PH" /></div>
+                  <div class="form-group"><label>Location *</label><input type="text" id="jobLocation"
+                      placeholder="e.g. Davao City" /></div>
+                  <div class="form-group"><label>Employment Type</label>
+                    <select id="jobType">
+                      <option>Full-Time</option>
+                      <option>Part-Time</option>
+                      <option>Internship</option>
+                      <option>Remote</option>
+                    </select>
+                  </div>
+                  <div class="form-group"><label>Category / Interest</label>
+                    <select id="jobCategory">
+                      <option value="">— Select —</option>
+                      <optgroup label="Professional">
+                        <option value="arts">🎬 Arts & Media</option>
+                        <option value="business">💼 Business</option>
+                        <option value="cleaning">🧹 Cleaning</option>
+                        <option value="construction">🏗️ Construction</option>
+                        <option value="customer">🎧 Customer Service</option>
+                        <option value="design">🎨 Design</option>
+                        <option value="education">📚 Education</option>
+                        <option value="engineering">⚙️ Engineering</option>
+                        <option value="finance">💰 Finance</option>
+                        <option value="government">🏛️ Government / NGO</option>
+                        <option value="healthcare">🏥 Healthcare</option>
+                        <option value="hospitality">🏨 Hospitality</option>
+                        <option value="marketing">📣 Marketing</option>
+                        <option value="software">💻 Software & IT</option>
+                        <option value="teaching">🏫 Teaching</option>
+                      </optgroup>
+                      <optgroup label="👤 Individual / Personal Hire">
+                        <option value="freelance">💡 Freelance / Project-Based</option>
+                        <option value="errand">🛵 Errands & Delivery</option>
+                        <option value="homeservice">🏠 Home Services</option>
+                        <option value="repair">🔧 Repair & Maintenance</option>
+                        <option value="caregiving">🤝 Caregiving / Domestic</option>
+                        <option value="event">🎉 Events & Assistance</option>
+                      </optgroup>
+                    </select>
+                  </div>
+                  <div class="form-group"><label>Salary Range</label><input type="text" id="jobSalary"
+                      placeholder="e.g. ₱35,000 – ₱45,000" /></div>
+                  <div class="form-group"><label>Max Applicants <span
+                        style="color:var(--ink-muted);font-weight:400;">(blank=unlimited)</span></label><input
+                      type="number" id="jobMaxApplicants" placeholder="20" min="1" /></div>
+                  <div class="form-group"><label>Application Deadline</label><input type="date" id="jobDeadline" />
+                  </div>
+                  <div class="form-group post-form-full"><label>Job Description</label><textarea id="jobDesc"
+                      placeholder="Describe the role, responsibilities, and requirements..."
+                      style="min-height:110px;"></textarea></div>
+                  <!-- Job Image Upload -->
+                  <div class="form-group post-form-full">
+                    <label>Job Banner Image <span style="color:var(--ink-muted);font-weight:400;">(optional — shown on
+                        the job card)</span></label>
+                    <div class="job-img-upload" onclick="document.getElementById('jobImgFile').click()">
+                      <input type="file" id="jobImgFile" accept="image/*" style="display:none;"
+                        onchange="previewJobImage(this)" />
+                      <div id="jobImgPlaceholder">
+                        <div style="font-size:28px;margin-bottom:6px;">🖼️</div>
+                        <div style="font-size:13px;color:var(--ink-muted);">Paste an image URL below</div>
+                        <div class="job-img-hint">Use a hosted URL (Imgur, Drive, etc.) — file upload requires storage
+                          bucket</div>
                       </div>
-                      <div class="slc-body">
-                        <div class="slc-label">Telegram</div>
-                        <div style="display:flex;align-items:center;">
-                          <span class="slc-prefix">@</span>
-                          <input class="slc-input" type="text" id="empTelegram" placeholder="yourusername"/>
+                      <img id="jobImgPreview" class="job-img-preview" src="" alt="" />
+                    </div>
+                    <div class="form-group" style="margin-top:8px;margin-bottom:0;">
+                      <label>Or paste image URL</label>
+                      <input type="url" id="jobImgUrl" placeholder="https://example.com/banner.jpg"
+                        oninput="previewJobImageUrl(this)" />
+                    </div>
+                  </div>
+                </div>
+                <button class="btn btn-primary" style="margin-top:8px;" onclick="postJob()">Post Position →</button>
+                <div
+                  style="margin-top:12px;padding:10px 14px;background:rgba(255,204,68,0.06);border:1px solid rgba(255,204,68,0.2);border-radius:var(--radius);font-size:12px;color:var(--ink-muted);line-height:1.6;">
+                  <strong style="color:var(--gold);">📋 Platform Policy Reminder:</strong>
+                  By posting, you agree that you will <strong>never charge applicants any fee</strong> (processing,
+                  training, uniform, or otherwise) as a condition of employment.
+                  Listings that violate this policy will be removed. For individual hire postings, applicants are
+                  advised to meet in public and verify identity before working.
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Company Profile Edit -->
+          <div id="tabEmpProfile" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Company / Employer Profile</h3><button class="btn btn-primary btn-sm"
+                  onclick="saveEmpProfile()">Save Changes</button>
+              </div>
+              <div class="panel-body">
+                <div id="empProfileAlert" class="alert"></div>
+                <div class="emp-edit-grid">
+                  <div class="form-group">
+                    <label>Profile Picture URL</label>
+                    <input type="url" id="empPicUrl" placeholder="https://i.imgur.com/..." oninput="previewEmpPic()" />
+                  </div>
+                  <div class="form-group">
+                    <label>Banner / Cover Photo URL</label>
+                    <input type="url" id="empBannerUrl" placeholder="https://example.com/banner.jpg"
+                      oninput="previewEmpBanner()" />
+                  </div>
+                  <div class="form-group emp-edit-full">
+                    <label>Company / Employer Description</label>
+                    <textarea id="empAbout"
+                      placeholder="Tell applicants about your company, culture, and what makes you a great employer..."
+                      style="min-height:100px;"></textarea>
+                  </div>
+                  <!-- Social Links — redesigned -->
+                  <div class="social-links-section">
+                    <div class="social-section-label">Social &amp; Contact Links</div>
+                    <div class="social-links-grid">
+
+                      <!-- Instagram -->
+                      <div class="social-link-card slc-ig">
+                        <div class="slc-icon-wrap">
+                          <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                            <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                            <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+                          </svg>
+                        </div>
+                        <div class="slc-body">
+                          <div class="slc-label">Instagram</div>
+                          <div style="display:flex;align-items:center;">
+                            <span class="slc-prefix">@</span>
+                            <input class="slc-input" type="text" id="empIg" placeholder="yourhandle" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Facebook -->
+                      <div class="social-link-card slc-fb">
+                        <div class="slc-icon-wrap">
+                          <svg class="slc-icon" viewBox="0 0 24 24" fill="white">
+                            <path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z" />
+                          </svg>
+                        </div>
+                        <div class="slc-body">
+                          <div class="slc-label">Facebook</div>
+                          <input class="slc-input" type="text" id="empFb" placeholder="page or profile name" />
+                        </div>
+                      </div>
+
+                      <!-- Telegram -->
+                      <div class="social-link-card slc-tg">
+                        <div class="slc-icon-wrap">
+                          <svg class="slc-icon" viewBox="0 0 24 24" fill="white">
+                            <path
+                              d="M21.8 2.15L2.05 9.84c-1.3.52-1.29 1.25-.24 1.57l5.1 1.59 11.83-7.47c.56-.34 1.07-.16.65.21L8.1 16.17l-.39 5.27c.57 0 .82-.26 1.14-.57l2.73-2.65 5.68 4.19c1.05.58 1.8.28 2.06-.97l3.73-17.57c.38-1.52-.58-2.21-1.25-1.72z" />
+                          </svg>
+                        </div>
+                        <div class="slc-body">
+                          <div class="slc-label">Telegram</div>
+                          <div style="display:flex;align-items:center;">
+                            <span class="slc-prefix">@</span>
+                            <input class="slc-input" type="text" id="empTelegram" placeholder="yourusername" />
+                          </div>
+                        </div>
+                      </div>
+
+                      <!-- Phone -->
+                      <div class="social-link-card slc-phone">
+                        <div class="slc-icon-wrap">
+                          <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <path
+                              d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.86a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.78 16z" />
+                          </svg>
+                        </div>
+                        <div class="slc-body">
+                          <div class="slc-label">Contact Number</div>
+                          <input class="slc-input" type="tel" id="empPhone" placeholder="+63 912 345 6789" />
+                        </div>
+                      </div>
+
+                      <!-- Website — full width -->
+                      <div class="social-link-card slc-web" style="grid-column:1/-1;">
+                        <div class="slc-icon-wrap">
+                          <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2"
+                            stroke-linecap="round" stroke-linejoin="round">
+                            <circle cx="12" cy="12" r="10" />
+                            <line x1="2" y1="12" x2="22" y2="12" />
+                            <path
+                              d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z" />
+                          </svg>
+                        </div>
+                        <div class="slc-body">
+                          <div class="slc-label">Website</div>
+                          <input class="slc-input" type="url" id="empWebsite" placeholder="https://yourcompany.com" />
+                        </div>
+                      </div>
+
+                    </div>
+                  </div>
+
+                  <!-- ID Verification Upload -->
+                  <div class="social-links-section" style="grid-column:1/-1;margin-top:16px;">
+                    <div class="social-section-label">Identity Verification <span
+                        style="font-size:10px;font-weight:400;color:var(--ink-muted);text-transform:none;letter-spacing:0;">(upload
+                        a valid government or school ID for admin review)</span></div>
+                    <div id="idVerifStatus" style="margin-bottom:12px;"></div>
+                    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+                      <div>
+                        <label
+                          style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);display:block;margin-bottom:6px;">ID
+                          Type</label>
+                        <select id="idType"
+                          style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);padding:10px 13px;font-family:var(--font);font-size:13px;outline:none;">
+                          <option value="">— Select ID type —</option>
+                          <option value="national_id">Philippine National ID (PhilSys)</option>
+                          <option value="postal_id">Postal ID</option>
+                          <option value="school_id">School ID</option>
+                          <option value="philhealth_id">PhilHealth ID</option>
+                          <option value="sss_id">SSS ID / UMID</option>
+                          <option value="pagibig_id">Pag-IBIG ID</option>
+                          <option value="drivers_license">Driver's License</option>
+                          <option value="passport">Passport</option>
+                          <option value="tin_id">TIN ID</option>
+                          <option value="barangay_id">Barangay ID</option>
+                          <option value="voters_id">Voter's ID</option>
+                          <option value="other">Other Valid ID</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label
+                          style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);display:block;margin-bottom:6px;">Upload
+                          ID Photo</label>
+                        <div id="idUploadArea" onclick="document.getElementById('idFileInput').click()"
+                          style="border:2px dashed var(--border);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--bg);"
+                          onmouseover="this.style.borderColor='rgba(30,168,60,0.4)';this.style.background='var(--accent-dim)'"
+                          onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
+                          <input type="file" id="idFileInput" accept="image/*,.pdf" style="display:none;"
+                            onchange="handleIdFileSelect(this)" />
+                          <div id="idUploadPlaceholder">
+                            <div style="font-size:20px;margin-bottom:4px;">🪪</div>
+                            <div style="font-size:12px;color:var(--ink-muted);">Click to upload ID</div>
+                            <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">JPG, PNG, or PDF · Max
+                              5MB</div>
+                          </div>
+                          <img id="idPreviewImg"
+                            style="display:none;max-width:100%;max-height:120px;border-radius:6px;margin-top:6px;"
+                            src="" alt="ID Preview" />
                         </div>
                       </div>
                     </div>
-
-                    <!-- Phone -->
-                    <div class="social-link-card slc-phone">
-                      <div class="slc-icon-wrap">
-                        <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07A19.5 19.5 0 0 1 4.69 12 19.79 19.79 0 0 1 1.61 3.38 2 2 0 0 1 3.6 1.22h3a2 2 0 0 1 2 1.72c.127.96.361 1.903.7 2.81a2 2 0 0 1-.45 2.11L7.91 8.86a16 16 0 0 0 6 6l.95-.95a2 2 0 0 1 2.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0 1 21.78 16z"/>
-                        </svg>
-                      </div>
-                      <div class="slc-body">
-                        <div class="slc-label">Contact Number</div>
-                        <input class="slc-input" type="tel" id="empPhone" placeholder="+63 912 345 6789"/>
-                      </div>
-                    </div>
-
-                    <!-- Website — full width -->
-                    <div class="social-link-card slc-web" style="grid-column:1/-1;">
-                      <div class="slc-icon-wrap">
-                        <svg class="slc-icon" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-                          <circle cx="12" cy="12" r="10"/>
-                          <line x1="2" y1="12" x2="22" y2="12"/>
-                          <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/>
-                        </svg>
-                      </div>
-                      <div class="slc-body">
-                        <div class="slc-label">Website</div>
-                        <input class="slc-input" type="url" id="empWebsite" placeholder="https://yourcompany.com"/>
-                      </div>
-                    </div>
-
+                    <div id="idUploadAlert" class="alert" style="margin-top:10px;"></div>
+                    <button class="btn btn-primary btn-sm" style="margin-top:10px;"
+                      onclick="submitIdVerification()">Submit for Verification →</button>
                   </div>
-                </div>
 
-                <!-- ID Verification Upload -->
-                <div class="social-links-section" style="grid-column:1/-1;margin-top:16px;">
-                  <div class="social-section-label">Identity Verification <span style="font-size:10px;font-weight:400;color:var(--ink-muted);text-transform:none;letter-spacing:0;">(upload a valid government or school ID for admin review)</span></div>
-                  <div id="idVerifStatus" style="margin-bottom:12px;"></div>
-                  <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
-                    <div>
-                      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);display:block;margin-bottom:6px;">ID Type</label>
-                      <select id="idType" style="width:100%;background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);color:var(--ink);padding:10px 13px;font-family:var(--font);font-size:13px;outline:none;">
-                        <option value="">— Select ID type —</option>
-                        <option value="national_id">Philippine National ID (PhilSys)</option>
-                        <option value="postal_id">Postal ID</option>
-                        <option value="school_id">School ID</option>
-                        <option value="philhealth_id">PhilHealth ID</option>
-                        <option value="sss_id">SSS ID / UMID</option>
-                        <option value="pagibig_id">Pag-IBIG ID</option>
-                        <option value="drivers_license">Driver's License</option>
-                        <option value="passport">Passport</option>
-                        <option value="tin_id">TIN ID</option>
-                        <option value="barangay_id">Barangay ID</option>
-                        <option value="voters_id">Voter's ID</option>
-                        <option value="other">Other Valid ID</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:0.08em;color:var(--ink-muted);display:block;margin-bottom:6px;">Upload ID Photo</label>
-                      <div id="idUploadArea" onclick="document.getElementById('idFileInput').click()" style="border:2px dashed var(--border);border-radius:var(--radius);padding:14px;text-align:center;cursor:pointer;transition:all 0.15s;background:var(--bg);" onmouseover="this.style.borderColor='rgba(30,168,60,0.4)';this.style.background='var(--accent-dim)'" onmouseout="this.style.borderColor='var(--border)';this.style.background='var(--bg)'">
-                        <input type="file" id="idFileInput" accept="image/*,.pdf" style="display:none;" onchange="handleIdFileSelect(this)"/>
-                        <div id="idUploadPlaceholder">
-                          <div style="font-size:20px;margin-bottom:4px;">🪪</div>
-                          <div style="font-size:12px;color:var(--ink-muted);">Click to upload ID</div>
-                          <div style="font-size:10px;color:var(--ink-muted);margin-top:2px;">JPG, PNG, or PDF · Max 5MB</div>
-                        </div>
-                        <img id="idPreviewImg" style="display:none;max-width:100%;max-height:120px;border-radius:6px;margin-top:6px;" src="" alt="ID Preview"/>
-                      </div>
-                    </div>
-                  </div>
-                  <div id="idUploadAlert" class="alert" style="margin-top:10px;"></div>
-                  <button class="btn btn-primary btn-sm" style="margin-top:10px;" onclick="submitIdVerification()">Submit for Verification →</button>
                 </div>
-
               </div>
             </div>
           </div>
-        </div>
 
 
-        <!-- Analytics Tab -->
-        <div id="tabAnalytics" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>Job Analytics</h3>
-              <span class="td-muted" style="font-size:12px;">Select a job to view stats</span>
-            </div>
-            <div class="panel-body">
-              <div class="form-group" style="max-width:360px;">
-                <label>Select Job Posting</label>
-                <select id="analyticsJobSelect" onchange="loadAnalytics(this.value)">
-                  <option value="">-- Choose a job --</option>
-                </select>
+          <!-- Analytics Tab -->
+          <div id="tabAnalytics" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Job Analytics</h3>
+                <span class="td-muted" style="font-size:12px;">Select a job to view stats</span>
               </div>
-              <div id="analyticsContent" style="display:none;margin-top:20px;">
-                <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;" id="analyticsCards"></div>
-                <div class="panel" style="margin-bottom:14px;">
-                  <div class="panel-header"><h3>Applications Over Time (Last 30 Days)</h3></div>
-                  <div class="panel-body" style="padding:16px 18px 10px;">
-                    <div id="analyticsChart" style="position:relative;height:140px;display:flex;align-items:flex-end;gap:3px;overflow:hidden;"></div>
-                    <div id="analyticsChartLabels" style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--ink-muted);font-family:var(--mono);padding:0 1px;"></div>
+              <div class="panel-body">
+                <div class="form-group" style="max-width:360px;">
+                  <label>Select Job Posting</label>
+                  <select id="analyticsJobSelect" onchange="loadAnalytics(this.value)">
+                    <option value="">-- Choose a job --</option>
+                  </select>
+                </div>
+                <div id="analyticsContent" style="display:none;margin-top:20px;">
+                  <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:20px;"
+                    id="analyticsCards"></div>
+                  <div class="panel" style="margin-bottom:14px;">
+                    <div class="panel-header">
+                      <h3>Applications Over Time (Last 30 Days)</h3>
+                    </div>
+                    <div class="panel-body" style="padding:16px 18px 10px;">
+                      <div id="analyticsChart"
+                        style="position:relative;height:140px;display:flex;align-items:flex-end;gap:3px;overflow:hidden;">
+                      </div>
+                      <div id="analyticsChartLabels"
+                        style="display:flex;justify-content:space-between;margin-top:4px;font-size:9px;color:var(--ink-muted);font-family:var(--mono);padding:0 1px;">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="panel">
+                    <div class="panel-header">
+                      <h3>Status Breakdown</h3>
+                    </div>
+                    <div class="panel-body">
+                      <div id="analyticsBreakdown" style="display:flex;flex-direction:column;gap:10px;"></div>
+                    </div>
                   </div>
                 </div>
-                <div class="panel">
-                  <div class="panel-header"><h3>Status Breakdown</h3></div>
-                  <div class="panel-body">
-                    <div id="analyticsBreakdown" style="display:flex;flex-direction:column;gap:10px;"></div>
-                  </div>
-                </div>
+                <div id="analyticsEmpty"
+                  style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">
+                  Select a job above to see its analytics.</div>
               </div>
-              <div id="analyticsEmpty" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">Select a job above to see its analytics.</div>
             </div>
           </div>
-        </div>
 
-        <!-- Employer Messages Tab -->
-        <div id="tabEmpMessages" class="tab-panel">
-          <div class="panel">
-            <div class="panel-header">
-              <h3>💬 Messages</h3>
-              <span style="font-size:12px;color:var(--ink-muted);">Chat with applicants</span>
-            </div>
-            <div id="empConversationList" style="padding:8px;">
-              <div class="empty-msg">No conversations yet.</div>
+          <!-- Employer Messages Tab -->
+          <div id="tabEmpMessages" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Messages</h3>
+              </div>
+              <div id="empConversationList" class="conv-list-container">
+                <div class="empty-msg">No conversations yet.</div>
+              </div>
             </div>
           </div>
-        </div>
 
-      </div><!-- /employerView -->
+        </div><!-- /employerView -->
+      </div>
     </div>
   </div>
-</div>
 
-<!-- #5 Application Detail Modal (applicant view own submission) -->
-<div class="modal-overlay" id="appDetailModal">
-  <div class="modal-box" style="max-width:540px;">
-    <div class="modal-header">
-      <div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Application Details</div>
-        <h3 id="adJobTitle">—</h3>
-        <div id="adJobCompany" style="font-size:12px;color:var(--ink-muted);margin-top:2px;"></div>
+  <!-- #5 Application Detail Modal (applicant view own submission) -->
+  <div class="modal-overlay" id="appDetailModal">
+    <div class="modal-box" style="max-width:540px;">
+      <div class="modal-header">
+        <div>
+          <div
+            style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">
+            Application Details</div>
+          <h3 id="adJobTitle">—</h3>
+          <div id="adJobCompany" style="font-size:12px;color:var(--ink-muted);margin-top:2px;"></div>
+        </div>
+        <button class="modal-close"
+          onclick="document.getElementById('appDetailModal').classList.remove('open')">✕</button>
       </div>
-      <button class="modal-close" onclick="document.getElementById('appDetailModal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body">
-      <div class="app-detail-grid">
-        <div class="app-detail-item"><div class="app-detail-key">Status</div><div class="app-detail-val" id="adStatus">—</div></div>
-        <div class="app-detail-item"><div class="app-detail-key">Applied On</div><div class="app-detail-val" id="adDate">—</div></div>
-        <div class="app-detail-item"><div class="app-detail-key">Your Name</div><div class="app-detail-val" id="adName">—</div></div>
-        <div class="app-detail-item"><div class="app-detail-key">Your Email</div><div class="app-detail-val" id="adEmail">—</div></div>
+      <div class="modal-body">
+        <div class="app-detail-grid">
+          <div class="app-detail-item">
+            <div class="app-detail-key">Status</div>
+            <div class="app-detail-val" id="adStatus">—</div>
+          </div>
+          <div class="app-detail-item">
+            <div class="app-detail-key">Applied On</div>
+            <div class="app-detail-val" id="adDate">—</div>
+          </div>
+          <div class="app-detail-item">
+            <div class="app-detail-key">Your Name</div>
+            <div class="app-detail-val" id="adName">—</div>
+          </div>
+          <div class="app-detail-item">
+            <div class="app-detail-key">Your Email</div>
+            <div class="app-detail-val" id="adEmail">—</div>
+          </div>
+        </div>
+        <div style="margin-bottom:10px;">
+          <div
+            style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:6px;">
+            Cover Letter</div>
+          <div class="app-cover-box" id="adCoverLetter">—</div>
+        </div>
+        <div id="adResumeWrap" style="display:none;margin-top:8px;">
+          <a id="adResumeLink" href="#" target="_blank" class="btn btn-ghost btn-sm"
+            style="color:var(--accent3);border-color:rgba(77,159,255,0.3);">📎 View Resume →</a>
+          <div style="font-size:11px;color:var(--ink-muted);margin-top:6px;">💡 Make sure your Drive link is set to
+            <strong>"Anyone with the link can view"</strong> so the employer can open it.</div>
+        </div>
       </div>
-      <div style="margin-bottom:10px;">
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--ink-muted);margin-bottom:6px;">Cover Letter</div>
-        <div class="app-cover-box" id="adCoverLetter">—</div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm"
+          onclick="document.getElementById('appDetailModal').classList.remove('open')">Close</button>
       </div>
-      <div id="adResumeWrap" style="display:none;margin-top:8px;">
-        <a id="adResumeLink" href="#" target="_blank" class="btn btn-ghost btn-sm" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);">📎 View Resume →</a>
-        <div style="font-size:11px;color:var(--ink-muted);margin-top:6px;">💡 Make sure your Drive link is set to <strong>"Anyone with the link can view"</strong> so the employer can open it.</div>
-      </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost btn-sm" onclick="document.getElementById('appDetailModal').classList.remove('open')">Close</button>
     </div>
   </div>
-</div>
 
-<!-- #7 Edit Job Modal -->
-<div class="modal-overlay" id="editJobModal">
-  <div class="modal-box" style="max-width:600px;">
-    <div class="modal-header">
-      <div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Edit Job Posting</div>
-        <h3 id="editJobModalTitle">Edit Job</h3>
-      </div>
-      <button class="modal-close" onclick="closeEditJobModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="editJobAlert" class="alert"></div>
-      <input type="hidden" id="editJobId"/>
-      <div class="edit-job-grid">
-        <div class="form-group"><label>Job Title *</label><input type="text" id="ejTitle"/></div>
-        <div class="form-group"><label>Location *</label><input type="text" id="ejLocation"/></div>
-        <div class="form-group"><label>Employment Type</label>
-          <select id="ejType"><option>Full-Time</option><option>Part-Time</option><option>Internship</option><option>Remote</option></select>
+  <!-- #7 Edit Job Modal -->
+  <div class="modal-overlay" id="editJobModal">
+    <div class="modal-box" style="max-width:600px;">
+      <div class="modal-header">
+        <div>
+          <div
+            style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">
+            Edit Job Posting</div>
+          <h3 id="editJobModalTitle">Edit Job</h3>
         </div>
-        <div class="form-group"><label>Category</label>
-          <select id="ejCategory">
-            <option value="">— Select —</option>
-            <optgroup label="Professional">
-            <option value="arts">🎬 Arts & Media</option><option value="business">💼 Business</option>
-            <option value="cleaning">🧹 Cleaning</option><option value="construction">🏗️ Construction</option>
-            <option value="customer">🎧 Customer Service</option><option value="design">🎨 Design</option>
-            <option value="education">📚 Education</option><option value="engineering">⚙️ Engineering</option>
-            <option value="finance">💰 Finance</option><option value="government">🏛️ Government / NGO</option>
-            <option value="healthcare">🏥 Healthcare</option><option value="hospitality">🏨 Hospitality</option>
-            <option value="marketing">📣 Marketing</option><option value="software">💻 Software & IT</option>
-            <option value="teaching">🏫 Teaching</option>
-            </optgroup>
-            <optgroup label="👤 Individual / Personal Hire">
-            <option value="freelance">💡 Freelance / Project-Based</option>
-            <option value="errand">🛵 Errands & Delivery</option>
-            <option value="homeservice">🏠 Home Services</option>
-            <option value="repair">🔧 Repair & Maintenance</option>
-            <option value="caregiving">🤝 Caregiving / Domestic</option>
-            <option value="event">🎉 Events & Assistance</option>
-            </optgroup>
+        <button class="modal-close" onclick="closeEditJobModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="editJobAlert" class="alert"></div>
+        <input type="hidden" id="editJobId" />
+        <div class="edit-job-grid">
+          <div class="form-group"><label>Job Title *</label><input type="text" id="ejTitle" /></div>
+          <div class="form-group"><label>Location *</label><input type="text" id="ejLocation" /></div>
+          <div class="form-group"><label>Employment Type</label>
+            <select id="ejType">
+              <option>Full-Time</option>
+              <option>Part-Time</option>
+              <option>Internship</option>
+              <option>Remote</option>
+            </select>
+          </div>
+          <div class="form-group"><label>Category</label>
+            <select id="ejCategory">
+              <option value="">— Select —</option>
+              <optgroup label="Professional">
+                <option value="arts">🎬 Arts & Media</option>
+                <option value="business">💼 Business</option>
+                <option value="cleaning">🧹 Cleaning</option>
+                <option value="construction">🏗️ Construction</option>
+                <option value="customer">🎧 Customer Service</option>
+                <option value="design">🎨 Design</option>
+                <option value="education">📚 Education</option>
+                <option value="engineering">⚙️ Engineering</option>
+                <option value="finance">💰 Finance</option>
+                <option value="government">🏛️ Government / NGO</option>
+                <option value="healthcare">🏥 Healthcare</option>
+                <option value="hospitality">🏨 Hospitality</option>
+                <option value="marketing">📣 Marketing</option>
+                <option value="software">💻 Software & IT</option>
+                <option value="teaching">🏫 Teaching</option>
+              </optgroup>
+              <optgroup label="👤 Individual / Personal Hire">
+                <option value="freelance">💡 Freelance / Project-Based</option>
+                <option value="errand">🛵 Errands & Delivery</option>
+                <option value="homeservice">🏠 Home Services</option>
+                <option value="repair">🔧 Repair & Maintenance</option>
+                <option value="caregiving">🤝 Caregiving / Domestic</option>
+                <option value="event">🎉 Events & Assistance</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="form-group"><label>Salary Range</label><input type="text" id="ejSalary"
+              placeholder="e.g. ₱35,000 – ₱45,000" /></div>
+          <div class="form-group"><label>Max Applicants</label><input type="number" id="ejMaxApplicants" min="1"
+              placeholder="blank = unlimited" /></div>
+          <div class="form-group"><label>Deadline</label><input type="date" id="ejDeadline" /></div>
+          <div class="form-group"><label>Status</label>
+            <select id="ejStatus">
+              <option value="open">Open</option>
+              <option value="closed">Closed</option>
+              <option value="full">Full</option>
+            </select>
+          </div>
+          <div class="form-group edit-job-full"><label>Job Description</label><textarea id="ejDesc"
+              style="min-height:110px;"></textarea></div>
+          <div class="form-group edit-job-full"><label>Banner Image URL</label><input type="url" id="ejImageUrl"
+              placeholder="https://..." /></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeEditJobModal()">Cancel</button>
+        <button class="btn btn-primary btn-sm" onclick="saveEditJob()">Save Changes →</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Applicant Profile Modal -->
+  <div class="modal-overlay" id="profileModal">
+    <div class="modal-box" style="max-width:460px;">
+      <div class="modal-header">
+        <h3>Applicant Profile</h3><button class="modal-close"
+          onclick="document.getElementById('profileModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="modal-body" id="profileModalBody">Loading...</div>
+    </div>
+  </div>
+
+  <!-- Cover Letter Modal — redesigned -->
+  <div class="cover-modal-backdrop" id="coverModal">
+    <div class="cover-modal-box">
+      <div class="cover-modal-header">
+        <div class="cover-modal-applicant">
+          <div class="cma-avatar" id="cmaAvatar">?</div>
+          <div>
+            <div class="cma-name" id="cmaName">—</div>
+            <div class="cma-email" id="cmaEmail">—</div>
+            <div class="cma-job" id="cmaJob">—</div>
+          </div>
+        </div>
+        <button class="cover-modal-close" onclick="closeCoverModal()">✕</button>
+      </div>
+      <div class="cover-modal-divider"></div>
+      <div class="cover-modal-body">
+        <div class="cover-label">Cover Letter</div>
+        <div class="cover-text" id="coverText">—</div>
+        <a id="coverResumeLink" href="#" target="_blank" class="cover-resume-link" style="display:none;">
+          📎 View Resume / CV ↗
+        </a>
+        <!-- #8 Resume hint -->
+        <div id="coverResumeHint" style="display:none;font-size:11px;color:var(--ink-muted);margin-top:6px;">
+          💡 If the resume link doesn't open, ask the applicant to set it to <strong>"Anyone with the link can
+            view"</strong>.
+        </div>
+        <!-- #3 Employer Notes -->
+        <div style="margin-top:16px;">
+          <div class="cover-label">Private Notes <span
+              style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-muted);">(only
+              you can see these)</span></div>
+          <textarea class="notes-textarea" id="coverNotesInput"
+            placeholder="Add private notes about this applicant..."></textarea>
+          <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
+            <button class="btn btn-ghost btn-sm" onclick="saveNotes()">Save Notes</button>
+            <span class="notes-saved-badge" id="notesSavedBadge">✓ Saved</span>
+          </div>
+        </div>
+      </div>
+      <div class="cover-modal-footer">
+        <div class="cover-status-badge" id="coverStatusBadge"></div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-success btn-sm" id="coverAcceptBtn">Accept ✓</button>
+          <button class="btn btn-danger btn-sm" id="coverRejectBtn">Reject ✗</button>
+          <button class="btn btn-ghost btn-sm" onclick="closeCoverModal()">Close</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="../js/config.js"></script>
+  <script src="../js/main.js"></script>
+  <script src="../js/shell/notifications.js"></script>
+  <script src="../js/shell/savedJobs.js"></script>
+
+  <!-- Employer Profile Modal (for viewing from messages) -->
+  <div class="modal-overlay" id="employerProfileModal">
+    <div class="modal-box" style="max-width:480px;">
+      <div class="modal-header">
+        <div>
+          <div
+            style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">
+            Company / Recruiter</div>
+          <h3 id="epModalName">—</h3>
+        </div>
+        <button class="modal-close"
+          onclick="document.getElementById('employerProfileModal').classList.remove('open')">✕</button>
+      </div>
+      <div class="modal-body" id="epModalBody">Loading...</div>
+    </div>
+  </div>
+
+  <!-- ══ CHAT MODAL ══ -->
+  <link rel="stylesheet" href="../css/pages/dashboard-inline-2.css" />
+
+  <div class="chat-modal-overlay" id="chatModal">
+    <div class="chat-modal-box">
+      <div class="chat-modal-header">
+        <div class="chat-modal-avatar" id="chatModalAvatar">?</div>
+        <div class="chat-modal-title">
+          <div class="chat-modal-name" id="chatModalName">—</div>
+          <div class="chat-modal-sub" id="chatModalSub">—</div>
+        </div>
+        <div class="online-dot" id="chatOnlineDot" title="Online"></div>
+        <button onclick="closeChatModal()"
+          style="background:none;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;color:var(--ink-muted);font-size:13px;padding:5px 10px;transition:all 0.15s;"
+          onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">✕</button>
+      </div>
+
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-empty">
+          <div class="chat-empty-icon">💬</div>No messages yet.
+        </div>
+      </div>
+
+      <!-- Typing indicator -->
+      <div class="typing-indicator" id="chatTypingIndicator">
+        <div class="typing-dots"><span></span><span></span><span></span></div>
+        <span>typing...</span>
+      </div>
+
+      <!-- Reply bar -->
+      <div class="chat-reply-bar" id="chatReplyBar">
+        <div style="font-size:18px;color:var(--accent);flex-shrink:0;">↩</div>
+        <div class="chat-reply-bar-content">
+          <div class="chat-reply-bar-label">Replying to</div>
+          <div class="chat-reply-bar-text" id="chatReplyBarText">—</div>
+        </div>
+        <button class="chat-reply-cancel" onclick="clearReply()" title="Cancel reply">✕</button>
+      </div>
+
+      <!-- Image preview bar -->
+      <div class="chat-img-preview-bar" id="chatImgPreviewBar">
+        <img class="chat-img-thumb" id="chatImgThumb" src="" alt="" />
+        <div class="chat-img-preview-label" id="chatImgPreviewLabel">Image ready to send</div>
+        <button class="chat-img-remove" onclick="clearPendingImage()" title="Remove image">✕</button>
+      </div>
+
+      <!-- Input bar — Instagram-style -->
+      <div class="chat-input-bar">
+        <input type="file" id="chatImgInput" accept="image/*" style="display:none;"
+          onchange="handleChatImageSelect(this)" />
+        <div class="chat-input-wrap">
+          <button class="chat-icon-btn" onclick="toggleEmojiPicker()" title="Emoji">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <circle cx="12" cy="12" r="10" />
+              <path d="M8 14s1.5 2 4 2 4-2 4-2" />
+              <line x1="9" y1="9" x2="9.01" y2="9" />
+              <line x1="15" y1="9" x2="15.01" y2="9" />
+            </svg>
+          </button>
+          <textarea class="chat-input" id="chatInput" placeholder="Message..." rows="1"
+            oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px';updateSendBtn();"
+            onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
+          <button class="chat-icon-btn" onclick="document.getElementById('chatImgInput').click()" title="Gallery">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
+              stroke-linejoin="round">
+              <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+              <circle cx="8.5" cy="8.5" r="1.5" />
+              <polyline points="21 15 16 10 5 21" />
+            </svg>
+          </button>
+        </div>
+        <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()" title="Send">
+          <svg viewBox="0 0 24 24" fill="currentColor">
+            <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" />
+          </svg>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Lightbox -->
+  <div class="chat-lightbox" id="chatLightbox">
+    <img id="chatLightboxImg" src="" alt="Full size" />
+  </div>
+
+  <!-- ① REPORT USER MODAL — paste before </body> in dashboard.html -->
+  <div class="modal-overlay" id="reportUserModal">
+    <div class="modal-box" style="max-width:440px;">
+      <div class="modal-header">
+        <div>
+          <div
+            style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);font-family:var(--mono);margin-bottom:4px;">
+            Report User</div>
+          <h3 id="reportUserTitle">Report this User</h3>
+        </div>
+        <button class="modal-close" onclick="closeReportUserModal()">✕</button>
+      </div>
+      <div class="modal-body">
+        <div id="reportUserAlert" class="alert"></div>
+        <input type="hidden" id="reportedUserId" />
+        <div
+          style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);">
+          <div id="ruModalAvatar"
+            style="width:40px;height:40px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:16px;font-weight:700;overflow:hidden;flex-shrink:0;">
+          </div>
+          <div>
+            <div id="ruModalName" style="font-size:13px;font-weight:600;"></div>
+            <div id="ruModalEmail" style="font-size:11px;color:var(--ink-muted);"></div>
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Reason for Report</label>
+          <select id="reportUserReason">
+            <option value="">— Select a reason —</option>
+            <option value="ghosted">Accepted job then ghosted / disappeared</option>
+            <option value="fraud">Fraudulent identity or fake profile</option>
+            <option value="abusive">Abusive or threatening behavior</option>
+            <option value="no_show">No-show after agreement</option>
+            <option value="payment">Took payment, did not deliver work</option>
+            <option value="spam">Spam applications / fake applicant</option>
+            <option value="other">Other</option>
           </select>
         </div>
-        <div class="form-group"><label>Salary Range</label><input type="text" id="ejSalary" placeholder="e.g. ₱35,000 – ₱45,000"/></div>
-        <div class="form-group"><label>Max Applicants</label><input type="number" id="ejMaxApplicants" min="1" placeholder="blank = unlimited"/></div>
-        <div class="form-group"><label>Deadline</label><input type="date" id="ejDeadline"/></div>
-        <div class="form-group"><label>Status</label>
-          <select id="ejStatus"><option value="open">Open</option><option value="closed">Closed</option><option value="full">Full</option></select>
+        <div class="form-group">
+          <label>Additional Details <span style="color:var(--ink-muted);font-weight:400;">(optional)</span></label>
+          <textarea id="reportUserDetails" placeholder="Describe what happened..." style="min-height:80px;"></textarea>
         </div>
-        <div class="form-group edit-job-full"><label>Job Description</label><textarea id="ejDesc" style="min-height:110px;"></textarea></div>
-        <div class="form-group edit-job-full"><label>Banner Image URL</label><input type="url" id="ejImageUrl" placeholder="https://..."/></div>
+        <div style="font-size:11px;color:var(--ink-muted);margin-top:4px;">Reports are reviewed by the JobTrack admin
+          team.</div>
       </div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost btn-sm" onclick="closeEditJobModal()">Cancel</button>
-      <button class="btn btn-primary btn-sm" onclick="saveEditJob()">Save Changes →</button>
-    </div>
-  </div>
-</div>
-
-<!-- Applicant Profile Modal -->
-<div class="modal-overlay" id="profileModal">
-  <div class="modal-box" style="max-width:460px;">
-    <div class="modal-header"><h3>Applicant Profile</h3><button class="modal-close" onclick="document.getElementById('profileModal').classList.remove('open')">✕</button></div>
-    <div class="modal-body" id="profileModalBody">Loading...</div>
-  </div>
-</div>
-
-<!-- Cover Letter Modal — redesigned -->
-<div class="cover-modal-backdrop" id="coverModal">
-  <div class="cover-modal-box">
-    <div class="cover-modal-header">
-      <div class="cover-modal-applicant">
-        <div class="cma-avatar" id="cmaAvatar">?</div>
-        <div>
-          <div class="cma-name" id="cmaName">—</div>
-          <div class="cma-email" id="cmaEmail">—</div>
-          <div class="cma-job" id="cmaJob">—</div>
-        </div>
-      </div>
-      <button class="cover-modal-close" onclick="closeCoverModal()">✕</button>
-    </div>
-    <div class="cover-modal-divider"></div>
-    <div class="cover-modal-body">
-      <div class="cover-label">Cover Letter</div>
-      <div class="cover-text" id="coverText">—</div>
-      <a id="coverResumeLink" href="#" target="_blank" class="cover-resume-link" style="display:none;">
-        📎 View Resume / CV ↗
-      </a>
-      <!-- #8 Resume hint -->
-      <div id="coverResumeHint" style="display:none;font-size:11px;color:var(--ink-muted);margin-top:6px;">
-        💡 If the resume link doesn't open, ask the applicant to set it to <strong>"Anyone with the link can view"</strong>.
-      </div>
-      <!-- #3 Employer Notes -->
-      <div style="margin-top:16px;">
-        <div class="cover-label">Private Notes <span style="font-weight:400;text-transform:none;letter-spacing:0;font-size:11px;color:var(--ink-muted);">(only you can see these)</span></div>
-        <textarea class="notes-textarea" id="coverNotesInput" placeholder="Add private notes about this applicant..."></textarea>
-        <div style="display:flex;align-items:center;gap:10px;margin-top:6px;">
-          <button class="btn btn-ghost btn-sm" onclick="saveNotes()">Save Notes</button>
-          <span class="notes-saved-badge" id="notesSavedBadge">✓ Saved</span>
-        </div>
-      </div>
-    </div>
-    <div class="cover-modal-footer">
-      <div class="cover-status-badge" id="coverStatusBadge"></div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-success btn-sm" id="coverAcceptBtn">Accept ✓</button>
-        <button class="btn btn-danger btn-sm"  id="coverRejectBtn">Reject ✗</button>
-        <button class="btn btn-ghost btn-sm"   onclick="closeCoverModal()">Close</button>
+      <div class="modal-footer">
+        <button class="btn btn-ghost btn-sm" onclick="closeReportUserModal()">Cancel</button>
+        <button class="btn btn-danger btn-sm" onclick="submitUserReport()">Submit Report →</button>
       </div>
     </div>
   </div>
-</div>
 
-<script src="../js/config.js"></script>
-<script src="../js/main.js"></script>
-<script src="../js/shell/notifications.js"></script>
-<script src="../js/shell/savedJobs.js"></script>
-
-<!-- Employer Profile Modal (for viewing from messages) -->
-<div class="modal-overlay" id="employerProfileModal">
-  <div class="modal-box" style="max-width:480px;">
-    <div class="modal-header">
-      <div><div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--accent);font-family:var(--mono);margin-bottom:4px;">Company / Recruiter</div><h3 id="epModalName">—</h3></div>
-      <button class="modal-close" onclick="document.getElementById('employerProfileModal').classList.remove('open')">✕</button>
-    </div>
-    <div class="modal-body" id="epModalBody">Loading...</div>
-  </div>
-</div>
-
-<!-- ══ CHAT MODAL ══ -->
-  <link rel="stylesheet" href="../css/pages/dashboard-inline-2.css"/>
-
-<div class="chat-modal-overlay" id="chatModal">
-  <div class="chat-modal-box">
-    <div class="chat-modal-header">
-      <div class="chat-modal-avatar" id="chatModalAvatar">?</div>
-      <div class="chat-modal-title">
-        <div class="chat-modal-name" id="chatModalName">—</div>
-        <div class="chat-modal-sub"  id="chatModalSub">—</div>
-      </div>
-      <div class="online-dot" id="chatOnlineDot" title="Online"></div>
-      <button onclick="closeChatModal()" style="background:none;border:1px solid var(--border);border-radius:var(--radius);cursor:pointer;color:var(--ink-muted);font-size:13px;padding:5px 10px;transition:all 0.15s;" onmouseover="this.style.background='var(--surface2)'" onmouseout="this.style.background='none'">✕</button>
-    </div>
-
-    <div class="chat-messages" id="chatMessages">
-      <div class="chat-empty"><div class="chat-empty-icon">💬</div>No messages yet.</div>
-    </div>
-
-    <!-- Typing indicator -->
-    <div class="typing-indicator" id="chatTypingIndicator">
-      <div class="typing-dots"><span></span><span></span><span></span></div>
-      <span>typing...</span>
-    </div>
-
-    <!-- Reply bar -->
-    <div class="chat-reply-bar" id="chatReplyBar">
-      <div style="font-size:18px;color:var(--accent);flex-shrink:0;">↩</div>
-      <div class="chat-reply-bar-content">
-        <div class="chat-reply-bar-label">Replying to</div>
-        <div class="chat-reply-bar-text" id="chatReplyBarText">—</div>
-      </div>
-      <button class="chat-reply-cancel" onclick="clearReply()" title="Cancel reply">✕</button>
-    </div>
-
-    <!-- Image preview bar -->
-    <div class="chat-img-preview-bar" id="chatImgPreviewBar">
-      <img class="chat-img-thumb" id="chatImgThumb" src="" alt=""/>
-      <div class="chat-img-preview-label" id="chatImgPreviewLabel">Image ready to send</div>
-      <button class="chat-img-remove" onclick="clearPendingImage()" title="Remove image">✕</button>
-    </div>
-
-    <!-- Input bar -->
-    <div class="chat-input-bar">
-      <input type="file" id="chatImgInput" accept="image/*" style="display:none;" onchange="handleChatImageSelect(this)"/>
-      <div class="chat-attach-btn" onclick="document.getElementById('chatImgInput').click()" title="Upload image">🖼</div>
-      <textarea class="chat-input" id="chatInput" placeholder="Type a message..." rows="1"
-        oninput="this.style.height='auto';this.style.height=Math.min(this.scrollHeight,100)+'px'"
-        onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendChatMessage();}"></textarea>
-      <button class="chat-send-btn" id="chatSendBtn" onclick="sendChatMessage()">Send ↑</button>
-    </div>
-  </div>
-</div>
-
-<!-- Lightbox -->
-<div class="chat-lightbox" id="chatLightbox">
-  <img id="chatLightboxImg" src="" alt="Full size"/>
-</div>
-
-<!-- ① REPORT USER MODAL — paste before </body> in dashboard.html -->
-<div class="modal-overlay" id="reportUserModal">
-  <div class="modal-box" style="max-width:440px;">
-    <div class="modal-header">
-      <div>
-        <div style="font-size:10px;font-weight:700;text-transform:uppercase;letter-spacing:0.1em;color:var(--red);font-family:var(--mono);margin-bottom:4px;">Report User</div>
-        <h3 id="reportUserTitle">Report this User</h3>
-      </div>
-      <button class="modal-close" onclick="closeReportUserModal()">✕</button>
-    </div>
-    <div class="modal-body">
-      <div id="reportUserAlert" class="alert"></div>
-      <input type="hidden" id="reportedUserId"/>
-      <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;padding:10px 12px;background:var(--surface2);border:1px solid var(--border);border-radius:var(--radius);">
-        <div id="ruModalAvatar" style="width:40px;height:40px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:16px;font-weight:700;overflow:hidden;flex-shrink:0;"></div>
-        <div>
-          <div id="ruModalName" style="font-size:13px;font-weight:600;"></div>
-          <div id="ruModalEmail" style="font-size:11px;color:var(--ink-muted);"></div>
-        </div>
-      </div>
-      <div class="form-group">
-        <label>Reason for Report</label>
-        <select id="reportUserReason">
-          <option value="">— Select a reason —</option>
-          <option value="ghosted">Accepted job then ghosted / disappeared</option>
-          <option value="fraud">Fraudulent identity or fake profile</option>
-          <option value="abusive">Abusive or threatening behavior</option>
-          <option value="no_show">No-show after agreement</option>
-          <option value="payment">Took payment, did not deliver work</option>
-          <option value="spam">Spam applications / fake applicant</option>
-          <option value="other">Other</option>
-        </select>
-      </div>
-      <div class="form-group">
-        <label>Additional Details <span style="color:var(--ink-muted);font-weight:400;">(optional)</span></label>
-        <textarea id="reportUserDetails" placeholder="Describe what happened..." style="min-height:80px;"></textarea>
-      </div>
-      <div style="font-size:11px;color:var(--ink-muted);margin-top:4px;">Reports are reviewed by the JobTrack admin team.</div>
-    </div>
-    <div class="modal-footer">
-      <button class="btn btn-ghost btn-sm" onclick="closeReportUserModal()">Cancel</button>
-      <button class="btn btn-danger btn-sm" onclick="submitUserReport()">Submit Report →</button>
-    </div>
-  </div>
-</div>
-
-<script src="../js/features.js"></script>
-<script src="../js/pages/dashboard-inline-1.js"></script>
-<script>
-  // Init new features after dashboard loads
-  renderThemeToggle('themeToggleWrap');
-  const _origLoad = loadDashboard;
-  loadDashboard = async function() {
-    await _origLoad();
-    loadProfileCompleteness('profileCompletenessWrap');
-  };
-  // Patch activity log tab
-  const _origShowAppTab2 = showAppTab;
-  showAppTab = function(id, btn) {
-    _origShowAppTab2(id, btn);
-    if (id === 'tabActivityLog') loadActivityLog('activityLogContent');
-  };
-  // Patch chat open to connect WebSocket & send typing
-  const _origOpenChat = typeof openChatModal === 'function' ? openChatModal : null;
-  if (_origOpenChat) {
-    const _patchedOpen = openChatModal;
-    // Will be patched after dashboard-inline-1.js defines openChatModal
-  }
-  // Add typing event to chat input
-  document.addEventListener('DOMContentLoaded', () => {
-    const chatInput = document.getElementById('chatInput');
-    if (chatInput) {
-      chatInput.addEventListener('input', () => sendWsTyping());
+  <script src="../js/features.js"></script>
+  <script src="../js/pages/dashboard-inline-1.js"></script>
+  <script>
+    // Init new features after dashboard loads
+    renderThemeToggle('themeToggleWrap');
+    const _origLoad = loadDashboard;
+    loadDashboard = async function () {
+      await _origLoad();
+      loadProfileCompleteness('profileCompletenessWrap');
+    };
+    // Patch activity log tab — wrap the current showAppTab (which already includes
+    // the saved-jobs and messages patches from dashboard-inline-1.js).
+    // Use a distinct variable name (_showAppTabBeforeActivityPatch) to avoid confusion.
+    const _showAppTabBeforeActivityPatch = showAppTab;
+    showAppTab = function (id, btn) {
+      _showAppTabBeforeActivityPatch(id, btn);
+      if (id === 'tabActivityLog') {
+        loadActivityLog('activityLogContent');
+      }
+    };
+    // Patch chat open to connect WebSocket & send typing
+    const _origOpenChat = typeof openChatModal === 'function' ? openChatModal : null;
+    if (_origOpenChat) {
+      const _patchedOpen = openChatModal;
+      // Will be patched after dashboard-inline-1.js defines openChatModal
     }
-  });
-</script>
+    // Add typing event to chat input
+    document.addEventListener('DOMContentLoaded', () => {
+      const chatInput = document.getElementById('chatInput');
+      if (chatInput) {
+        chatInput.addEventListener('input', () => sendWsTyping());
+      }
+    });
+  </script>
 </body>
+
 </html>

@@ -180,7 +180,7 @@ function renderGrid(jobs,c){
             <div class="jc-company">${j.company} &nbsp;·&nbsp; ${j.location}${j.employer_is_verified?'<span style="display:inline-flex;align-items:center;gap:3px;background:rgba(30,168,60,0.1);border:2px solid rgba(30,168,60,0.3);color:var(--green);font-size:9px;font-weight:700;padding:1px 6px;border-radius:4px;margin-left:6px;font-family:var(--mono);">VERIFIED</span>':''}</div>
           </div>
           <div style="display:flex;flex-direction:column;align-items:flex-end;gap:5px;">
-            <span class="pill pill-${j.status}">${j.status}</span>
+            <span class="pill pill-${j.status}">${j.status.charAt(0).toUpperCase() + j.status.slice(1)}</span>
             ${isIndiv?`<span class="pill-individual">Individual</span>`:""}
           </div>
         </div>
@@ -218,7 +218,7 @@ function renderList(jobs,c){
       <div class="jlr-main">
         <div class="jlr-title">
           ${j.title}
-          <span class="pill pill-${j.status}">${j.status}</span>
+          <span class="pill pill-${j.status}">${j.status.charAt(0).toUpperCase() + j.status.slice(1)}</span>
           <span class="type-tag ${TYPE_MAP[j.type]||""}">${j.type}</span>
         </div>
         <div class="jlr-meta">

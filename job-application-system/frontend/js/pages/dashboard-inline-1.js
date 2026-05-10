@@ -1168,6 +1168,64 @@ function _fmtDateLabel(iso) {
 function escHtml(s) { return (s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/'/g,"&#39;").replace(/"/g,"&quot;"); }
 function escapeHtml(str) { return (str||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;").replace(/"/g,"&quot;").replace(/\n/g,"<br/>"); }
 
+// Instagram-style relative time for conversation list
+function _fmtConvTime(iso) {
+  if (!iso) return '';
+  const d = new Date(iso), now = new Date();
+  const diff = Math.floor((now - d) / 1000);
+  if (diff < 60) return 'now';
+  if (diff < 3600) return Math.floor(diff / 60) + 'm';
+  if (diff < 86400) return Math.floor(diff / 3600) + 'h';
+  if (diff < 604800) return Math.floor(diff / 86400) + 'd';
+  return Math.floor(diff / 604800) + 'w';
+}
+
+// Toggle send button active state
+function updateSendBtn() {
+  const btn = document.getElementById('chatSendBtn');
+  const input = document.getElementById('chatInput');
+  if (btn && input) {
+    btn.classList.toggle('active', !!input.value.trim() || !!_pendingImageUrl);
+  }
+}
+
+// Simple emoji picker
+function toggleEmojiPicker() {
+  let picker = document.getElementById('emojiPickerPanel');
+  if (picker) { picker.remove(); return; }
+  const emojis = ['😊','😂','❤️','🔥','👍','😍','🙏','😢','💪','🎉','✨','😎','🤔','👏','💯','😅','🥰','😭','🤝','👀'];
+  picker = document.createElement('div');
+  picker.id = 'emojiPickerPanel';
+  picker.style.cssText = 'position:absolute;bottom:100%;left:14px;right:14px;background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:10px;display:flex;flex-wrap:wrap;gap:4px;z-index:10;box-shadow:0 -8px 24px rgba(0,0,0,0.2);animation:fadeUp 0.15s ease;';
+  emojis.forEach(e => {
+    const btn = document.createElement('button');
+    btn.textContent = e;
+    btn.style.cssText = 'background:none;border:none;font-size:20px;cursor:pointer;padding:4px 6px;border-radius:6px;transition:background 0.1s;';
+    btn.onmouseover = () => btn.style.background = 'var(--surface3)';
+    btn.onmouseout = () => btn.style.background = 'none';
+    btn.onclick = () => {
+      const input = document.getElementById('chatInput');
+      input.value += e;
+      input.focus();
+      updateSendBtn();
+      picker.remove();
+    };
+    picker.appendChild(btn);
+  });
+  const bar = document.querySelector('.chat-input-bar');
+  bar.style.position = 'relative';
+  bar.appendChild(picker);
+  // Close on click outside
+  setTimeout(() => {
+    document.addEventListener('click', function _close(ev) {
+      if (!picker.contains(ev.target) && ev.target.closest('.chat-icon-btn') === null) {
+        picker.remove();
+        document.removeEventListener('click', _close);
+      }
+    });
+  }, 50);
+}
+
 async function openChatModal(applicationId, otherName, otherPic, jobTitle) {
   _activeChatAppId = applicationId;
   clearReply();
@@ -1374,27 +1432,43 @@ async function loadAppConversations() {
   const container = document.getElementById("appConversationList");
   try {
     await loadUnreadCounts();
-    const apps = _allApps.length ? _allApps : await api(`/applications/me`);
-    if (!apps.length) { container.innerHTML = `<div class="empty-msg">No applications yet.</div>`; return; }
-    container.innerHTML = apps.map(a => {
+    const [apps, previews] = await Promise.all([
+      _allApps.length ? Promise.resolve(_allApps) : api(`/applications/me`),
+      api(`/chat/conversation-previews`).catch(() => ({}))
+    ]);
+    if (!apps.length) { container.innerHTML = `<div class="empty-msg">No conversations yet.</div>`; return; }
+    // Sort: unread first, then by last message time
+    const sorted = [...apps].sort((a, b) => {
+      const ua = _unreadCounts[a.id] || 0, ub = _unreadCounts[b.id] || 0;
+      if (ua && !ub) return -1; if (!ua && ub) return 1;
+      const ta = previews[a.id]?.created_at || '', tb = previews[b.id]?.created_at || '';
+      return tb.localeCompare(ta);
+    });
+    container.innerHTML = sorted.map(a => {
       const unread   = _unreadCounts[a.id] || 0;
       const company  = a.jobs?.company || "Employer";
       const jobTitle = a.jobs?.title   || "Position";
-      const empId    = a.jobs?.employer_id || null;
-      return `<div class="conv-item" style="position:relative;">
-        <div style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openChatModal(${a.id},'${escHtml(company)}','','${escHtml(jobTitle)}')">
-          <div class="conv-item-avatar">
-            ${company[0].toUpperCase()}
-            ${unread>0?`<div class="conv-unread-dot"></div>`:""}
-          </div>
-          <div class="conv-item-info">
-            <div class="conv-item-name">${escapeHtml(company)}</div>
-            <div class="conv-item-sub">${escapeHtml(jobTitle)}</div>
-          </div>
+      const preview  = previews[a.id];
+      let previewText = jobTitle;
+      let timeText = '';
+      if (preview) {
+        const isMine = preview.sender_id === user.id;
+        const prefix = isMine ? 'You: ' : '';
+        previewText = preview.image_url && !preview.body ? prefix + '📷 Photo' : prefix + (preview.body || jobTitle);
+        timeText = _fmtConvTime(preview.created_at);
+      }
+      return `<div class="conv-item${unread > 0 ? ' has-unread' : ''}" onclick="openChatModal(${a.id},'${escHtml(company)}','','${escHtml(jobTitle)}')">
+        <div class="conv-item-avatar">
+          ${company[0].toUpperCase()}
+          ${unread > 0 ? `<div class="conv-unread-dot"></div>` : ""}
         </div>
-        <div class="conv-item-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          ${unread>0?`<span class="g-chip" style="animation:pulse 2s infinite;">${unread} new</span>`:`<span class="g-chip gc-muted">read</span>`}
-          ${empId?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;min-height:auto;" onclick="event.stopPropagation();viewEmployerFromDashboard(${empId},'${escHtml(company)}')">View Profile</button>`:""}
+        <div class="conv-item-info">
+          <div class="conv-item-name">${escapeHtml(company)}</div>
+          <div class="conv-item-preview">${escHtml(previewText)}</div>
+        </div>
+        <div class="conv-item-meta">
+          <span class="conv-item-time">${timeText}</span>
+          ${unread > 0 ? `<span class="conv-unread-badge">${unread}</span>` : ""}
         </div>
       </div>`;
     }).join("");
@@ -1405,30 +1479,46 @@ async function loadEmpConversations() {
   const container = document.getElementById("empConversationList");
   try {
     await loadUnreadCounts();
-    const apps = await api(`/applications/employer`);
-    if (!apps.length) { container.innerHTML = `<div class="empty-msg">No applications received yet.</div>`; return; }
+    const [apps, previews] = await Promise.all([
+      api(`/applications/employer`),
+      api(`/chat/conversation-previews`).catch(() => ({}))
+    ]);
+    if (!apps.length) { container.innerHTML = `<div class="empty-msg">No conversations yet.</div>`; return; }
     apps.forEach(a => { _appStore[a.id] = a; });
-    container.innerHTML = apps.map(a => {
+    // Sort: unread first, then by last message time
+    const sorted = [...apps].sort((a, b) => {
+      const ua = _unreadCounts[a.id] || 0, ub = _unreadCounts[b.id] || 0;
+      if (ua && !ub) return -1; if (!ua && ub) return 1;
+      const ta = previews[a.id]?.created_at || '', tb = previews[b.id]?.created_at || '';
+      return tb.localeCompare(ta);
+    });
+    container.innerHTML = sorted.map(a => {
       const unread   = _unreadCounts[a.id] || 0;
       const profile  = a.users || {};
       const name     = a.name || profile.name || "Applicant";
       const pic      = profile.profile_pic || "";
       const jobTitle = a.jobs?.title || "Position";
-      const hasProfile = profile.about_me || profile.instagram || profile.facebook || profile.profile_pic;
-      return `<div class="conv-item" style="position:relative;">
-        <div style="flex:1;display:flex;align-items:center;gap:10px;cursor:pointer;" onclick="openChatModal(${a.id},'${escHtml(name)}','${pic}','${escHtml(jobTitle)}')">
-          <div class="conv-item-avatar">
-            ${pic?`<img src="${pic}" onerror="this.parentElement.textContent='${name[0].toUpperCase()}'"/>`:name[0].toUpperCase()}
-            ${unread>0?`<div class="conv-unread-dot"></div>`:""}
-          </div>
-          <div class="conv-item-info">
-            <div class="conv-item-name">${escapeHtml(name)}</div>
-            <div class="conv-item-sub">${escapeHtml(jobTitle)}</div>
-          </div>
+      const preview  = previews[a.id];
+      let previewText = jobTitle;
+      let timeText = '';
+      if (preview) {
+        const isMine = preview.sender_id === user.id;
+        const prefix = isMine ? 'You: ' : '';
+        previewText = preview.image_url && !preview.body ? prefix + '📷 Photo' : prefix + (preview.body || jobTitle);
+        timeText = _fmtConvTime(preview.created_at);
+      }
+      return `<div class="conv-item${unread > 0 ? ' has-unread' : ''}" onclick="openChatModal(${a.id},'${escHtml(name)}','${pic}','${escHtml(jobTitle)}')">
+        <div class="conv-item-avatar">
+          ${pic ? `<img src="${pic}" onerror="this.parentElement.textContent='${name[0].toUpperCase()}'"/>` : name[0].toUpperCase()}
+          ${unread > 0 ? `<div class="conv-unread-dot"></div>` : ""}
         </div>
-        <div class="conv-item-meta" style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;">
-          ${unread>0?`<span class="g-chip" style="animation:pulse 2s infinite;">${unread} new</span>`:`<span class="g-chip gc-muted">read</span>`}
-          ${hasProfile?`<button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;min-height:auto;color:var(--accent3);border-color:rgba(77,159,255,0.3);" onclick="event.stopPropagation();viewApplicantProfile(${a.id})">View Profile</button>`:""}
+        <div class="conv-item-info">
+          <div class="conv-item-name">${escapeHtml(name)}</div>
+          <div class="conv-item-preview">${escHtml(previewText)}</div>
+        </div>
+        <div class="conv-item-meta">
+          <span class="conv-item-time">${timeText}</span>
+          ${unread > 0 ? `<span class="conv-unread-badge">${unread}</span>` : ""}
         </div>
       </div>`;
     }).join("");

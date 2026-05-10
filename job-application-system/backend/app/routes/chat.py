@@ -112,3 +112,71 @@ def get_unread_counts(request: Request):
         counts[app_id] = counts.get(app_id, 0) + 1
 
     return counts
+
+
+@router.get("/conversation-previews")
+def get_conversation_previews(request: Request):
+    """
+    Returns a dict of {application_id: last_message_preview} for
+    all conversations the user is part of. Used for the Instagram-style
+    message list.
+    """
+    payload = get_user_from_request(request)
+    user_id = int(payload["sub"])
+
+    # Get all application IDs the user is part of (as applicant or employer)
+    # First, get apps where user is the applicant
+    applicant_apps = (
+        supabase.table("applications")
+        .select("id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    # Then, get apps where user is the employer
+    employer_jobs = (
+        supabase.table("jobs")
+        .select("id")
+        .eq("employer_id", user_id)
+        .execute()
+    )
+    job_ids = [j["id"] for j in (employer_jobs.data or [])]
+    employer_apps = []
+    if job_ids:
+        employer_apps_result = (
+            supabase.table("applications")
+            .select("id")
+            .in_("job_id", job_ids)
+            .execute()
+        )
+        employer_apps = employer_apps_result.data or []
+
+    all_app_ids = list(set(
+        [a["id"] for a in (applicant_apps.data or [])] +
+        [a["id"] for a in employer_apps]
+    ))
+
+    if not all_app_ids:
+        return {}
+
+    # Get latest message for each application
+    previews: dict = {}
+    for app_id in all_app_ids:
+        result = (
+            supabase.table("messages")
+            .select("body, sender_id, created_at, image_url, users(name)")
+            .eq("application_id", app_id)
+            .order("created_at", desc=True)
+            .limit(1)
+            .execute()
+        )
+        if result.data:
+            msg = result.data[0]
+            previews[app_id] = {
+                "body": msg.get("body", ""),
+                "sender_id": msg["sender_id"],
+                "sender_name": (msg.get("users") or {}).get("name", "Unknown"),
+                "created_at": msg.get("created_at"),
+                "image_url": msg.get("image_url"),
+            }
+
+    return previews

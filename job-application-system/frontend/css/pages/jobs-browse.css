@@ -500,14 +500,10 @@
    JOB CARDS — pixelated borders
 ══════════════════════════════════════ */
 .jobs-browse-body .job-card {
-  border-radius: 4px !important;
+  border-radius: 16px !important;
   border: 2px solid var(--border) !important;
   box-shadow: 4px 4px 0px rgba(0,0,0,0.07) !important;
   overflow: hidden;
-}
-.jobs-browse-body .job-card::before {
-  border-radius: 0 !important;
-  height: 4px;
 }
 .jobs-browse-body .job-card:hover {
   transform: translate(-2px, -3px) !important;

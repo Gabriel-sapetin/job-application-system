@@ -33,17 +33,11 @@
     .jobs-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(340px,1fr)); gap:16px; }
     .job-card {
       background:var(--surface); border:1px solid var(--border);
-      border-radius:14px; overflow:hidden;
+      border-radius:16px; overflow:hidden;
       display:flex; flex-direction:column;
       transition:transform 0.22s cubic-bezier(0.2,1,0.3,1), box-shadow 0.22s, border-color 0.2s;
       position:relative;
       box-shadow:0 1px 3px rgba(0,0,0,0.04);
-    }
-    .job-card::before {
-      content:''; position:absolute; top:0; left:0; right:0; height:3px; z-index:2;
-      background:linear-gradient(90deg, #1ea83c, #28c94a);
-      border-radius:14px 14px 0 0;
-      opacity:0.7;
     }
     .job-card:hover {
       transform:translateY(-4px);
@@ -51,12 +45,6 @@
       border-color:rgba(30,168,60,0.2);
     }
     .job-card.closed-card { opacity:0.55; }
-    .job-card.closed-card::before { background:linear-gradient(90deg, #b03a2e, #d44); opacity:0.5; }
-
-    /* Type-specific top accent colors */
-    .job-card[data-type="Part-Time"]::before { background:linear-gradient(90deg, #1a6ea8, #4d9fff); }
-    .job-card[data-type="Internship"]::before { background:linear-gradient(90deg, #c89a2c, #e6b84a); }
-    .job-card[data-type="Remote"]::before { background:linear-gradient(90deg, #6c3483, #a569bd); }
 
     /* Banner image */
     .job-card-banner {

@@ -46,15 +46,19 @@ def get_activity_log(request: Request, limit: int = 50):
     """Return recent activity for the current user."""
     payload = get_user_from_request(request)
     user_id = int(payload["sub"])
-    result = (
-        supabase.table("activity_log")
-        .select("*")
-        .eq("user_id", user_id)
-        .order("created_at", desc=True)
-        .limit(limit)
-        .execute()
-    )
-    return result.data or []
+    try:
+        result = (
+            supabase.table("activity_log")
+            .select("*")
+            .eq("user_id", user_id)
+            .order("created_at", desc=True)
+            .limit(limit)
+            .execute()
+        )
+        return result.data or []
+    except Exception as e:
+        print(f"[ActivityLog] Query failed for user {user_id}: {e}")
+        return []
 
 
 @router.delete("/clear")

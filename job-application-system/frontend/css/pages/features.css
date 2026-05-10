@@ -35,37 +35,37 @@
 .theme-toggle.dark .theme-icon-sun { opacity: 0; }
 .theme-toggle.dark .theme-icon-moon { opacity: 1; }
 
-/* ── DARK THEME ── */
+/* ── DARK THEME (Codedex-inspired) ── */
 [data-theme="dark"] {
-  --bg:          #0f1117;
-  --sidebar:     #161822;
-  --surface:     #1a1d2b;
-  --surface2:    #212436;
-  --surface3:    #2a2e42;
-  --border:      rgba(255,255,255,0.08);
-  --border-soft: rgba(255,255,255,0.04);
-  --ink:         #e8eaf0;
-  --ink-soft:    #b0b5c5;
-  --ink-muted:   #6b7289;
+  --bg:          #141821;
+  --sidebar:     #191e2a;
+  --surface:     #1e2433;
+  --surface2:    #252c3d;
+  --surface3:    #2d3548;
+  --border:      rgba(255,255,255,0.07);
+  --border-soft: rgba(255,255,255,0.035);
+  --ink:         #e4e7ee;
+  --ink-soft:    #a8afc2;
+  --ink-muted:   #5e6680;
   --accent:      #22c55e;
   --accent-light:#34d16f;
-  --accent-dim:  rgba(34,197,94,0.12);
+  --accent-dim:  rgba(34,197,94,0.10);
   --accent-hover:#1aab50;
-  --accent-glow: rgba(34,197,94,0.25);
+  --accent-glow: rgba(34,197,94,0.20);
   --accent2:     #ef4444;
   --accent3:     #60a5fa;
-  --red:         #ef4444;
-  --red-dim:     rgba(239,68,68,0.12);
+  --red:         #f87171;
+  --red-dim:     rgba(248,113,113,0.10);
   --green:       #22c55e;
-  --green-dim:   rgba(34,197,94,0.12);
-  --gold:        #eab308;
-  --gold-dim:    rgba(234,179,8,0.12);
-  --blue-dim:    rgba(96,165,250,0.12);
-  --purple:      #a855f7;
-  --shadow-sm:   0 1px 3px rgba(0,0,0,0.2), 0 2px 8px rgba(0,0,0,0.15);
-  --shadow-md:   0 4px 16px rgba(0,0,0,0.3), 0 1px 4px rgba(0,0,0,0.2);
-  --shadow-lg:   0 12px 40px rgba(0,0,0,0.4), 0 2px 8px rgba(0,0,0,0.2);
-  --shadow-green:0 6px 24px rgba(34,197,94,0.22), 0 2px 8px rgba(34,197,94,0.12);
+  --green-dim:   rgba(34,197,94,0.10);
+  --gold:        #fbbf24;
+  --gold-dim:    rgba(251,191,36,0.10);
+  --blue-dim:    rgba(96,165,250,0.10);
+  --purple:      #a78bfa;
+  --shadow-sm:   0 1px 4px rgba(0,0,0,0.25), 0 2px 8px rgba(0,0,0,0.18);
+  --shadow-md:   0 4px 20px rgba(0,0,0,0.35), 0 1px 4px rgba(0,0,0,0.22);
+  --shadow-lg:   0 12px 48px rgba(0,0,0,0.45), 0 2px 8px rgba(0,0,0,0.22);
+  --shadow-green:0 6px 24px rgba(34,197,94,0.18), 0 2px 8px rgba(34,197,94,0.10);
 }
 [data-theme="dark"] body { background: var(--bg); color: var(--ink); }
 [data-theme="dark"] .sidebar { background: var(--sidebar); border-color: var(--border); }
@@ -177,10 +177,10 @@
   display: inline-flex; align-items: center; justify-content: center;
   width: 24px; height: 24px; border-radius: 50%;
   background: var(--surface2); border: 1px solid var(--border);
-  font-size: 11px; cursor: pointer;
+  cursor: pointer; color: var(--ink-muted);
   transition: all 0.15s;
 }
-.msg-reaction-add:hover { background: var(--accent-dim); border-color: var(--accent); transform: scale(1.1); }
+.msg-reaction-add:hover { background: var(--accent-dim); border-color: var(--accent); color: var(--accent); transform: scale(1.1); }
 
 /* Emoji picker */
 .emoji-picker-popup {
