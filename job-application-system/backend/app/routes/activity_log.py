@@ -68,3 +68,42 @@ def clear_activity_log(request: Request):
     user_id = int(payload["sub"])
     supabase.table("activity_log").delete().eq("user_id", user_id).execute()
     return {"message": "Activity log cleared."}
+
+
+@router.post("/session")
+def log_session_resumed(request: Request):
+    """
+    Log a 'session resumed' event when the user opens the dashboard
+    with an existing valid token (not a fresh login).
+    Deduplicates within a 5-minute window to avoid spam from refreshes.
+    """
+    payload = get_user_from_request(request)
+    user_id = int(payload["sub"])
+
+    # Check if there's already a login/session_resumed entry in the last 5 minutes
+    from datetime import datetime, timedelta, timezone
+    cutoff = (datetime.now(timezone.utc) - timedelta(minutes=5)).isoformat()
+    try:
+        recent = (
+            supabase.table("activity_log")
+            .select("id")
+            .eq("user_id", user_id)
+            .in_("action", ["login", "session_resumed"])
+            .gte("created_at", cutoff)
+            .limit(1)
+            .execute()
+        )
+        if recent.data:
+            return {"message": "Already logged recently."}
+    except Exception:
+        pass
+
+    log_activity(
+        user_id=user_id,
+        action="login",
+        details="Dashboard opened",
+        ip_address=request.client.host if request.client else None,
+        user_agent=request.headers.get("user-agent", "")[:200],
+    )
+    return {"message": "Session logged."}
+

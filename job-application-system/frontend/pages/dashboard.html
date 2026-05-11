@@ -8,6 +8,7 @@
   <link rel="icon" type="image/svg+xml" href="../favicon.svg" />
   <link rel="stylesheet" href="../css/style.css" />
   <link rel="stylesheet" href="../css/pages/dashboard-inline-1.css" />
+  <link rel="stylesheet" href="../css/pages/dashboard-pixel.css" />
   <link rel="stylesheet" href="../css/pages/features.css" />
 </head>
 
@@ -53,6 +54,7 @@
           <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabSaved',this)">Saved Jobs <span
               class="sidebar-badge" id="savedJobsBadge">0</span></button>
           <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabInterest',this)">Find by Interest</button>
+          <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabAnalytics',this)">Analytics</button>
           <button class="sidebar-link app-tab-btn" onclick="showAppTab('tabActivityLog',this)">Activity Log</button>
         </nav>
       </div>
@@ -124,7 +126,7 @@
               <p style="font-size:12.5px;color:var(--ink-muted);font-weight:400;" id="welcomeDate"></p>
             </div>
             <div style="display:flex;gap:8px;">
-              <button class="btn btn-ghost btn-sm" onclick="shareMyProfile()" title="Share your public profile">📋 Share
+              <button class="btn btn-ghost btn-sm" onclick="shareMyProfile()" title="Share your public profile">Share
                 Profile</button>
               <a href="jobs.html" class="btn btn-primary btn-sm">Browse Jobs →</a>
             </div>
@@ -320,11 +322,24 @@
             </div>
           </div>
 
+          <!-- Analytics tab -->
+          <div id="tabAnalytics" class="tab-panel">
+            <div class="panel">
+              <div class="panel-header">
+                <h3>Application Analytics</h3>
+                <button class="btn btn-ghost btn-sm" onclick="loadApplicantAnalytics()">Refresh</button>
+              </div>
+              <div id="analyticsContent" style="padding:16px;">
+                <div class="empty-msg">Loading analytics...</div>
+              </div>
+            </div>
+          </div>
+
           <!-- Activity Log tab -->
           <div id="tabActivityLog" class="tab-panel">
             <div class="panel">
               <div class="panel-header">
-                <h3>📋 Activity Log</h3>
+                <h3>Activity Log</h3>
                 <button class="btn btn-ghost btn-sm" onclick="clearActivityLog('activityLogContent')">Clear
                   History</button>
               </div>

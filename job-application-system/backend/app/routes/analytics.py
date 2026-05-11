@@ -138,3 +138,123 @@ def record_job_view(job_id: int):
     except Exception:
         pass
     return {"message": "View recorded."}
+
+
+@router.get("/applicant")
+def get_applicant_analytics(request: Request):
+    """
+    Returns analytics for the current applicant:
+    - Total / accepted / pending / rejected counts
+    - Acceptance rate
+    - Applications per week (last 8 weeks)
+    - Most applied categories
+    - Status breakdown
+    """
+    payload = get_user_from_request(request)
+    user_id = int(payload["sub"])
+
+    # Fetch all applications for this user
+    apps_result = supabase.table("applications").select(
+        "id, status, created_at, jobs(category, type)"
+    ).eq("user_id", user_id).order("created_at").execute()
+
+    apps = apps_result.data or []
+
+    # ── Status counts ─────────────────────────────────────
+    status_counts = defaultdict(int)
+    for a in apps:
+        status_counts[a["status"]] += 1
+
+    total    = len(apps)
+    accepted = status_counts["accepted"]
+    rejected = status_counts["rejected"]
+    pending  = status_counts["pending"]
+    reviewed = status_counts["reviewed"]
+    accept_rate = round((accepted / total * 100), 1) if total > 0 else 0
+
+    # ── Applications per week (last 8 weeks) ──────────────
+    today = datetime.utcnow().date()
+    weeks = []
+    for i in range(7, -1, -1):
+        week_start = today - timedelta(days=today.weekday()) - timedelta(weeks=i)
+        weeks.append(week_start)
+
+    weekly = defaultdict(int)
+    for a in apps:
+        try:
+            app_date = datetime.fromisoformat(a["created_at"].replace("Z", "+00:00")).date()
+            week_start = app_date - timedelta(days=app_date.weekday())
+            weekly[week_start] += 1
+        except Exception:
+            pass
+
+    timeline = [
+        {
+            "week": str(w),
+            "label": w.strftime("%b %d"),
+            "applications": weekly.get(w, 0),
+        }
+        for w in weeks
+    ]
+
+    # ── Category breakdown ────────────────────────────────
+    cat_counts = defaultdict(int)
+    for a in apps:
+        job = a.get("jobs") or {}
+        cat = job.get("category") or "uncategorized"
+        cat_counts[cat] += 1
+
+    # Sort by count descending, take top 8
+    sorted_cats = sorted(cat_counts.items(), key=lambda x: x[1], reverse=True)[:8]
+
+    cat_colors = {
+        "software": "#4d9fff", "business": "#fbbf24", "design": "#a78bfa",
+        "engineering": "#22c55e", "marketing": "#f87171", "finance": "#60a5fa",
+        "healthcare": "#34d16f", "education": "#eab308", "arts": "#f472b6",
+        "teaching": "#818cf8", "construction": "#fb923c", "hospitality": "#38bdf8",
+    }
+    default_color = "#6b7280"
+
+    categories = [
+        {
+            "label": cat.replace("_", " ").title(),
+            "value": count,
+            "color": cat_colors.get(cat, default_color),
+        }
+        for cat, count in sorted_cats
+    ]
+
+    # ── Job type breakdown ────────────────────────────────
+    type_counts = defaultdict(int)
+    for a in apps:
+        job = a.get("jobs") or {}
+        jtype = job.get("type") or "Unknown"
+        type_counts[jtype] += 1
+
+    type_colors = {
+        "Full-Time": "#22c55e", "Part-Time": "#60a5fa",
+        "Internship": "#fbbf24", "Remote": "#a78bfa",
+    }
+    job_types = [
+        {"label": t, "value": c, "color": type_colors.get(t, default_color)}
+        for t, c in sorted(type_counts.items(), key=lambda x: x[1], reverse=True)
+    ]
+
+    return {
+        "total_applications": total,
+        "accepted":           accepted,
+        "rejected":           rejected,
+        "pending":            pending,
+        "reviewed":           reviewed,
+        "acceptance_rate":    accept_rate,
+        "timeline":           timeline,
+        "categories":         categories,
+        "job_types":          job_types,
+        "status_breakdown": [
+            {"label": "Pending",  "value": pending,  "color": "#ffcc44"},
+            {"label": "Reviewed", "value": reviewed, "color": "#4d9fff"},
+            {"label": "Accepted", "value": accepted, "color": "#44dd88"},
+            {"label": "Rejected", "value": rejected, "color": "#ff4444"},
+        ],
+    }
+

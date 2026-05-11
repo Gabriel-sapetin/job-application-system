@@ -1069,6 +1069,9 @@ let _pendingImageFile = null;
 loadDashboard();
 setInterval(smartRefresh, 30000);
 
+// Log this dashboard visit to the activity log (deduped server-side)
+api("/activity-log/session", "POST").catch(() => {});
+
 // Shared shell modules initialize deduplicated dashboard notifications + saved-jobs tab.
 window.JobTrackShell.notifications.initDashboardNotifications();
 
@@ -1525,9 +1528,159 @@ async function loadEmpConversations() {
   } catch(e) { container.innerHTML = `<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`; }
 }
 
-// Patch tab switches to load conversations
+// Patch tab switches to load conversations + analytics
 const _origShowAppTab = showAppTab;
-showAppTab = function(id, btn) { _origShowAppTab(id, btn); if (id==="tabMessages")    loadAppConversations(); };
+showAppTab = function(id, btn) {
+  _origShowAppTab(id, btn);
+  if (id === "tabMessages")  loadAppConversations();
+  if (id === "tabAnalytics") loadApplicantAnalytics();
+};
+
+// ══ APPLICANT ANALYTICS ══════════════════════════════
+let _analyticsLoaded = false;
+async function loadApplicantAnalytics() {
+  const container = document.getElementById("analyticsContent");
+  if (!container) return;
+
+  // Show loading only on first load
+  if (!_analyticsLoaded) {
+    container.innerHTML = '<div class="empty-msg">Loading analytics...</div>';
+  }
+
+  try {
+    const data = await api("/analytics/applicant");
+
+    _analyticsLoaded = true;
+
+    // ── Stat cards row ─────────────────────────────────
+    const acceptColor = data.acceptance_rate >= 50 ? "var(--green)" :
+                        data.acceptance_rate >= 25 ? "var(--gold)" : "var(--red)";
+
+    let html = `
+      <div class="ana-stats-row">
+        <div class="ana-stat-card">
+          <div class="ana-stat-label">Total Applied</div>
+          <div class="ana-stat-num" style="color:var(--accent)">${data.total_applications}</div>
+        </div>
+        <div class="ana-stat-card">
+          <div class="ana-stat-label">Accepted</div>
+          <div class="ana-stat-num" style="color:var(--green)">${data.accepted}</div>
+        </div>
+        <div class="ana-stat-card">
+          <div class="ana-stat-label">Pending</div>
+          <div class="ana-stat-num" style="color:var(--gold)">${data.pending}</div>
+        </div>
+        <div class="ana-stat-card">
+          <div class="ana-stat-label">Acceptance Rate</div>
+          <div class="ana-stat-num" style="color:${acceptColor}">${data.acceptance_rate}%</div>
+        </div>
+      </div>`;
+
+    // ── Applications per week bar chart ─────────────────
+    const maxWeekly = Math.max(1, ...data.timeline.map(t => t.applications));
+    html += `
+      <div class="ana-section">
+        <h4 class="ana-section-title">Applications Per Week</h4>
+        <div class="ana-bar-chart">
+          ${data.timeline.map(t => {
+            const pct = (t.applications / maxWeekly * 100);
+            return `<div class="ana-bar-col">
+              <div class="ana-bar-val">${t.applications}</div>
+              <div class="ana-bar-fill-wrap">
+                <div class="ana-bar-fill" style="height:${Math.max(pct, 4)}%;"></div>
+              </div>
+              <div class="ana-bar-label">${t.label}</div>
+            </div>`;
+          }).join("")}
+        </div>
+      </div>`;
+
+    // ── Status breakdown doughnut (CSS only) ────────────
+    const statusTotal = Math.max(1, data.status_breakdown.reduce((s, v) => s + v.value, 0));
+    let conicStops = [];
+    let runningPct = 0;
+    for (const seg of data.status_breakdown) {
+      const pct = (seg.value / statusTotal) * 100;
+      conicStops.push(`${seg.color} ${runningPct}% ${runningPct + pct}%`);
+      runningPct += pct;
+    }
+    const conicGradient = conicStops.join(", ");
+
+    html += `
+      <div class="ana-charts-row">
+        <div class="ana-section ana-section-half">
+          <h4 class="ana-section-title">Status Breakdown</h4>
+          <div class="ana-doughnut-wrap">
+            <div class="ana-doughnut" style="background:conic-gradient(${conicGradient});">
+              <div class="ana-doughnut-hole">
+                <span class="ana-doughnut-center">${data.total_applications}</span>
+                <span class="ana-doughnut-sublabel">Total</span>
+              </div>
+            </div>
+            <div class="ana-legend">
+              ${data.status_breakdown.map(s => `
+                <div class="ana-legend-item">
+                  <span class="ana-legend-dot" style="background:${s.color}"></span>
+                  <span class="ana-legend-label">${s.label}</span>
+                  <span class="ana-legend-val">${s.value}</span>
+                </div>
+              `).join("")}
+            </div>
+          </div>
+        </div>
+
+        <div class="ana-section ana-section-half">
+          <h4 class="ana-section-title">Job Types Applied</h4>
+          <div class="ana-hbar-list">
+            ${data.job_types.length ? data.job_types.map(t => {
+              const pct = (t.value / data.total_applications * 100);
+              return `<div class="ana-hbar-item">
+                <div class="ana-hbar-head">
+                  <span class="ana-hbar-name">${t.label}</span>
+                  <span class="ana-hbar-count">${t.value}</span>
+                </div>
+                <div class="ana-hbar-track">
+                  <div class="ana-hbar-fill" style="width:${pct}%;background:${t.color};"></div>
+                </div>
+              </div>`;
+            }).join("") : '<div class="empty-msg">No data yet</div>'}
+          </div>
+        </div>
+      </div>`;
+
+    // ── Top categories horizontal bars ───────────────────
+    html += `
+      <div class="ana-section">
+        <h4 class="ana-section-title">Top Categories</h4>
+        <div class="ana-hbar-list">
+          ${data.categories.length ? data.categories.map(c => {
+            const pct = (c.value / data.total_applications * 100);
+            return `<div class="ana-hbar-item">
+              <div class="ana-hbar-head">
+                <span class="ana-hbar-name">${c.label}</span>
+                <span class="ana-hbar-count">${c.value} app${c.value !== 1 ? "s" : ""}</span>
+              </div>
+              <div class="ana-hbar-track">
+                <div class="ana-hbar-fill" style="width:${pct}%;background:${c.color};"></div>
+              </div>
+            </div>`;
+          }).join("") : '<div class="empty-msg">No data yet</div>'}
+        </div>
+      </div>`;
+
+    container.innerHTML = html;
+
+    // Animate bars in with a slight delay
+    requestAnimationFrame(() => {
+      container.querySelectorAll(".ana-bar-fill, .ana-hbar-fill").forEach((el, i) => {
+        el.style.transition = `height 0.5s ${i * 0.04}s cubic-bezier(0.22,1,0.36,1), width 0.5s ${i * 0.04}s cubic-bezier(0.22,1,0.36,1)`;
+      });
+    });
+
+  } catch (e) {
+    container.innerHTML = `<div class="empty-msg" style="color:var(--red)">Failed to load analytics: ${e.message}</div>`;
+  }
+}
 const _origShowEmpTab = showEmpTab;
 showEmpTab = function(id, btn) { _origShowEmpTab(id, btn); if (id==="tabEmpMessages") loadEmpConversations(); };
 

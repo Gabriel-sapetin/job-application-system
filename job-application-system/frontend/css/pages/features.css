@@ -91,6 +91,16 @@
 [data-theme="dark"] .form-group textarea:focus { background: var(--surface2); }
 [data-theme="dark"] .chat-modal-box { background: var(--surface); }
 [data-theme="dark"] .cover-modal-box { background: var(--surface); }
+/* Browse Jobs — dark mode */
+[data-theme="dark"] .jb-navbar { background: var(--surface); border-bottom-color: var(--border); }
+[data-theme="dark"] .jb-drawer { background: var(--surface); border-left-color: var(--border); }
+[data-theme="dark"] .jb-drawer-header { background: var(--surface2); border-bottom-color: var(--border); }
+[data-theme="dark"] .jb-safety-popup { background: var(--surface); border-color: var(--border); }
+[data-theme="dark"] .jb-safety-popup-header { background: var(--surface2); }
+[data-theme="dark"] .jb-safety-popup-footer { background: var(--surface2); }
+[data-theme="dark"] .jb-filter-chip { background: var(--surface); border-color: var(--border); }
+[data-theme="dark"] .jb-category-section { background: var(--surface); border-color: var(--border); }
+[data-theme="dark"] .jb-category-header { background: var(--surface2); border-bottom-color: var(--border); }
 
 /* ── PROFILE COMPLETENESS ── */
 .profile-completeness {

@@ -94,13 +94,48 @@ def get_unread_counts(request: Request):
     """
     Returns a dict of {application_id: unread_count} for messages
     sent by the OTHER party (not the current user) that are unread.
+    Only counts messages from applications the user is a participant in.
     """
     payload = get_user_from_request(request)
     user_id = int(payload["sub"])
 
+    # Collect all application IDs the user participates in
+    applicant_apps = (
+        supabase.table("applications")
+        .select("id")
+        .eq("user_id", user_id)
+        .execute()
+    )
+    employer_jobs = (
+        supabase.table("jobs")
+        .select("id")
+        .eq("employer_id", user_id)
+        .execute()
+    )
+    job_ids = [j["id"] for j in (employer_jobs.data or [])]
+    employer_apps = []
+    if job_ids:
+        employer_apps_result = (
+            supabase.table("applications")
+            .select("id")
+            .in_("job_id", job_ids)
+            .execute()
+        )
+        employer_apps = employer_apps_result.data or []
+
+    all_app_ids = list(set(
+        [a["id"] for a in (applicant_apps.data or [])] +
+        [a["id"] for a in employer_apps]
+    ))
+
+    if not all_app_ids:
+        return {}
+
+    # Only count unread messages from conversations the user is part of
     result = (
         supabase.table("messages")
         .select("application_id")
+        .in_("application_id", all_app_ids)
         .neq("sender_id", user_id)
         .eq("is_read", False)
         .execute()
