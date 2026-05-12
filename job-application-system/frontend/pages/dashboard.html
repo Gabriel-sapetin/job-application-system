@@ -235,27 +235,8 @@
               <div class="panel-header">
                 <h3>My Applications</h3><a href="jobs.html" class="btn btn-ghost btn-sm">Browse Jobs →</a>
               </div>
-              <div style="overflow-x:auto;">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Position</th>
-                      <th>Company</th>
-                      <th>Deadline</th>
-                      <th>Slots</th>
-                      <th>Date</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="appTableBody">
-                    <tr>
-                      <td colspan="7"
-                        style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">
-                        Loading...</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div id="appTableBody" class="cards-container">
+                <div class="empty-msg">Loading...</div>
               </div>
               <div id="appPagination"
                 style="display:flex;align-items:center;justify-content:space-between;padding:10px 18px;border-top:1px solid var(--border);font-size:12px;color:var(--ink-muted);font-family:var(--mono);">
@@ -412,29 +393,10 @@
           <div id="tabEmpApps" class="tab-panel active">
             <div class="panel">
               <div class="panel-header">
-                <h3>Applications Received</h3><span class="td-muted" style="font-size:12px;">Click name to view profile
-                  · Click Cover to read letter</span>
+                <h3>Applications Received</h3><span class="td-muted" style="font-size:12px;">Click name to view profile</span>
               </div>
-              <div style="overflow-x:auto;">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Applicant</th>
-                      <th>Position</th>
-                      <th>Date</th>
-                      <th>Cover Letter</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="empAppTableBody">
-                    <tr>
-                      <td colspan="6"
-                        style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">
-                        Loading...</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div id="empAppTableBody" class="cards-container">
+                <div class="empty-msg">Loading...</div>
               </div>
             </div>
           </div>
@@ -443,30 +405,11 @@
           <div id="tabMyJobs" class="tab-panel">
             <div class="panel">
               <div class="panel-header">
-                <h3>My Job Postings</h3><span class="td-muted" style="font-size:12px;">Open / Close / Delete</span>
+                <h3>My Job Postings</h3>
+                <button class="btn btn-primary btn-sm" onclick="showEmpTab('tabPost', document.querySelector('[onclick*=tabPost]'))">+ New Posting</button>
               </div>
-              <div style="overflow-x:auto;">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Title</th>
-                      <th>Image</th>
-                      <th>Category</th>
-                      <th>Type</th>
-                      <th>Slots</th>
-                      <th>Deadline</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody id="myJobsTableBody">
-                    <tr>
-                      <td colspan="8"
-                        style="text-align:center;padding:32px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">
-                        Loading...</td>
-                    </tr>
-                  </tbody>
-                </table>
+              <div id="myJobsTableBody" class="cards-container">
+                <div class="empty-msg">Loading...</div>
               </div>
             </div>
           </div>

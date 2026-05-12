@@ -732,3 +732,207 @@
 .cover-modal-divider {
   height: 2px;
 }
+
+/* ══════════════════════════════════════
+   CARD-BASED LAYOUTS — Replaces dense tables
+   Clean, organized, breathable cards
+══════════════════════════════════════ */
+
+.cards-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 14px;
+}
+
+/* ── Application Card (shared by employer & applicant) ── */
+.app-card, .job-card {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-left: 4px solid var(--border);
+  border-radius: 4px;
+  padding: 0;
+  box-shadow: 2px 2px 0px rgba(0,0,0,0.04);
+  transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+  overflow: hidden;
+}
+.app-card:hover, .job-card:hover {
+  transform: translate(-1px, -1px);
+  box-shadow: 3px 3px 0px rgba(0,0,0,0.07);
+}
+
+.app-card-top, .job-card-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  padding: 16px 18px 12px;
+  gap: 14px;
+}
+
+.app-card-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--surface3);
+  display: grid;
+  place-items: center;
+  font-size: 14px;
+  font-weight: 700;
+  overflow: hidden;
+  flex-shrink: 0;
+  border: 2px solid var(--border);
+}
+
+.app-card-info, .job-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.app-card-title, .job-card-title {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--ink);
+  letter-spacing: -0.2px;
+  margin-bottom: 2px;
+  line-height: 1.3;
+}
+.app-card-title:hover { opacity: 0.85; }
+
+.app-card-email {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-family: var(--mono);
+  margin-bottom: 6px;
+}
+
+.job-card-location {
+  font-size: 12px;
+  color: var(--ink-muted);
+  margin-bottom: 6px;
+}
+
+.app-card-meta {
+  font-size: 12px;
+  color: var(--ink-soft);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.app-card-sep {
+  color: var(--ink-muted);
+  opacity: 0.5;
+}
+
+.app-card-tags, .job-card-tags {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-top: 6px;
+}
+
+.app-card-status, .job-card-status {
+  flex-shrink: 0;
+  padding-top: 2px;
+}
+
+/* ── Card Footer / Actions ── */
+.app-card-actions, .job-card-actions {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  padding: 10px 18px;
+  border-top: 2px solid var(--border);
+  background: var(--surface2);
+  flex-wrap: wrap;
+}
+
+.app-card-actions-left {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.app-card-actions-right {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+  flex-wrap: wrap;
+  margin-left: auto;
+}
+
+/* ── Job Card Image ── */
+.job-card-img {
+  width: 64px;
+  height: 48px;
+  border-radius: 4px;
+  overflow: hidden;
+  border: 2px solid var(--border);
+  flex-shrink: 0;
+  background: var(--surface3);
+}
+.job-card-img img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+/* ── Filter / Search bar above cards ── */
+.cards-filter-bar {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  border-bottom: 2px solid var(--border);
+  background: var(--surface2);
+}
+.cards-filter-bar select,
+.cards-filter-bar input {
+  background: var(--surface);
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  padding: 6px 10px;
+  font-family: var(--font);
+  font-size: 12px;
+  color: var(--ink);
+  outline: none;
+}
+.cards-filter-count {
+  font-size: 11px;
+  color: var(--ink-muted);
+  font-family: var(--mono);
+  margin-left: auto;
+}
+
+/* ── Responsive cards ── */
+@media (max-width: 768px) {
+  .app-card-top, .job-card-top {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .app-card-actions, .job-card-actions {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .app-card-actions-left,
+  .app-card-actions-right {
+    justify-content: stretch;
+    margin-left: 0;
+  }
+  .app-card-actions-right {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .app-card-actions-right .btn,
+  .job-card-actions .btn {
+    width: 100%;
+    justify-content: center;
+    text-align: center;
+  }
+  .cards-container {
+    padding: 8px;
+    gap: 8px;
+  }
+}

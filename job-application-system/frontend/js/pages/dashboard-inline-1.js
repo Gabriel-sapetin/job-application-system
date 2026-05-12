@@ -212,7 +212,7 @@ async function loadApplicantApps(){
     document.getElementById("appCountBadge").textContent = apps.length;
     renderAppPage();
   } catch(e){
-    document.getElementById("appTableBody").innerHTML=`<tr><td colspan="7" style="text-align:center;padding:24px;color:var(--red);font-family:var(--mono);font-size:12px;">Error: ${e.message}</td></tr>`;
+    document.getElementById("appTableBody").innerHTML=`<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;
   }
 }
 
@@ -226,10 +226,7 @@ function renderAppPage() {
   const totalPages = Math.max(1, Math.ceil(_allApps.length / APP_PAGE_SIZE));
   const start = (_appPage - 1) * APP_PAGE_SIZE;
   const slice = _allApps.slice(start, start + APP_PAGE_SIZE);
-  const tbody = document.getElementById("appTableBody");
-  const table = tbody ? tbody.closest("table") : null;
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
-  if (table) table.classList.toggle("mobile-cards", isMobile);
+  const container = document.getElementById("appTableBody");
 
   document.getElementById("appPageInfo").textContent =
     _allApps.length > 0 ? `Page ${_appPage} of ${totalPages} · ${_allApps.length} total` : "";
@@ -237,59 +234,46 @@ function renderAppPage() {
   document.getElementById("appNextBtn").disabled = _appPage >= totalPages;
 
   if (!_allApps.length) {
-    tbody.innerHTML = `<tr><td colspan="7" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No applications yet. <a href="jobs.html" style="color:var(--accent);">Browse jobs →</a></td></tr>`;
+    container.innerHTML = `<div class="empty-msg">No applications yet. <a href="jobs.html" style="color:var(--accent);">Browse jobs →</a></div>`;
     return;
   }
 
-  if (isMobile) {
-    tbody.innerHTML = slice.map(a => {
-      const date = a.created_at ? a.created_at.split("T")[0] : "—";
-      const appStCls = {pending:"gc-gold",accepted:"",rejected:"gc-red",reviewed:"gc-blue"}[a.status]||"";
-      return `<tr data-status="${a.status}">
-        <td colspan="7">
-          <div class="mobile-app-card">
-            <div class="mobile-app-title">${a.jobs?.title||"—"}</div>
-            <div class="mobile-app-sub">${a.jobs?.company||"—"} · ${date}</div>
-            <div class="mobile-app-status"><span class="g-chip ${appStCls}">${a.status}</span></div>
-            <div class="mobile-app-actions">
-              <button class="btn btn-ghost btn-sm" onclick="viewMyApp(${a.id})" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);">View</button>
-              <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
-                onclick="openChatModal(${a.id},'${(a.jobs?.company||'Employer').replace(/'/g,"\\'")}','','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
-              <button class="btn btn-danger btn-sm" onclick="withdrawApp(${a.id})">Withdraw</button>
-            </div>
-          </div>
-        </td>
-      </tr>`;
-    }).join("");
-    return;
-  }
-
-  tbody.innerHTML = slice.map(a => {
+  container.innerHTML = slice.map(a => {
     const date = a.created_at ? a.created_at.split("T")[0] : "—";
     const dl   = a.jobs?.deadline ? new Date(a.jobs.deadline).toLocaleDateString("en-PH",{month:"short",day:"numeric"}) : "—";
     const max  = a.jobs?.max_applicants;
     const jst  = a.jobs?.status||"open";
     const jstCls = jst==="closed"?"gc-red":jst==="full"?"gc-gold":"";
     const appStCls = {pending:"gc-gold",accepted:"",rejected:"gc-red",reviewed:"gc-blue"}[a.status]||"";
-    return `<tr data-status="${a.status}">
-      <td>
-        <div class="td-title">${a.jobs?.title||"—"}</div>
-        <span class="g-chip ${jstCls}" style="margin-top:4px;">${jst}</span>
-      </td>
-      <td class="td-muted">${a.jobs?.company||"—"}</td>
-      <td><span class="g-chip gc-muted">${dl}</span></td>
-      <td><span class="g-chip gc-muted">${max?max+" max":"Unlimited"}</span></td>
-      <td><span class="g-chip gc-muted">${date}</span></td>
-      <td><span class="g-chip ${appStCls}">${a.status}</span></td>
-      <td style="display:flex;gap:5px;flex-wrap:wrap;">
-        <button class="btn btn-ghost btn-sm" onclick="viewMyApp(${a.id})" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);">View</button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
-          onclick="openChatModal(${a.id},'${(a.jobs?.company||'Employer').replace(/'/g,"\\'")}','','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">
-          Chat
-        </button>
-        <button class="btn btn-danger btn-sm" onclick="withdrawApp(${a.id})">Withdraw</button>
-      </td>
-    </tr>`;
+    const statusBorder = {pending:"#c89a2c",accepted:"#15873a",rejected:"#b03a2e",reviewed:"#1a6ea8"}[a.status]||"var(--border)";
+    return `<div class="app-card" style="border-left-color:${statusBorder}">
+      <div class="app-card-top">
+        <div class="app-card-info">
+          <div class="app-card-title">${a.jobs?.title||"—"}</div>
+          <div class="app-card-meta">
+            <span>${a.jobs?.company||"—"}</span>
+            <span class="app-card-sep">·</span>
+            <span>Applied ${date}</span>
+          </div>
+          <div class="app-card-tags">
+            <span class="g-chip ${jstCls}" style="font-size:10px;padding:2px 8px;">${jst}</span>
+            <span class="g-chip gc-muted" style="font-size:10px;padding:2px 8px;">⏰ ${dl}</span>
+            <span class="g-chip gc-muted" style="font-size:10px;padding:2px 8px;">${max?max+" slots":"∞ slots"}</span>
+          </div>
+        </div>
+        <div class="app-card-status">
+          <span class="g-chip ${appStCls}">${a.status}</span>
+        </div>
+      </div>
+      <div class="app-card-actions">
+        <div class="app-card-actions-right" style="margin-left:0;">
+          <button class="btn btn-ghost btn-sm" onclick="viewMyApp(${a.id})" style="color:var(--accent3);border-color:rgba(77,159,255,0.3);">View Details</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
+            onclick="openChatModal(${a.id},'${(a.jobs?.company||'Employer').replace(/'/g,"\\'")}','','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
+          <button class="btn btn-danger btn-sm" onclick="withdrawApp(${a.id})">Withdraw</button>
+        </div>
+      </div>
+    </div>`;
   }).join("");
 }
 
@@ -589,75 +573,50 @@ async function submitIdVerification() {
 const _appStore = {};
 
 function renderEmployerApps(apps){
-  const tbody=document.getElementById("empAppTableBody");
-  const table = tbody ? tbody.closest("table") : null;
-  const isMobile = window.matchMedia("(max-width: 768px)").matches;
-  if (table) table.classList.toggle("mobile-cards", isMobile);
-  if(!apps.length){tbody.innerHTML=`<tr><td colspan="6" style="text-align:center;padding:40px;color:var(--ink-muted);font-family:var(--mono);font-size:12px;">No applications received yet.</td></tr>`;return;}
+  const container=document.getElementById("empAppTableBody");
+  if(!apps.length){container.innerHTML=`<div class="empty-msg" style="padding:40px;text-align:center;">No applications received yet.</div>`;return;}
   // Populate store
   apps.forEach(a => { _appStore[a.id] = a; });
-  if (isMobile) {
-    tbody.innerHTML = apps.map(a=>{
-      const date=a.created_at?a.created_at.split("T")[0]:"—";
-      const hasProfile=(a.users?.about_me||a.users?.instagram||a.users?.facebook||a.users?.profile_pic);
-      return `<tr data-status="${a.status}">
-        <td colspan="6">
-          <div class="mobile-app-card">
-            <div class="mobile-app-title" style="${hasProfile?"cursor:pointer;color:var(--accent3);":""}" onclick="${hasProfile?`viewApplicantProfile(${a.id})`:""}">${a.name||"Applicant"}</div>
-            <div class="mobile-app-sub">${a.jobs?.title||"—"} · ${date}</div>
-            <div class="mobile-app-status"><span class="g-chip ${{pending:"gc-gold",accepted:"",rejected:"gc-red",reviewed:"gc-blue"}[a.status]||""}">${a.status}</span></div>
-            <div class="mobile-app-actions">
-              <button class="btn btn-success btn-sm" onclick="updateStatus(${a.id},'accepted',this)">Accept</button>
-              <button class="btn btn-danger btn-sm"  onclick="updateStatus(${a.id},'rejected',this)">Reject</button>
-              <button class="btn btn-ghost btn-sm"   onclick="updateStatus(${a.id},'reviewed',this)">Review</button>
-              <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
-                onclick="openChatModal(${a.id},'${(a.name||'Applicant').replace(/'/g,"\\'")}','${(a.users?.profile_pic||'')}','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
-              <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(255,68,68,0.3);"
-                onclick="openReportUserModal(${a.users?.id||a.user_id},'${(a.name||'').replace(/'/g,"\\'")}','${a.email||''}','${a.users?.profile_pic||''}')">Report</button>
-            </div>
-          </div>
-        </td>
-      </tr>`;
-    }).join("");
-    return;
-  }
-  tbody.innerHTML=apps.map(a=>{
+  container.innerHTML=apps.map(a=>{
     const date=a.created_at?a.created_at.split("T")[0]:"—";
     const profile=a.users||{};
     const hasProfile=profile.about_me||profile.instagram||profile.facebook||profile.profile_pic;
     const hasCover=!!a.cover_letter;
-    return `<tr data-status="${a.status}">
-      <td>
-        <div style="display:flex;align-items:center;gap:9px;">
-          <div style="width:28px;height:28px;border-radius:50%;background:var(--surface3);display:grid;place-items:center;font-size:11px;font-weight:700;overflow:hidden;flex-shrink:0;cursor:${hasProfile?"pointer":"default"};" onclick="${hasProfile?`viewApplicantProfile(${a.id})`:""}">${profile.profile_pic?`<img src="${profile.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;"/>`:((a.name||"?")[0].toUpperCase())}</div>
-          <div>
-            <div class="td-title" style="${hasProfile?"cursor:pointer;color:var(--accent3);":""}" onclick="${hasProfile?`viewApplicantProfile(${a.id})`:""}">${a.name}</div>
-            <div class="td-mono">${a.email}</div>
+    const appStCls = {pending:"gc-gold",accepted:"",rejected:"gc-red",reviewed:"gc-blue"}[a.status]||"";
+    const statusBorder = {pending:"#c89a2c",accepted:"#15873a",rejected:"#b03a2e",reviewed:"#1a6ea8"}[a.status]||"var(--border)";
+    return `<div class="app-card" style="border-left-color:${statusBorder}">
+      <div class="app-card-top">
+        <div style="display:flex;align-items:center;gap:12px;flex:1;min-width:0;">
+          <div class="app-card-avatar" style="cursor:${hasProfile?"pointer":"default"}" onclick="${hasProfile?`viewApplicantProfile(${a.id})`:""}">${profile.profile_pic?`<img src="${profile.profile_pic}" style="width:100%;height:100%;object-fit:cover;border-radius:50%;" onerror="this.parentElement.textContent='${((a.name||"?")[0]).toUpperCase()}'"/>`:((a.name||"?")[0].toUpperCase())}</div>
+          <div class="app-card-info">
+            <div class="app-card-title" style="${hasProfile?"cursor:pointer;":""}color:${hasProfile?"var(--accent3)":"var(--ink)"}" onclick="${hasProfile?`viewApplicantProfile(${a.id})`:""}">${a.name||"Applicant"}</div>
+            <div class="app-card-email">${a.email||""}</div>
+            <div class="app-card-meta">
+              <span>📋 ${a.jobs?.title||"—"}</span>
+              <span class="app-card-sep">·</span>
+              <span>📅 ${date}</span>
+            </div>
           </div>
         </div>
-      </td>
-      <td><span class="g-chip gc-muted">${a.jobs?.title||"—"}</span></td>
-      <td><span class="g-chip gc-muted">${date}</span></td>
-      <td>${hasCover
-        ?`<button class="btn btn-ghost btn-sm" style="color:var(--gold);border-color:rgba(255,204,68,0.3);" onclick="openCoverModal(${a.id})">Read ↗</button>`
-        :`<span class="td-muted" style="font-size:12px;">—</span>`
-      }</td>
-      <td><span class="g-chip ${{pending:"gc-gold",accepted:"",rejected:"gc-red",reviewed:"gc-blue"}[a.status]||""}">${a.status}</span></td>
-      <td style="display:flex;gap:5px;flex-wrap:wrap;">
-        <button class="btn btn-success btn-sm" onclick="updateStatus(${a.id},'accepted',this)">Accept</button>
-        <button class="btn btn-danger btn-sm"  onclick="updateStatus(${a.id},'rejected',this)">Reject</button>
-        <button class="btn btn-ghost btn-sm"   onclick="updateStatus(${a.id},'reviewed',this)">Review</button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
-          onclick="openChatModal(${a.id},'${(a.name||'Applicant').replace(/'/g,"\\'")}','${(a.users?.profile_pic||'')}','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">
-          Chat
-        </button>
-        <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(255,68,68,0.3);"
-        onclick="openReportUserModal(${a.users?.id||a.user_id},'${(a.name||'').replace(/'/g,"\\'")}','${a.email||''}','${a.users?.profile_pic||''}')">
-        Report
-      </button>
-
-      </td>
-    </tr>`;
+        <div class="app-card-status">
+          <span class="g-chip ${appStCls}">${a.status}</span>
+        </div>
+      </div>
+      <div class="app-card-actions">
+        <div class="app-card-actions-left">
+          ${hasCover?`<button class="btn btn-ghost btn-sm" style="color:var(--gold);border-color:rgba(255,204,68,0.3);" onclick="openCoverModal(${a.id})">📄 Cover Letter</button>`:""}
+        </div>
+        <div class="app-card-actions-right">
+          <button class="btn btn-success btn-sm" onclick="updateStatus(${a.id},'accepted',this)">Accept</button>
+          <button class="btn btn-danger btn-sm"  onclick="updateStatus(${a.id},'rejected',this)">Reject</button>
+          <button class="btn btn-ghost btn-sm"   onclick="updateStatus(${a.id},'reviewed',this)">Review</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--accent);border-color:rgba(232,149,109,0.3);"
+            onclick="openChatModal(${a.id},'${(a.name||'Applicant').replace(/'/g,"\\'")}','${(a.users?.profile_pic||'')}','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
+          <button class="btn btn-ghost btn-sm" style="color:var(--red);border-color:rgba(255,68,68,0.3);"
+            onclick="openReportUserModal(${a.users?.id||a.user_id},'${(a.name||'').replace(/'/g,"\\'")}','${a.email||''}','${a.users?.profile_pic||''}')">Report</button>
+        </div>
+      </div>
+    </div>`;
   }).join("");
 }
 
