@@ -19,6 +19,7 @@ const CATEGORIES = [
   {id:"event",label:"Events & Assistance",icon:"🎉",individual:true},
 ];
 const catMap  = Object.fromEntries(CATEGORIES.map(c=>[c.id,`${c.icon} ${c.label}`]));
+const catLabelMap = Object.fromEntries(CATEGORIES.map(c=>[c.id,c.label]));
 const typeMap = {"Full-Time":"full-time","Part-Time":"part-time","Internship":"internship","Remote":"remote"};
 const LOGO_IG = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="2" width="20" height="20" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" y1="6.5" x2="17.51" y2="6.5"/></svg>`;
 const LOGO_FB = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>`;
@@ -28,6 +29,18 @@ const LOGO_WEB = `<svg xmlns="http://www.w3.org/2000/svg" width="14" height="14"
 
 document.getElementById("sidebarRoleLabel").textContent = `/ ${user.role}`;
 document.getElementById("topbarTitle").textContent = user.role==="employer"?"Employer Dashboard":"Dashboard";
+
+function normalizeDashboardCopy(){
+  document.querySelectorAll("a.btn, button.btn").forEach(el => {
+    el.textContent = el.textContent
+      .replace(/[←→✕]/g, "")
+      .replace(/\s+/g, " ")
+      .trim();
+  });
+  const searchInput = document.getElementById("jobSearchInput");
+  if (searchInput) searchInput.placeholder = "Search jobs by title, company, or keyword...";
+  document.querySelectorAll("#tabSaved .panel-header h3").forEach(h => { h.textContent = "Saved Jobs"; });
+}
 
 // Welcome greeting
 const _hour = new Date().getHours();
@@ -61,30 +74,39 @@ if (user.role==="employer") {
     if (c.individual && !addedIndivHeader) {
       const sep = document.createElement("div");
       sep.style.cssText = "grid-column:1/-1;display:flex;align-items:center;gap:10px;margin-top:6px;margin-bottom:2px;";
+      sep.dataset.plainLabel = "Individual / Personal Hire";
       sep.innerHTML = '<span style="flex:1;height:1px;background:var(--border);"></span><span style="font-size:9px;font-weight:700;text-transform:uppercase;letter-spacing:0.12em;color:#a78bfa;white-space:nowrap;">👤 Individual / Personal Hire</span><span style="flex:1;height:1px;background:var(--border);"></span>';
+      sep.children[1].textContent = sep.dataset.plainLabel;
+      sep.children[1].style.color = "var(--ink-muted)";
       grid.appendChild(sep);
       addedIndivHeader = true;
     }
     const chip=document.createElement("div");
     chip.className="int-chip" + (c.individual?" individual-chip":"");
-    if (c.individual) chip.style.cssText = "border-color:rgba(167,139,250,0.25);";
+    if (c.individual) chip.style.cssText = "border-color:var(--border);";
     chip.innerHTML=`<span class="int-chip-letter">${String.fromCharCode(65+idx)}</span><span class="int-chip-label">${c.label}</span>`;
-    chip.onclick=()=>searchByInterest(c.id,c.label,c.icon,chip);
+    chip.onclick=()=>searchByInterest(c.id,c.label,chip);
     grid.appendChild(chip);
   });
 }
 
 /* ── TAB SWITCHES ── */
+function _viewEl(viewId, id) {
+  return document.querySelector("#" + viewId + " #" + id);
+}
+
 function showAppTab(id, btn) {
   document.querySelectorAll("#applicantView .tab-panel").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".app-tab-btn").forEach(b=>b.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  const panel = _viewEl("applicantView", id);
+  if (panel) panel.classList.add("active");
   btn.classList.add("active");
 }
 function showEmpTab(id, btn) {
   document.querySelectorAll("#employerView .tab-panel").forEach(t=>t.classList.remove("active"));
   document.querySelectorAll(".emp-tab-btn").forEach(b=>b.classList.remove("active"));
-  document.getElementById(id).classList.add("active");
+  const panel = _viewEl("employerView", id);
+  if (panel) panel.classList.add("active");
   if(btn) btn.classList.add("active");
 }
 
@@ -277,6 +299,60 @@ function renderAppPage() {
   }).join("");
 }
 
+function renderApplicantApplicationCards(apps){
+  return apps.map(a => {
+    const date = a.created_at ? new Date(a.created_at).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}) : "Not set";
+    const dl = a.jobs?.deadline ? new Date(a.jobs.deadline).toLocaleDateString("en-PH",{month:"short",day:"numeric"}) : "Not set";
+    const status = a.status || "pending";
+    const title = escapeHtml(a.jobs?.title || "Position");
+    const company = escapeHtml(a.jobs?.company || "Company not set");
+    const jobStatus = escapeHtml(a.jobs?.status || "open");
+    const slots = a.jobs?.max_applicants ? `${a.jobs.max_applicants} slots` : "Unlimited slots";
+    return `<article class="application-card applicant-application-card status-${escapeHtml(status)}">
+      <div class="application-card-body">
+        <div class="application-applicant">
+          <div class="application-person">
+            <div class="application-name">${title}</div>
+            <div class="application-email">${company}</div>
+          </div>
+          <span class="application-status">${escapeHtml(status)}</span>
+        </div>
+        <div class="application-details">
+          <div><span>Applied</span>${escapeHtml(date)}</div>
+          <div><span>Job status</span>${jobStatus}</div>
+          <div><span>Deadline</span>${escapeHtml(dl)}</div>
+          <div><span>Capacity</span>${escapeHtml(slots)}</div>
+        </div>
+      </div>
+      <div class="application-actions">
+        <button class="btn btn-ghost btn-sm" onclick="viewMyApp(${a.id})">View Details</button>
+        <button class="btn btn-ghost btn-sm"
+          onclick="openChatModal(${a.id},'${(a.jobs?.company||'Employer').replace(/'/g,"\\'")}','','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
+        <button class="btn btn-ghost btn-sm" onclick="withdrawApp(${a.id})">Withdraw</button>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+renderAppPage = function() {
+  const totalPages = Math.max(1, Math.ceil(_allApps.length / APP_PAGE_SIZE));
+  const start = (_appPage - 1) * APP_PAGE_SIZE;
+  const slice = _allApps.slice(start, start + APP_PAGE_SIZE);
+  const container = document.getElementById("appTableBody");
+
+  document.getElementById("appPageInfo").textContent =
+    _allApps.length > 0 ? `Page ${_appPage} of ${totalPages} · ${_allApps.length} total` : "";
+  document.getElementById("appPrevBtn").disabled = _appPage <= 1;
+  document.getElementById("appNextBtn").disabled = _appPage >= totalPages;
+
+  if (!_allApps.length) {
+    container.innerHTML = `<div class="empty-msg">No applications yet. <a href="jobs.html" style="color:var(--ink);">Browse jobs</a></div>`;
+    return;
+  }
+
+  container.innerHTML = renderApplicantApplicationCards(slice);
+};
+
 /* #5 — View own application detail */
 function viewMyApp(appId) {
   const a = _allApps.find(x => x.id === appId);
@@ -389,16 +465,86 @@ async function runJobSearch(query) {
   }
 }
 
+function renderInterestJobCards(jobs){
+  return jobs.map(j => {
+    const closed = j.status !== "open";
+    const status = escapeHtml(j.status || "open");
+    const type = escapeHtml(j.type || "Not set");
+    const title = escapeHtml(j.title || "Untitled job");
+    const company = escapeHtml(j.company || "Company not set");
+    const location = escapeHtml(j.location || "Location not set");
+    const salary = j.salary ? escapeHtml(j.salary) : "Not listed";
+    return `<article class="application-card interest-job-card status-${closed ? "closed" : "open"}">
+      <div class="application-card-body">
+        <div class="application-applicant">
+          <div class="application-person">
+            <div class="application-name">${title}</div>
+            <div class="application-email">${company}</div>
+          </div>
+          <span class="application-status">${status}</span>
+        </div>
+        <div class="application-details">
+          <div><span>Location</span>${location}</div>
+          <div><span>Job type</span>${type}</div>
+          <div><span>Salary</span>${salary}</div>
+          <div><span>Status</span>${status}</div>
+        </div>
+      </div>
+      <div class="application-actions">
+        <a href="jobs.html" class="btn btn-ghost btn-sm">${closed ? "Closed" : "Apply"}</a>
+      </div>
+    </article>`;
+  }).join("");
+}
+
+searchByInterest = async function(catId,label,chip){
+  document.querySelectorAll(".int-chip").forEach(c=>c.classList.remove("active"));
+  chip.classList.add("active");
+  const panel=document.getElementById("interestResults");
+  panel.classList.add("show");
+  document.getElementById("interestResultTitle").textContent=`${label} Jobs`;
+  document.getElementById("interestJobList").innerHTML=`<div class="empty-msg">Loading...</div>`;
+  try{
+    const jobs=await api(`/jobs?category=${catId}`);
+    if(!jobs.length){document.getElementById("interestJobList").innerHTML=`<div class="empty-msg">No jobs in this category yet.</div>`;return;}
+    document.getElementById("interestJobList").innerHTML=renderInterestJobCards(jobs);
+  } catch(e){document.getElementById("interestJobList").innerHTML=`<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;}
+};
+
+runJobSearch = async function(query) {
+  const panel = document.getElementById("interestResults");
+  panel.classList.add("show");
+  document.getElementById("interestResultTitle").textContent = `Search: "${query}"`;
+  document.getElementById("interestJobList").innerHTML = `<div class="empty-msg">Searching...</div>`;
+  try {
+    const jobs = await api(`/jobs?search=${encodeURIComponent(query)}`);
+    if (!jobs.length) {
+      document.getElementById("interestJobList").innerHTML = `<div class="empty-msg">No jobs found for "${escapeHtml(query)}".</div>`;
+      return;
+    }
+    document.getElementById("interestJobList").innerHTML = renderInterestJobCards(jobs);
+  } catch(e) {
+    document.getElementById("interestJobList").innerHTML = `<div class="empty-msg" style="color:var(--red);">Error: ${e.message}</div>`;
+  }
+};
+
 /* ── EMPLOYER DATA ── */
 async function loadEmployerData(){
   try{
     const [apps,jobs]=await Promise.all([api(`/applications/employer`),api(`/jobs?employer_id=${user.id}`)]);
+    _employerApps = apps;
+    _employerJobs = jobs;
+    if (_selectedEmployerJobId && !jobs.some(j => Number(j.id) === Number(_selectedEmployerJobId))) {
+      _selectedEmployerJobId = null;
+    }
     document.getElementById("empStatTotal").textContent=apps.length;
     document.getElementById("empStatPending").textContent=apps.filter(a=>a.status==="pending").length;
     document.getElementById("empStatAccepted").textContent=apps.filter(a=>a.status==="accepted").length;
     document.getElementById("empStatRejected").textContent=apps.filter(a=>a.status==="rejected").length;
     document.getElementById("empAppBadge").textContent=apps.length;
-    renderEmployerApps(apps); renderMyJobs(jobs); loadEmpProfile(); populateAnalyticsSelect(jobs);
+    renderEmployerJobSearch(jobs);
+    renderFilteredEmployerApps();
+    renderMyJobs(jobs); loadEmpProfile(); populateAnalyticsSelect(jobs);
   } catch(e){document.getElementById("empAppTableBody").innerHTML=`<tr><td colspan="6" style="text-align:center;padding:24px;color:var(--red);font-family:var(--mono);font-size:12px;">Error: ${e.message}</td></tr>`;}
 }
 
@@ -571,6 +717,81 @@ async function submitIdVerification() {
 /* ── EMPLOYER APPS TABLE ── */
 // Store apps by ID so onclick handlers reference by ID, not inline JSON
 const _appStore = {};
+let _employerApps = [];
+let _employerJobs = [];
+let _selectedEmployerJobId = null;
+let _employerJobSearchOpen = false;
+
+function getFilteredEmployerApps(){
+  if (!_selectedEmployerJobId) return _employerApps;
+  return _employerApps.filter(a => Number(a.job_id) === Number(_selectedEmployerJobId));
+}
+
+function renderFilteredEmployerApps(){
+  renderEmployerApps(getFilteredEmployerApps());
+  renderEmployerJobFilterSummary();
+}
+
+function toggleEmployerJobSearch(){
+  _employerJobSearchOpen = !_employerJobSearchOpen;
+  renderEmployerJobSearch(_employerJobs);
+}
+
+function selectEmployerJobFilter(jobId){
+  _selectedEmployerJobId = jobId ? Number(jobId) : null;
+  _employerJobSearchOpen = false;
+  renderEmployerJobSearch(_employerJobs);
+  renderFilteredEmployerApps();
+}
+
+function renderEmployerJobFilterSummary(){
+  const summary = document.getElementById("empJobFilterSummary");
+  if (!summary) return;
+  const selectedJob = _employerJobs.find(j => Number(j.id) === Number(_selectedEmployerJobId));
+  const count = getFilteredEmployerApps().length;
+  if (!selectedJob) {
+    summary.innerHTML = "";
+    return;
+  }
+  summary.innerHTML = `
+    <span>Showing ${count} application${count === 1 ? "" : "s"} for ${escapeHtml(selectedJob.title || "selected job")}</span>
+    <button type="button" onclick="selectEmployerJobFilter(null)">Show all jobs</button>
+  `;
+}
+
+function renderEmployerJobSearch(jobs){
+  const menu = document.getElementById("empJobSearchMenu");
+  const btn = document.getElementById("empJobSearchBtn");
+  if (!menu || !btn) return;
+  btn.classList.toggle("active", _employerJobSearchOpen);
+  menu.classList.toggle("open", _employerJobSearchOpen);
+
+  if (!_employerJobSearchOpen) {
+    menu.innerHTML = "";
+    return;
+  }
+
+  if (!jobs.length) {
+    menu.innerHTML = `<div class="app-job-filter-empty">No job postings yet.</div>`;
+    return;
+  }
+
+  const allActive = !_selectedEmployerJobId ? " active" : "";
+  menu.innerHTML = `
+    <button type="button" class="app-job-filter-item${allActive}" onclick="selectEmployerJobFilter(null)">
+      <span>All job postings</span>
+      <small>${_employerApps.length} application${_employerApps.length === 1 ? "" : "s"}</small>
+    </button>
+    ${jobs.map(j => {
+      const appCount = _employerApps.filter(a => Number(a.job_id) === Number(j.id)).length;
+      const active = Number(j.id) === Number(_selectedEmployerJobId) ? " active" : "";
+      return `<button type="button" class="app-job-filter-item${active}" onclick="selectEmployerJobFilter(${j.id})">
+        <span>${escapeHtml(j.title || "Untitled posting")}</span>
+        <small>${appCount} application${appCount === 1 ? "" : "s"}</small>
+      </button>`;
+    }).join("")}
+  `;
+}
 
 function renderEmployerApps(apps){
   const container=document.getElementById("empAppTableBody");
@@ -617,6 +838,59 @@ function renderEmployerApps(apps){
         </div>
       </div>
     </div>`;
+  }).join("");
+}
+
+function renderEmployerApps(apps){
+  const container=document.getElementById("empAppTableBody");
+  if(!apps.length){
+    const selectedJob = _employerJobs.find(j => Number(j.id) === Number(_selectedEmployerJobId));
+    container.innerHTML=`<div class="empty-msg">${selectedJob ? `No applications yet for ${escapeHtml(selectedJob.title || "this job")}.` : "No applications received yet."}</div>`;
+    return;
+  }
+  apps.forEach(a => { _appStore[a.id] = a; });
+  container.innerHTML=apps.map(a=>{
+    const date=a.created_at?new Date(a.created_at).toLocaleDateString("en-PH",{month:"short",day:"numeric",year:"numeric"}):"—";
+    const profile=a.users||{};
+    const hasProfile=profile.about_me||profile.instagram||profile.facebook||profile.profile_pic;
+    const hasCover=!!a.cover_letter;
+    const status = a.status || "pending";
+    const name = escapeHtml(a.name || "Applicant");
+    const email = escapeHtml(a.email || "");
+    const jobTitle = escapeHtml(a.jobs?.title || "Position");
+    const avatar = profile.profile_pic
+      ? `<img src="${escapeHtml(profile.profile_pic)}" alt="${name}" onerror="this.parentElement.textContent='${escapeHtml((a.name||'?')[0].toUpperCase())}'"/>`
+      : escapeHtml((a.name||"?")[0].toUpperCase());
+    const profileClick = hasProfile ? `onclick="viewApplicantProfile(${a.id})"` : "";
+    const profileClass = hasProfile ? " has-profile" : "";
+    return `<article class="application-card status-${escapeHtml(status)}">
+      <div class="application-card-body">
+        <div class="application-applicant">
+          <button class="application-avatar${profileClass}" ${profileClick} aria-label="View applicant profile">${avatar}</button>
+          <div class="application-person">
+            <button class="application-name${profileClass}" ${profileClick}>${name}</button>
+            <div class="application-email">${email}</div>
+          </div>
+          <span class="application-status">${escapeHtml(status)}</span>
+        </div>
+        <div class="application-details">
+          <div><span>Applied for</span>${jobTitle}</div>
+          <div><span>Date</span>${escapeHtml(date)}</div>
+          <div><span>Cover letter</span>${hasCover ? "Available" : "None"}</div>
+          <div><span>Profile</span>${hasProfile ? "Available" : "Basic"}</div>
+        </div>
+      </div>
+      <div class="application-actions">
+        ${hasCover?`<button class="btn btn-ghost btn-sm" onclick="openCoverModal(${a.id})">Cover Letter</button>`:`<button class="btn btn-ghost btn-sm" disabled>Cover Letter</button>`}
+        <button class="btn btn-ghost btn-sm" onclick="updateStatus(${a.id},'accepted',this)">Accept</button>
+        <button class="btn btn-ghost btn-sm" onclick="updateStatus(${a.id},'rejected',this)">Reject</button>
+        <button class="btn btn-ghost btn-sm" onclick="updateStatus(${a.id},'reviewed',this)">Review</button>
+        <button class="btn btn-ghost btn-sm"
+          onclick="openChatModal(${a.id},'${(a.name||'Applicant').replace(/'/g,"\\'")}','${(a.users?.profile_pic||'')}','${(a.jobs?.title||'Position').replace(/'/g,"\\'")}')">Chat</button>
+        <button class="btn btn-ghost btn-sm"
+          onclick="openReportUserModal(${a.users?.id||a.user_id},'${(a.name||'').replace(/'/g,"\\'")}','${a.email||''}','${a.users?.profile_pic||''}')">Report</button>
+      </div>
+    </article>`;
   }).join("");
 }
 
@@ -738,6 +1012,53 @@ function renderMyJobs(jobs){
 }
 
 /* #7 — Edit Job Modal */
+function renderMyJobs(jobs){
+  _myJobs = jobs;
+  const tbody=document.getElementById("myJobsTableBody");
+  if(!jobs.length){
+    tbody.innerHTML=`<div class="empty-msg">No jobs posted yet.</div>`;
+    return;
+  }
+  tbody.innerHTML=jobs.map(j=>{
+    const dl=j.deadline?new Date(j.deadline).toLocaleDateString("en-PH",{month:"short",day:"numeric"}):"—";
+    const status = j.status || "open";
+    const title = escapeHtml(j.title || "Untitled posting");
+    const company = escapeHtml(j.company || "JobTrack");
+    const location = escapeHtml(j.location || "Location not set");
+    const category = escapeHtml(catLabelMap[j.category] || "Uncategorized");
+    const type = escapeHtml(j.type || "Not set");
+    const slots = j.max_applicants ? `${j.applicant_count || 0}/${j.max_applicants} applicants` : "Unlimited applicants";
+    const image = j.image_url
+      ? `<img src="${escapeHtml(j.image_url)}" alt="${title}" onerror="this.parentElement.classList.add('is-empty');this.remove();"/>`
+      : "";
+    return `<article class="my-posting-card" data-status="${escapeHtml(status)}">
+      <div class="my-posting-image ${j.image_url ? "" : "is-empty"}">
+        ${image}
+      </div>
+      <div class="my-posting-body">
+        <div class="my-posting-head">
+          <div>
+            <div class="my-posting-title">${title}</div>
+            <div class="my-posting-company">${company} · ${location}</div>
+          </div>
+          <span class="my-posting-status status-${escapeHtml(status)}">${escapeHtml(status)}</span>
+        </div>
+        <div class="my-posting-details">
+          <div><span>Category</span>${category}</div>
+          <div><span>Job type</span>${type}</div>
+          <div><span>Date</span>${escapeHtml(dl)}</div>
+          <div><span>Slots</span>${escapeHtml(slots)}</div>
+        </div>
+      </div>
+      <div class="my-posting-actions">
+        <button class="btn btn-ghost btn-sm" onclick="openEditJobModal(${j.id})">Edit</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleStatus(${j.id},'open')" ${status==="open"?"disabled":""}>Open</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleStatus(${j.id},'closed')" ${status==="closed"?"disabled":""}>Close</button>
+      </div>
+    </article>`;
+  }).join("");
+}
+
 function openEditJobModal(jobId) {
   const j = _myJobs.find(x => x.id === jobId);
   if (!j) return;
@@ -920,11 +1241,11 @@ async function withdrawApp(id){const ok=await showConfirm("Withdraw","Withdraw t
 /* #9 — Smart refresh: only reload the active visible tab, not everything */
 function _getActiveTab() {
   if (user.role === "employer") {
-    const panels = ["tabEmpApps","tabMyJobs","tabPost","tabEmpProfile","tabAnalytics"];
-    return panels.find(id => document.getElementById(id)?.classList.contains("active")) || "tabEmpApps";
+    const panels = ["tabEmpApps","tabMyJobs","tabPost","tabEmpProfile","tabAnalytics","tabEmpMessages"];
+    return panels.find(id => _viewEl("employerView", id)?.classList.contains("active")) || "tabEmpApps";
   }
-  const panels = ["tabProfile","tabApps","tabInterest"];
-  return panels.find(id => document.getElementById(id)?.classList.contains("active")) || "tabProfile";
+  const panels = ["tabProfile","tabApps","tabInterest","tabAnalytics","tabMessages"];
+  return panels.find(id => _viewEl("applicantView", id)?.classList.contains("active")) || "tabProfile";
 }
 
 function smartRefresh() {
@@ -942,7 +1263,7 @@ function smartRefresh() {
 }
 
 function populateAnalyticsSelect(jobs) {
-  var sel = document.getElementById("analyticsJobSelect");
+  var sel = document.querySelector("#employerView #analyticsJobSelect");
   if (!sel) return;
   var prev = sel.value;
   sel.innerHTML = '<option value="">-- Choose a job --</option>';
@@ -956,8 +1277,9 @@ function populateAnalyticsSelect(jobs) {
 }
 
 async function loadAnalytics(jobId) {
-  var content = document.getElementById("analyticsContent");
-  var empty   = document.getElementById("analyticsEmpty");
+  var content = document.querySelector("#employerView #analyticsContent");
+  var empty   = document.querySelector("#employerView #analyticsEmpty");
+  if (!content || !empty) return;
   var isMobile = window.matchMedia("(max-width: 768px)").matches;
   if (!jobId) {
     content.style.display = "none";
@@ -978,14 +1300,14 @@ async function loadAnalytics(jobId) {
       { label:"Pending",     value: d.pending,                  color:"gold",   tone:"pending"  },
       { label:"Accept Rate", value: (d.acceptance_rate||0)+"%", color:"",       tone:"rate"     },
     ];
-    document.getElementById("analyticsCards").innerHTML = cards.map(function(card) {
+    document.querySelector("#employerView #analyticsCards").innerHTML = cards.map(function(card) {
       return '<div class="stat-card analytics-stat-card analytics-tone-' + card.tone + '"><div class="stat-card-label">' + card.label + '</div>' +
              '<div class="stat-card-num ' + card.color + '">' + card.value + '</div></div>';
     }).join("");
     var timeline = d.timeline || [];
     var maxVal = Math.max.apply(null, timeline.map(function(t){ return t.applications; }));
     var safeMax = maxVal > 0 ? maxVal : 1;
-    document.getElementById("analyticsChart").innerHTML = timeline.map(function(t) {
+    document.querySelector("#employerView #analyticsChart").innerHTML = timeline.map(function(t) {
       var h  = Math.max(Math.round((t.applications / safeMax) * 120), t.applications > 0 ? 4 : 1);
       var bg = t.applications > 0 ? "linear-gradient(180deg, rgba(30,168,60,0.95) 0%, rgba(30,168,60,0.7) 100%)" : "var(--surface3)";
       return '<div class="analytics-bar-wrap" title="' + t.date + ': ' + t.applications + ' apps">' +
@@ -995,11 +1317,11 @@ async function loadAnalytics(jobId) {
     }).join("");
     var labelStep = isMobile ? 10 : 7;
     var labels = timeline.filter(function(_, i){ return i % labelStep === 0 || i === timeline.length - 1; });
-    document.getElementById("analyticsChartLabels").innerHTML = labels.map(function(t) {
+    document.querySelector("#employerView #analyticsChartLabels").innerHTML = labels.map(function(t) {
       var dt = new Date(t.date);
       return "<span>" + (dt.getMonth()+1) + "/" + dt.getDate() + "</span>";
     }).join("");
-    document.getElementById("analyticsBreakdown").innerHTML = (d.status_breakdown||[]).map(function(s) {
+    document.querySelector("#employerView #analyticsBreakdown").innerHTML = (d.status_breakdown||[]).map(function(s) {
       var pct = d.total_applications > 0 ? Math.round((s.value / d.total_applications) * 100) : 0;
       return '<div class="analytics-break-row">' +
         '<div class="analytics-break-head">' +
@@ -1498,7 +1820,7 @@ showAppTab = function(id, btn) {
 // ══ APPLICANT ANALYTICS ══════════════════════════════
 let _analyticsLoaded = false;
 async function loadApplicantAnalytics() {
-  const container = document.getElementById("analyticsContent");
+  const container = document.querySelector("#applicantView #analyticsContent");
   if (!container) return;
 
   // Show loading only on first load

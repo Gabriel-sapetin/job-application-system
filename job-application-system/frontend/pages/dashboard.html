@@ -393,8 +393,14 @@
           <div id="tabEmpApps" class="tab-panel active">
             <div class="panel">
               <div class="panel-header">
-                <h3>Applications Received</h3><span class="td-muted" style="font-size:12px;">Click name to view profile</span>
+                <h3>Applications Received</h3>
+                <span class="td-muted" style="font-size:12px;">Click name to view profile</span>
+                <div class="app-job-filter">
+                  <button class="btn btn-ghost btn-sm" id="empJobSearchBtn" onclick="toggleEmployerJobSearch()">Search</button>
+                  <div class="app-job-filter-menu" id="empJobSearchMenu" aria-label="Job postings filter"></div>
+                </div>
               </div>
+              <div class="app-job-filter-summary" id="empJobFilterSummary"></div>
               <div id="empAppTableBody" class="cards-container">
                 <div class="empty-msg">Loading...</div>
               </div>
@@ -406,7 +412,7 @@
             <div class="panel">
               <div class="panel-header">
                 <h3>My Job Postings</h3>
-                <button class="btn btn-primary btn-sm" onclick="showEmpTab('tabPost', document.querySelector('[onclick*=tabPost]'))">+ New Posting</button>
+                <button class="btn btn-ghost btn-sm" onclick="showEmpTab('tabPost', document.querySelector('[onclick*=tabPost]'))">New Posting</button>
               </div>
               <div id="myJobsTableBody" class="cards-container">
                 <div class="empty-msg">Loading...</div>
@@ -695,7 +701,7 @@
                 <span class="td-muted" style="font-size:12px;">Select a job to view stats</span>
               </div>
               <div class="panel-body">
-                <div class="form-group" style="max-width:360px;">
+                <div class="form-group analytics-job-picker">
                   <label>Select Job Posting</label>
                   <select id="analyticsJobSelect" onchange="loadAnalytics(this.value)">
                     <option value="">-- Choose a job --</option>
